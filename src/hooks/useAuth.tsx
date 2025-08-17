@@ -1,17 +1,13 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import type { AuthState } from '../types/authTypes.ts';
+import type { UserWithRoles } from '../types/userTypes';
 import { authService } from '../services/authService.ts';
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<string | null>; // Returns error message or null for success
   logout: () => Promise<void>;
-  register: (
-    name: string,
-    email: string,
-    password: string,
-    passwordConfirmation: string,
-  ) => Promise<boolean>;
+  register: (name: string, email: string, password: string, passwordConfirmation: string) => Promise<string | null>;
   refreshUser: () => Promise<void>;
 }
 
@@ -38,7 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             isLoading: false,
           });
         } catch (error) {
-          // Token is invalid, remove it
           localStorage.removeItem('auth_token');
           setAuthState({
             user: null,
@@ -48,49 +43,83 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
         }
       } else {
-        setAuthState((prev) => ({ ...prev, isLoading: false }));
+        setAuthState(prev => ({ ...prev, isLoading: false }));
       }
     };
 
     initAuth();
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<string | null> => {
+    setAuthState(prev => ({ ...prev, isLoading: true }));
+    
     try {
-      setAuthState((prev) => ({ ...prev, isLoading: true }));
       const response = await authService.login({ email, password });
 
-      // Handle nested data structure from Laravel
-      if (
-        response.success &&
-        response.data &&
-        response.data.token &&
-        response.data.user
-      ) {
+      if (response.success && response.data?.token && response.data?.user) {
         setAuthState({
           user: response.data.user,
           token: response.data.token,
           isAuthenticated: true,
           isLoading: false,
         });
-        return true;
+        return null; // Success
+      } else {
+        setAuthState(prev => ({ ...prev, isLoading: false }));
+        return response.message || 'Login failed';
       }
+    } catch (error: any) {
+      setAuthState(prev => ({ ...prev, isLoading: false }));
+      
+      // Check if it's a network error or server error
+      if (error.response?.data?.message) {
+        return error.response.data.message;
+      } else if (error.response?.data?.success === false) {
+        return error.response.data.message || 'Invalid credentials';
+      } else {
+        return 'Network error. Please check your connection.';
+      }
+    }
+  };
 
-      setAuthState((prev) => ({ ...prev, isLoading: false }));
-      return false;
-    } catch (error) {
-      setAuthState((prev) => ({ ...prev, isLoading: false }));
-      return false;
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    passwordConfirmation: string,
+  ): Promise<string | null> => {
+    setAuthState(prev => ({ ...prev, isLoading: true }));
+    
+    try {
+      const response = await authService.register({
+        name,
+        email,
+        password,
+        password_confirmation: passwordConfirmation,
+      });
+
+      setAuthState(prev => ({ ...prev, isLoading: false }));
+      
+      if (response.success) {
+        return null; // Success
+      } else {
+        return response.message || 'Registration failed';
+      }
+    } catch (error: any) {
+      setAuthState(prev => ({ ...prev, isLoading: false }));
+      
+      if (error.response?.data?.message) {
+        return error.response.data.message;
+      } else {
+        return 'Registration failed. Please try again.';
+      }
     }
   };
 
   const logout = async (): Promise<void> => {
     try {
       await authService.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('auth_token');
       setAuthState({
         user: null,
         token: null,
@@ -100,33 +129,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const register = async (
-    name: string,
-    email: string,
-    password: string,
-    passwordConfirmation: string,
-  ): Promise<boolean> => {
-    try {
-      setAuthState((prev) => ({ ...prev, isLoading: true }));
-      const response = await authService.register({
-        name,
-        email,
-        password,
-        password_confirmation: passwordConfirmation,
-      });
-
-      setAuthState((prev) => ({ ...prev, isLoading: false }));
-      return response.success;
-    } catch (error) {
-      setAuthState((prev) => ({ ...prev, isLoading: false }));
-      return false;
-    }
-  };
-
   const refreshUser = async (): Promise<void> => {
     try {
-      const user = await authService.getUserProfile();
-      setAuthState((prev) => ({ ...prev, user }));
+      const user: UserWithRoles = await authService.getUserProfile();
+      setAuthState(prev => ({ ...prev, user }));
     } catch (error) {
       console.error('Failed to refresh user:', error);
     }

@@ -25,6 +25,7 @@ import ResetPassword from './pages/auth/ResetPassword';
 // Main Pages
 import Dashboard from './pages/Dashboard';
 import Pizza from './pages/Pizza';
+import UserManagement from './pages/UserManagement'; // New import
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Settings from './pages/Settings';
@@ -105,6 +106,16 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <Pizza />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <UserManagement />
                     </MainLayout>
                   </ProtectedRoute>
                 }

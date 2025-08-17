@@ -10,10 +10,12 @@ import type {
   User,
 } from '../types/authTypes.ts';
 
-// Base API URL - update to your actual domain
-const API_BASE_URL = 'http://localhost:8000/api/auth';
+const API_BASE_URL = 'https://auth.pnepizza.com/api/v1/auth';
 
-// Create axios instance with default config
+let isRefreshing = false;
+let refreshAttempts = 0;
+const MAX_REFRESH_ATTEMPTS = 3;
+
 const authApi = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -22,7 +24,7 @@ const authApi = axios.create({
   },
 });
 
-// Add token to requests if available
+// Simple token interceptor
 authApi.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
@@ -31,109 +33,108 @@ authApi.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle token refresh on 401 responses
+// Simplified response interceptor - only handle token refresh for protected routes
 authApi.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Try to refresh token
-      try {
-        await refreshToken();
-        // Retry the original request
-        return authApi.request(error.config);
-      } catch (refreshError) {
-        // Refresh failed, redirect to login
+    const originalRequest = error.config;
+    
+    // Only try refresh for /me endpoint and other protected routes
+    const protectedEndpoints = ['/me', '/logout'];
+    const isProtectedEndpoint = protectedEndpoints.some(endpoint => 
+      originalRequest.url?.includes(endpoint)
+    );
+
+    if (error.response?.status === 401 && isProtectedEndpoint && !originalRequest._retry) {
+      if (refreshAttempts >= MAX_REFRESH_ATTEMPTS || isRefreshing) {
         localStorage.removeItem('auth_token');
-        window.location.href = '/login';
+        refreshAttempts = 0;
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+      refreshAttempts++;
+
+      try {
+        const response = await axios.post(`${API_BASE_URL}/refresh-token`, {}, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.data.success && response.data.data?.token) {
+          const newToken = response.data.data.token;
+          localStorage.setItem('auth_token', newToken);
+          refreshAttempts = 0;
+          return authApi(originalRequest);
+        }
+      } catch (refreshError) {
+        localStorage.removeItem('auth_token');
+        refreshAttempts = 0;
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
-  },
+  }
 );
 
 export const authService = {
-  // Register new user
-  register: async (data: RegisterRequest): Promise<AuthResponse> => {
+  login: async (data: LoginRequest) => {
+    const response = await authApi.post('/login', data);
+    
+    if (response.data.success && response.data.data?.token) {
+      localStorage.setItem('auth_token', response.data.data.token);
+      refreshAttempts = 0;
+    }
+    
+    return response.data;
+  },
+
+  register: async (data: RegisterRequest) => {
     const response = await authApi.post('/register', data);
     return response.data;
   },
 
-  // Verify email with OTP
-  verifyEmailOtp: async (
-    data: VerifyEmailOtpRequest,
-  ): Promise<AuthResponse> => {
-    const response = await authApi.post('/verify-email', data);
-    return response.data;
+  getUserProfile: async (): Promise<User> => {
+    const response = await authApi.get('/me');
+    return response.data.data.user;
   },
 
-  // Resend verification OTP
-  resendVerificationOtp: async (
-    data: ResendVerificationOtpRequest,
-  ): Promise<AuthResponse> => {
-    const response = await authApi.post('/resend-verification-otp', data);
-    return response.data;
-  },
-
-  // Login user
-  login: async (data: LoginRequest): Promise<AuthResponse> => {
-    const response = await authApi.post('/login', data);
-
-    // Save token from nested data structure
-    if (
-      response.data.success &&
-      response.data.data &&
-      response.data.data.token
-    ) {
-      localStorage.setItem('auth_token', response.data.data.token);
+  logout: async () => {
+    try {
+      await authApi.post('/logout');
+    } finally {
+      localStorage.removeItem('auth_token');
+      refreshAttempts = 0;
     }
-
-    return response.data;
   },
 
-  // Forgot password
-  forgotPassword: async (
-    data: ForgotPasswordRequest,
-  ): Promise<AuthResponse> => {
+  forgotPassword: async (data: ForgotPasswordRequest) => {
     const response = await authApi.post('/forgot-password', data);
     return response.data;
   },
 
-  // Reset password
-  resetPassword: async (data: ResetPasswordRequest): Promise<AuthResponse> => {
+  resetPassword: async (data: ResetPasswordRequest) => {
     const response = await authApi.post('/reset-password', data);
     return response.data;
   },
 
-  // Get user profile
-  getUserProfile: async (): Promise<User> => {
-    const response = await authApi.get('/me');
-    // Extract user from nested data structure
-    return response.data.data.user;
-  },
-
-  // Logout user
-  logout: async (): Promise<AuthResponse> => {
-    const response = await authApi.post('/logout');
-    localStorage.removeItem('auth_token');
+  verifyEmailOtp: async (data: VerifyEmailOtpRequest) => {
+    const response = await authApi.post('/verify-email', data);
     return response.data;
   },
 
-  // Refresh token
-  refreshToken: async (): Promise<AuthResponse> => {
-    const response = await authApi.post('/refresh-token');
-
-    // Save new token from nested data structure
-    if (
-      response.data.success &&
-      response.data.data &&
-      response.data.data.token
-    ) {
-      localStorage.setItem('auth_token', response.data.data.token);
-    }
-
+  resendVerificationOtp: async (data: ResendVerificationOtpRequest) => {
+    const response = await authApi.post('/resend-verification-otp', data);
     return response.data;
   },
 };
-
-// Export the refresh function for use in interceptor
-export const refreshToken = authService.refreshToken;

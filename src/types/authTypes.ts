@@ -1,3 +1,5 @@
+import type { UserWithRoles } from './userTypes';
+
 export interface RegisterRequest {
   name: string;
   email: string;
@@ -35,7 +37,8 @@ export interface AuthResponse {
   message: string;
   data?: {
     token?: string;
-    user?: User;
+    user?: UserWithRoles | null;
+
     [key: string]: any;
   };
 }
@@ -50,7 +53,7 @@ export interface User {
 }
 
 export interface AuthState {
-  user: User | null;
+  user: UserWithRoles | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;

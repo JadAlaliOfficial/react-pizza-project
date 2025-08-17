@@ -19,56 +19,39 @@ const Login: React.FC = () => {
     email: '',
     password: '',
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login } = useAuth();
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (error) setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
-    if (!validateForm()) return;
+    // Simple validation
+    if (!formData.email || !formData.password) {
+      setError('Please fill in all fields');
+      return;
+    }
 
-    setIsLoading(true);
-    try {
-      const success = await login(formData.email, formData.password);
-      if (success) {
-        navigate('/dashboard');
-      } else {
-        setErrors({ general: 'Invalid email or password' });
-      }
-    } catch (error) {
-      setErrors({ general: 'Login failed. Please try again.' });
-    } finally {
-      setIsLoading(false);
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      setError('Please enter a valid email');
+      return;
+    }
+
+    const errorMessage = await login(formData.email, formData.password);
+    
+    if (errorMessage) {
+      setError(errorMessage);
+    } else {
+      navigate('/dashboard');
     }
   };
 
@@ -88,22 +71,14 @@ const Login: React.FC = () => {
 
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {errors.general && (
-              <Alert
-                variant="destructive"
-                className="border-red-500/50 bg-red-500/10"
-              >
-                <AlertDescription className="text-red-600">
-                  {errors.general}
-                </AlertDescription>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
             <div className="space-y-3">
-              <Label
-                htmlFor="email"
-                className="text-sm font-medium text-foreground flex items-center gap-2"
-              >
+              <Label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Mail className="w-4 h-4 text-primary" />
                 Email
               </Label>
@@ -114,18 +89,13 @@ const Login: React.FC = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="your@email.com"
-                className={`h-12 ${errors.email ? 'border-destructive' : ''}`}
+                className="h-12"
+                disabled={isLoading}
               />
-              {errors.email && (
-                <p className="text-destructive text-sm">{errors.email}</p>
-              )}
             </div>
 
             <div className="space-y-3">
-              <Label
-                htmlFor="password"
-                className="text-sm font-medium text-foreground flex items-center gap-2"
-              >
+              <Label htmlFor="password" className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Lock className="w-4 h-4 text-primary" />
                 Password
               </Label>
@@ -137,7 +107,8 @@ const Login: React.FC = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
-                  className={`h-12 pr-12 ${errors.password ? 'border-destructive' : ''}`}
+                  className="h-12 pr-12"
+                  disabled={isLoading}
                 />
                 <Button
                   type="button"
@@ -145,6 +116,7 @@ const Login: React.FC = () => {
                   size="sm"
                   className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -153,9 +125,6 @@ const Login: React.FC = () => {
                   )}
                 </Button>
               </div>
-              {errors.password && (
-                <p className="text-destructive text-sm">{errors.password}</p>
-              )}
             </div>
 
             <Button type="submit" className="w-full h-12" disabled={isLoading}>

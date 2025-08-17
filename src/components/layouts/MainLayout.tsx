@@ -53,6 +53,8 @@ import {
   Check,
   ScrollText,
   Shield,
+  Users,
+
 } from 'lucide-react';
 
 interface MainLayoutProps {
@@ -84,6 +86,11 @@ function AppSidebar() {
       title: 'Pizzas',
       url: '/pizza',
       icon: Pizza,
+    },
+    {
+      title: 'Users', // New menu item
+      url: '/users',
+      icon: Users, // Add this import: import { Users } from 'lucide-react';
     },
     {
       title: 'Settings',
