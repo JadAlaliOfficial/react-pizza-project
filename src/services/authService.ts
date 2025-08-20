@@ -2,6 +2,7 @@ import axios from 'axios';
 import { tokenStorage } from '../utils/tokenStorage';
 import type {
   RegisterRequest,
+  RegisterResponse,
   VerifyEmailOtpRequest,
   ResendVerificationOtpRequest,
   LoginRequest,
@@ -9,9 +10,9 @@ import type {
   ResetPasswordRequest,
   AuthResponse,
   User,
-} from '../types/authTypes.ts';
+} from '../types/authTypes';
 
-// Base API URL - updated to localhost:8000
+// Base API URL
 const API_BASE_URL = 'https://auth.pnepizza.com/api/v1/auth';
 
 // Track if we're currently refreshing to prevent multiple refresh attempts
@@ -59,7 +60,7 @@ const authApi = axios.create({
   },
 });
 
-// Add token to requests if available - updated to check Redux store first
+// Add token to requests if available
 authApi.interceptors.request.use((config) => {
   const token = getTokenFromStore();
   if (token) {
@@ -163,20 +164,64 @@ authApi.interceptors.response.use(
 );
 
 export const authService = {
-  // Register new user
-  register: async (data: RegisterRequest): Promise<AuthResponse> => {
+  // Register new user with enhanced error handling
+  register: async (data: RegisterRequest): Promise<RegisterResponse> => {
     try {
       const response = await authApi.post('/register', data);
-      return response.data;
+      
+      // Success response
+      return {
+        success: true,
+        message: response.data.message || 'User registered successfully',
+        data: response.data.data,
+      };
     } catch (error: any) {
-      // Return the server error response
+      console.error('Registration API error:', error.response?.data || error.message);
+      
+      // Handle different types of errors
       if (error.response?.data) {
-        return error.response.data;
+        const errorData = error.response.data;
+        
+        // Handle validation errors (422)
+        if (error.response.status === 422) {
+          return {
+            success: false,
+            message: errorData.message || 'The given data was invalid.',
+            errors: errorData.errors || {},
+          };
+        }
+        
+        // Handle email already exists error (400)
+        if (error.response.status === 400) {
+          return {
+            success: false,
+            message: errorData.message || 'Registration failed',
+            error: errorData.error || errorData.message || 'Registration failed',
+          };
+        }
+        
+        // Handle other server errors
+        return {
+          success: false,
+          message: errorData.message || 'Registration failed',
+          error: errorData.error || errorData.message || 'Registration failed',
+        };
       }
-      // Return a generic error structure if no response
+      
+      // Handle network/connection errors
+      if (!error.response) {
+        return {
+          success: false,
+          message: 'Network error occurred',
+          error: 'Unable to connect to the server. Please check your internet connection.',
+        };
+      }
+      
+      // Fallback error
       return {
         success: false,
         message: 'Registration failed. Please try again.',
+        error: error.message || 'An unexpected error occurred',
       };
     }
   },

@@ -12,7 +12,7 @@ import {
   logoutUser,
   refreshToken,
   refreshCacheData,
-  fetchUserProfile, // New import
+  fetchUserProfile,
   clearError,
   setRegistrationStep,
   setRegistrationEmail,
@@ -26,6 +26,8 @@ import {
 } from '../store/slices/authSlice';
 import type {
   RegisterRequest,
+  RegisterResponse,
+  RegisterErrorResponse,
   VerifyEmailOtpRequest,
   ResendVerificationOtpRequest,
   LoginRequest,
@@ -34,8 +36,9 @@ import type {
 } from '../types/authTypes';
 
 /**
- * Custom hook that provides Redux-based authentication functionality
- * with encrypted token storage, cached user data, and automatic initialization
+ * Enhanced custom hook that provides Redux-based authentication functionality
+ * with encrypted token storage, cached user data, automatic initialization,
+ * and improved error handling for registration
  */
 export const useReduxAuth = () => {
   const dispatch = useAppDispatch();
@@ -60,11 +63,20 @@ export const useReduxAuth = () => {
     }
   }, [dispatch, isInitialized]);
 
-  // REMOVED: The problematic cache validity checking effect
-
-  // Auth actions
+  // Auth actions with enhanced error handling for registration
   const register = async (data: RegisterRequest) => {
-    return dispatch(registerUser(data));
+    const result = await dispatch(registerUser(data));
+    
+    // Return the complete result including any error response for component handling
+    if (result.type.endsWith('/rejected')) {
+      // The payload contains the structured error response from the API
+      return {
+        ...result,
+        errorResponse: result.payload as RegisterErrorResponse,
+      };
+    }
+    
+    return result;
   };
 
   const verifyEmail = async (data: VerifyEmailOtpRequest) => {
@@ -91,7 +103,7 @@ export const useReduxAuth = () => {
     return dispatch(getUserProfile());
   };
 
-  // FIXED: New action for fetching user profile during initialization
+  // New action for fetching user profile during initialization
   const fetchProfile = async () => {
     return dispatch(fetchUserProfile());
   };
@@ -144,6 +156,10 @@ export const useReduxAuth = () => {
 
   const removeToken = () => {
     dispatch(clearToken());
+  };
+
+  const updateCacheValidityState = () => {
+    dispatch(updateCacheValidity());
   };
 
   // Helper functions to access cached data
@@ -216,6 +232,58 @@ export const useReduxAuth = () => {
     );
   };
 
+  // Enhanced validation helpers for registration
+  const validateRegistrationData = (data: RegisterRequest): string[] => {
+    const errors: string[] = [];
+
+    if (!data.name || data.name.trim().length < 2) {
+      errors.push('Name must be at least 2 characters long');
+    }
+
+    if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      errors.push('Please enter a valid email address');
+    }
+
+    if (!data.password || data.password.length < 8) {
+      errors.push('Password must be at least 8 characters long');
+    }
+
+    if (data.password !== data.password_confirmation) {
+      errors.push('Passwords do not match');
+    }
+
+    return errors;
+  };
+
+  // Check if registration data is valid
+  const isRegistrationDataValid = (data: RegisterRequest): boolean => {
+    return validateRegistrationData(data).length === 0;
+  };
+
+  // Get current registration progress
+  const getRegistrationProgress = () => {
+    switch (registrationStep) {
+      case 'register':
+        return { step: 1, total: 3, label: 'Account Details' };
+      case 'verify':
+        return { step: 2, total: 3, label: 'Email Verification' };
+      case 'completed':
+        return { step: 3, total: 3, label: 'Registration Complete' };
+      default:
+        return { step: 1, total: 3, label: 'Account Details' };
+    }
+  };
+
+  // Check if user can proceed to next registration step
+  const canProceedToVerification = (): boolean => {
+    return registrationStep === 'verify' && !!registrationEmail;
+  };
+
+  // Check if registration is completed
+  const isRegistrationCompleted = (): boolean => {
+    return registrationStep === 'completed';
+  };
+
   return {
     // State
     user,
@@ -232,15 +300,17 @@ export const useReduxAuth = () => {
     isCacheValid,
     cacheExpiry,
     
-    // Actions
+    // Enhanced registration actions
     register,
     verifyEmail,
     resendOtp,
+    
+    // Other auth actions
     login,
     forgotPassword: forgotPass,
     resetPassword: resetPass,
     getUserProfile: getProfile,
-    fetchUserProfile: fetchProfile, // New action
+    fetchUserProfile: fetchProfile,
     logout,
     refreshToken: refresh,
     refreshCache,
@@ -255,6 +325,7 @@ export const useReduxAuth = () => {
     removeToken,
     extendCacheExpiry: extendCache,
     clearCache: clearCacheData,
+    updateCacheValidity: updateCacheValidityState,
     
     // Helper functions for cached data
     getCachedRoles,
@@ -273,5 +344,12 @@ export const useReduxAuth = () => {
     hasRole,
     hasAnyRole,
     hasAllRoles,
+    
+    // Enhanced registration helpers
+    validateRegistrationData,
+    isRegistrationDataValid,
+    getRegistrationProgress,
+    canProceedToVerification,
+    isRegistrationCompleted,
   };
 };

@@ -5,6 +5,7 @@ import { tokenStorage } from '../../utils/tokenStorage';
 import { cacheStorage } from '../../utils/cacheStorage';
 import type {
   RegisterRequest,
+  RegisterResponse,
   VerifyEmailOtpRequest,
   ResendVerificationOtpRequest,
   LoginRequest,
@@ -150,18 +151,27 @@ export const refreshCacheData = createAsyncThunk(
   }
 );
 
-// Async thunks for auth operations
+// Enhanced registerUser thunk with proper error handling
 export const registerUser = createAsyncThunk(
   'auth/register',
   async (data: RegisterRequest, { rejectWithValue }) => {
     try {
-      const response = await authService.register(data);
+      const response: RegisterResponse = await authService.register(data);
+      
       if (!response.success) {
-        return rejectWithValue(response.message || 'Registration failed');
+        // Return the entire error response for processing by the error handler
+        return rejectWithValue(response);
       }
+      
       return { response, email: data.email };
     } catch (error: any) {
-      return rejectWithValue(error.message || 'Registration failed');
+      // Handle unexpected errors
+      console.error('Registration thunk error:', error);
+      return rejectWithValue({
+        success: false,
+        message: 'An unexpected error occurred during registration',
+        error: error.message || 'Registration failed',
+      });
     }
   }
 );
@@ -355,7 +365,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Initialize Auth - FIXED
+      // Initialize Auth
       .addCase(initializeAuth.pending, (state) => {
         state.isLoading = true;
       })
@@ -385,7 +395,7 @@ const authSlice = createSlice({
         state.cacheExpiry = null;
       })
 
-      // Fetch User Profile - FIXED
+      // Fetch User Profile
       .addCase(fetchUserProfile.pending, (state) => {
         state.isLoading = true;
       })
@@ -428,7 +438,7 @@ const authSlice = createSlice({
         state.error = action.payload as string;
       })
       
-      // Register
+      // Register - Enhanced with proper error handling
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -437,10 +447,13 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.registrationStep = 'verify';
         state.registrationEmail = action.payload.email;
+        state.error = null;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload as string;
+        // Don't set error here anymore - let the component handle the structured error
+        // The component will handle the error response using the error handler
+        state.error = null;
       })
       
       // Verify Email OTP
