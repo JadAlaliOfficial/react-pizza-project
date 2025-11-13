@@ -11,6 +11,7 @@
  */
 
 import axios, { type AxiosInstance, AxiosError, type AxiosResponse } from 'axios';
+import { loadToken } from '../../auth/utils/tokenStorage';
 import {
   type DsprApiResponse,
   type DsprApiParams,
@@ -86,6 +87,12 @@ export class DsprApiService {
     // Request interceptor for logging and validation
     this.axiosInstance.interceptors.request.use(
       (config) => {
+        // Attach Authorization header if token is available
+        const token = loadToken();
+        if (token && config.headers) {
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
+
         // Log request details in development
         if (process.env.NODE_ENV === 'development') {
           console.log(`[DSPR API] Making request to: ${config.url}`, {
