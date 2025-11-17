@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Filter } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useCurrentStore } from '@/components/layouts/mainLayout/CurrentStoreContext';
 import { useDsprApi } from '../../DSPR/hooks/useCoordinator';
 import { SingleDatePicker } from '@/components/ui/singleDatePicker';
 
-interface StoreItemsFilterProps {
+interface StoreDatesFilterProps {
   className?: string;
-  onFilterChange?: (filters: { date: string; selectedItems: string[] }) => void;
+  onFilterChange?: (filters: { date: string }) => void;
   onError?: (error: string | null) => void;
 }
 
-export const StoreItemsFilter: React.FC<StoreItemsFilterProps> = ({
+export const StoreDatesFilter: React.FC<StoreDatesFilterProps> = ({
   className = '',
   onFilterChange,
   onError,
@@ -79,7 +78,6 @@ export const StoreItemsFilter: React.FC<StoreItemsFilterProps> = ({
 
   const [selectedDate, setSelectedDate] =
     useState<Date | undefined>(new Date(getTwoDaysAgoLocal()));
-  const [pendingDate, setPendingDate] = useState<Date | undefined>(new Date(getTwoDaysAgoLocal()));
 
   // Helper function to send data to DSPR API
   const sendToDsprApi = useCallback(
@@ -92,20 +90,17 @@ export const StoreItemsFilter: React.FC<StoreItemsFilterProps> = ({
         if (storeId && date) {
           const dateString = formatLocalYmd(date);
           await fetchDsprData(
-            { store: storeId, date: dateString },
-            [], // Empty array since no items are selected
+            { store: storeId, date: dateString }
           );
           console.log(`[${context}] DSPR API call initiated:`, {
             store: storeId,
             date: dateString,
-            itemCount: 0,
-            items: [],
           });
           // Clear error on successful API call
           handleError(null);
         }
       } catch (error) {
-        const errorMessage = `Failed to fetch store items data: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        const errorMessage = 'Date Error: No data available for the selected date at this store. Please select another date.';
         console.error(`[${context}] DSPR API call failed:`, error);
         handleError(errorMessage);
       }
@@ -117,33 +112,7 @@ export const StoreItemsFilter: React.FC<StoreItemsFilterProps> = ({
   const sendToDsprApiRef = useRef(sendToDsprApi);
   sendToDsprApiRef.current = sendToDsprApi;
 
-  // Auto-apply filters when defaults are set (first load)
-  useEffect(() => {
-    if (currentStore?.id && !selectedDate) {
-      // Validate the default date before applying
-      if (pendingDate && isValidDate(formatLocalYmd(pendingDate))) {
-        setSelectedDate(pendingDate);
-
-        if (onFilterChange) {
-          onFilterChange({
-            date: formatLocalYmd(pendingDate),
-            selectedItems: [],
-          });
-        }
-      } else {
-        // Handle case where default date is invalid
-        const errorMessage =
-          'Default date is invalid. Please select a valid date.';
-        handleError(errorMessage);
-      }
-    }
-  }, [
-    currentStore?.id,
-    selectedDate,
-    pendingDate,
-    onFilterChange,
-    handleError,
-  ]);
+  
 
   // Handle store context errors
   useEffect(() => {
@@ -154,33 +123,24 @@ export const StoreItemsFilter: React.FC<StoreItemsFilterProps> = ({
     }
   }, [currentStore, handleError]);
 
-  // Handle date change (update pending state)
   const handleDateChange = (date: Date | undefined) => {
-    setPendingDate(date);
-  };
-
-  // Apply filters - update applied state
-  const handleApplyFilters = useCallback(() => {
-    // Check if date is invalid and handle it appropriately
-    if (pendingDate && !isValidDate(formatLocalYmd(pendingDate))) {
-      const errorMessage =
-        'Invalid date selected. Please select a date before today.';
+    if (!date) return;
+    const ymd = formatLocalYmd(date);
+    if (!isValidDate(ymd)) {
+      const errorMessage = 'Invalid date selected. Please select a date before today.';
       handleError(errorMessage);
       return;
     }
-
-    // Clear any previous errors
     handleError(null);
-
-    setSelectedDate(pendingDate);
-
-    if (onFilterChange && pendingDate) {
+    setSelectedDate(date);
+    if (onFilterChange) {
       onFilterChange({
-        date: formatLocalYmd(pendingDate),
-        selectedItems: [],
+        date: ymd,
       });
     }
-  }, [pendingDate, onFilterChange, handleError]);
+  };
+
+  
 
   // Centralized DSPR call ONLY when applied filters change
   useEffect(() => {
@@ -215,35 +175,21 @@ export const StoreItemsFilter: React.FC<StoreItemsFilterProps> = ({
   return (
     <Card className={`bg-card border-border shadow-sm ${className}`}>
       <CardHeader className="px-4 py-2">
-        <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg text-card-foreground">
-          <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-          <span>Store Items Filter - {currentStore.name}</span>
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="px-4 py-2">
-        <div className="flex justify-between w-full items-center gap-3">
+        <div className="flex items-center justify-between w-full">
+          <CardTitle className="text-sm sm:text-base md:text-lg text-card-foreground">
+            {currentStore.name}
+          </CardTitle>
           <SingleDatePicker
-            value={pendingDate}
+            value={selectedDate}
             onChange={handleDateChange}
             maxDate={yesterday}
             placeholder="Select date"
             className="w-40 bg-background border-border text-foreground focus:ring-ring focus:border-ring text-sm"
           />
-          <button
-            onClick={handleApplyFilters}
-            className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-ring font-medium text-sm ${
-              pendingDate && !isValidDate(formatLocalYmd(pendingDate))
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-primary text-primary-foreground hover:bg-primary/90'
-            }`}
-          >
-            Apply Filters
-          </button>
         </div>
-      </CardContent>
+      </CardHeader>
     </Card>
   );
 };
 
-export default StoreItemsFilter;
+export default StoreDatesFilter;

@@ -132,15 +132,12 @@ export const fetchDsprData = createAsyncThunk<
       console.log('[DSPR API Slice] Starting API request', {
         store: request.params.store,
         date: request.params.date,
-        itemCount: request.body?.items?.length || 0,
-        hasBody: !!request.body,
         requestId: generateRequestId(request)
       });
 
       // Make the API request
       const response = await dsprApiService.fetchDsprReport(
-        request.params,
-        request.body
+        request.params
       );
 
       console.log('[DSPR API Slice] API request successful', {
@@ -181,8 +178,7 @@ export const refreshDsprData = createAsyncThunk<
     try {
       console.log('[DSPR API Slice] Refreshing data (cache bypass)', {
         store: request.params.store,
-        date: request.params.date,
-        hasBody: !!request.body
+        date: request.params.date
       });
 
       // Clear current cache before refreshing
@@ -190,8 +186,7 @@ export const refreshDsprData = createAsyncThunk<
 
       // Fetch fresh data
       const response = await dsprApiService.fetchDsprReport(
-        request.params,
-        request.body
+        request.params
       );
 
       return response;
@@ -510,14 +505,6 @@ function validateDsprRequest(request: DsprApiRequest): void {
   if (!request.params.store || !request.params.date) {
     throw new Error('Store and date parameters are required');
   }
-  
-  // Only validate items if body is provided
-  if (request.body) {
-    if (!Array.isArray(request.body.items) || request.body.items.length === 0) {
-      throw new Error('Items array must contain at least one item when body is provided');
-    }
-  }
-  // Note: No validation error if body is not provided - this is now valid
 }
 
 /**
@@ -527,9 +514,8 @@ function validateDsprRequest(request: DsprApiRequest): void {
  */
 function generateRequestId(request: DsprApiRequest): string {
   const { store, date } = request.params;
-  const itemsHash = request.body?.items?.join('-') || 'no-items';
   const timestamp = Date.now();
-  return `${store}_${date}_${itemsHash}_${timestamp}`;
+  return `${store}_${date}_${timestamp}`;
 }
 
 /**

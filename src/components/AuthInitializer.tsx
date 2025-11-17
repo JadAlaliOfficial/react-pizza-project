@@ -93,7 +93,7 @@ export const AuthInitializer: React.FC<AuthInitializerProps> = ({
   }, [isAuthenticated]);
   
   // Show loading screen while auth is initializing or fetching profile
-  if (!isInitialized || (isAuthenticated && user?.id === 0 && isLoading)) {
+  if (!isInitialized || (isAuthenticated && user?.id === 0)) {
     return <>{fallback}</>;
   }
   

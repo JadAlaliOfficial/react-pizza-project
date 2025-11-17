@@ -64,21 +64,6 @@ export interface AuthState {
 }
 
 // Request interfaces
-export interface RegisterRequest {
-  name: string;
-  email: string;
-  password: string;
-  password_confirmation: string;
-}
-
-export interface VerifyEmailRequest {
-  email: string;
-  otp: string;
-}
-
-export interface ResendVerificationOTPRequest {
-  email: string;
-}
 
 export interface LoginRequest {
   email: string;
@@ -104,9 +89,6 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
-export interface RegisterResponse {
-  user: Omit<User, 'global_roles' | 'global_permissions' | 'all_permissions' | 'stores' | 'summary'>;
-}
 
 export interface LoginResponse {
   user: User;
@@ -148,9 +130,6 @@ export interface TokenData {
 
 // Auth operation types for better type safety
 export type AuthOperation = 
-  | 'register'
-  | 'verifyEmail'
-  | 'resendVerificationOTP'
   | 'login'
   | 'forgotPassword'
   | 'resetPassword'

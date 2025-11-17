@@ -2,9 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService, isUnauthorizedError } from '../services/api';
 import type {
   AuthState,
-  RegisterRequest,
-  VerifyEmailRequest,
-  ResendVerificationOTPRequest,
   LoginRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
@@ -98,106 +95,6 @@ export const refreshToken = createAsyncThunk<
   }
 });
 
-// Register thunk - FIXED: Return the full User object
-export const register = createAsyncThunk<
-  User,
-  RegisterRequest,
-  ThunkApiConfig
->('auth/register', async (data, thunkAPI) => {
-  try {
-    const response = await authService.register(data);
-    
-    if (response.data.success && response.data.data?.user) {
-      // Create a full User object with required fields
-      const user: User = {
-        ...response.data.data.user,
-        global_roles: [],
-        global_permissions: [],
-        all_permissions: [],
-        stores: [],
-        summary: {
-          total_stores: 0,
-          total_roles: 0,
-          total_permissions: 0,
-          manageable_users_count: 0,
-        },
-      };
-      return user;
-    }
-    
-    return thunkAPI.rejectWithValue(response.data.message || 'Registration failed');
-  } catch (error) {
-    return thunkAPI.rejectWithValue(parseApiError(error));
-  }
-});
-
-// Verify email OTP thunk with retry logic
-export const verifyEmailOTP = createAsyncThunk<
-  void,
-  VerifyEmailRequest,
-  ThunkApiConfig
->('auth/verifyEmailOTP', async (data, thunkAPI) => {
-  let retryCount = parseInt(localStorage.getItem(RETRY_COUNT_KEY) || '0');
-  
-  const executeRequest = async (): Promise<void> => {
-    try {
-      const response = await authService.verifyEmail(data);
-      
-      if (response.data.success) {
-        localStorage.removeItem(RETRY_COUNT_KEY);
-        return;
-      }
-      
-      throw new Error(response.data.message || 'Verification failed');
-    } catch (error) {
-      if (isUnauthorizedError(error) && retryCount < RETRY_MAX) {
-        retryCount++;
-        localStorage.setItem(RETRY_COUNT_KEY, retryCount.toString());
-        
-        const refreshResult = await thunkAPI.dispatch(refreshToken());
-        
-        if (refreshResult.meta.requestStatus === 'fulfilled') {
-          return executeRequest();
-        } else {
-          thunkAPI.dispatch(logout());
-          throw new Error('Session expired. Please login again.');
-        }
-      }
-      
-      if (retryCount >= RETRY_MAX && isUnauthorizedError(error)) {
-        thunkAPI.dispatch(logout());
-        throw new Error('Session expired. Please login again.');
-      }
-      
-      throw error;
-    }
-  };
-  
-  try {
-    return await executeRequest();
-  } catch (error) {
-    return thunkAPI.rejectWithValue(parseApiError(error));
-  }
-});
-
-// Resend verification OTP thunk
-export const resendVerificationOTP = createAsyncThunk<
-  void,
-  ResendVerificationOTPRequest,
-  ThunkApiConfig
->('auth/resendVerificationOTP', async (data, thunkAPI) => {
-  try {
-    const response = await authService.resendVerificationOTP(data);
-    
-    if (response.data.success) {
-      return;
-    }
-    
-    return thunkAPI.rejectWithValue(response.data.message || 'Resend OTP failed');
-  } catch (error) {
-    return thunkAPI.rejectWithValue(parseApiError(error));
-  }
-});
 
 // Login thunk
 export const login = createAsyncThunk<
@@ -382,49 +279,6 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Register
-      .addCase(register.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(register.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.error = null;
-        // User is registered but not yet authenticated
-        state.user = action.payload;
-      })
-      .addCase(register.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? 'Registration failed'; // FIXED: Use nullish coalescing
-      })
-      
-      // Verify Email OTP
-      .addCase(verifyEmailOTP.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(verifyEmailOTP.fulfilled, (state) => {
-        state.isLoading = false;
-        state.error = null;
-      })
-      .addCase(verifyEmailOTP.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? 'Email verification failed';
-      })
-      
-      // Resend Verification OTP
-      .addCase(resendVerificationOTP.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(resendVerificationOTP.fulfilled, (state) => {
-        state.isLoading = false;
-        state.error = null;
-      })
-      .addCase(resendVerificationOTP.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? 'Resend OTP failed';
-      })
       
       // Login
       .addCase(login.pending, (state) => {

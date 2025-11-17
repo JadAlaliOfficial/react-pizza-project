@@ -1,9 +1,6 @@
 import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks'; // Adjust import path as needed
 import {
-  register,
-  verifyEmailOTP,
-  resendVerificationOTP,
   login,
   forgotPassword,
   resetPassword,
@@ -13,9 +10,6 @@ import {
   clearError,
 } from '../store/authSlice';
 import type {
-  RegisterRequest,
-  VerifyEmailRequest,
-  ResendVerificationOTPRequest,
   LoginRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
@@ -38,20 +32,6 @@ export const useAuth = () => {
   } = useAppSelector((state) => state.auth);
 
   // Auth operation dispatchers with proper typing
-  const registerUser = useCallback(
-    (data: RegisterRequest) => dispatch(register(data)),
-    [dispatch]
-  );
-
-  const verifyEmail = useCallback(
-    (data: VerifyEmailRequest) => dispatch(verifyEmailOTP(data)),
-    [dispatch]
-  );
-
-  const resendOTP = useCallback(
-    (data: ResendVerificationOTPRequest) => dispatch(resendVerificationOTP(data)),
-    [dispatch]
-  );
 
   const loginUser = useCallback(
     (data: LoginRequest) => dispatch(login(data)),
@@ -185,9 +165,6 @@ export const useAuth = () => {
     isInitialized,
     
     // Auth operations
-    register: registerUser,
-    verifyEmailOTP: verifyEmail,
-    resendVerificationOTP: resendOTP,
     login: loginUser,
     forgotPassword: forgotUserPassword,
     resetPassword: resetUserPassword,

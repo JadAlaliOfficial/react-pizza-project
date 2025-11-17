@@ -5,13 +5,14 @@ import { InfoSection } from '@/features/dashboard/components/onPage/InfoSectionO
 import { CustomerServiceOverview } from '@/features/dashboard/components/onPage/CustomerServiceOverviewOnPage';
 import { InfoCards } from '@/features/dashboard/components/onPage/InfoCardsOnPage';
 import { ChannelSalesDashboard } from '@/features/dashboard/components/onPage/ChannelSalesDashboardOnPage';
+import { DailyHoursTableOnPage } from '@/features/dashboard/components/onPage/DailyHoursTableOnPage';
 // import { DSQRDashboard } from '../components/DSQRDashboard';
-import { StoreItemsFilter } from '@/features/storeItems/components/StoreItemsFilter';
+import { StoreDatesFilter } from '@/features/storeItems/components/StoreDatesFilter';
 
 const Dashboard: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
-  const [storeItemsError, setStoreItemsError] = useState<string | null>(null);
+  const [storeDateFilterError, setStoreDateFilterError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated && !isLoading) {
@@ -19,8 +20,8 @@ const Dashboard: React.FC = () => {
     }
   }, [isAuthenticated, isLoading, navigate]);
 
-  const handleStoreItemsError = useCallback((error: string | null) => {
-    setStoreItemsError(error);
+  const handleStoreDateFilterError = useCallback((error: string | null) => {
+    setStoreDateFilterError(error);
   }, []);
 
   if (isLoading) {
@@ -40,14 +41,14 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto space-y-4 md:space-y-6 p-2 md:p-4 max-w-7xl">
-      <StoreItemsFilter className="mb-6" onError={handleStoreItemsError} />
-      {storeItemsError ? (
+      <StoreDatesFilter className="mb-6" onError={handleStoreDateFilterError} />
+      {storeDateFilterError ? (
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <div className="text-red-600 font-semibold text-lg mb-2">
-            Store Items Filter Error
+            Store Date Filter Error
           </div>
           <div className="text-red-700 mb-4">
-            {storeItemsError}
+            {storeDateFilterError}
           </div>
           <div className="text-red-600 text-sm">
             Dashboard components are unavailable due to filter processing failure.
@@ -59,6 +60,7 @@ const Dashboard: React.FC = () => {
           <InfoSection></InfoSection>
           <CustomerServiceOverview></CustomerServiceOverview>
           <ChannelSalesDashboard></ChannelSalesDashboard>
+          <DailyHoursTableOnPage></DailyHoursTableOnPage>
         </>
       )}
       {/* <DSQRDashboard></DSQRDashboard> */}

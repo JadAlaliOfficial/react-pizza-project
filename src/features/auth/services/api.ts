@@ -3,14 +3,10 @@ import type { AxiosInstance, AxiosResponse } from 'axios';
 import { store } from '../../../store'; // Adjust import path as needed
 import { loadToken } from '../utils/tokenStorage';
 import type {
-  RegisterRequest,
-  VerifyEmailRequest,
-  ResendVerificationOTPRequest,
   LoginRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
   ApiResponse,
-  RegisterResponse,
   LoginResponse,
   RefreshTokenResponse,
   UserProfileResponse,
@@ -58,26 +54,7 @@ apiClient.interceptors.request.use(
 
 // Auth service functions - pure API calls without Redux logic
 export const authService = {
-  // Register user
-  register: async (
-    data: RegisterRequest
-  ): Promise<AxiosResponse<ApiResponse<RegisterResponse>>> => {
-    return await apiClient.post('/auth/register', data);
-  },
-
-  // Verify email OTP
-  verifyEmail: async (
-    data: VerifyEmailRequest
-  ): Promise<AxiosResponse<ApiResponse>> => {
-    return await apiClient.post('/auth/verify-email', data);
-  },
-
-  // Resend verification OTP
-  resendVerificationOTP: async (
-    data: ResendVerificationOTPRequest
-  ): Promise<AxiosResponse<ApiResponse>> => {
-    return await apiClient.post('/auth/resend-verification-otp', data);
-  },
+  
 
   // Login user
   login: async (

@@ -28,7 +28,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
       <div className="h-16 flex items-center justify-center">
         <p className="text-xs text-muted-foreground">
-          © 2024 Auth Portal. All rights reserved.
+          © {new Date().getFullYear()} Auth Portal. All rights reserved.
         </p>
       </div>
     </div>

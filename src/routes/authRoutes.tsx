@@ -4,8 +4,6 @@ import AuthLayout from '@/components/layouts/AuthLayout';
 
 // Auth Pages
 import Login from '@/features/auth/pages/Login';
-import Register from '@/features/auth/pages/Register';
-import VerifyEmail from '@/features/auth/pages/VerifyEmail';
 import ForgotPassword from '@/features/auth/pages/ForgotPassword';
 import ResetPassword from '@/features/auth/pages/ResetPassword';
 
@@ -17,28 +15,6 @@ export const authRoutes = [
       <PublicRoute>
         <AuthLayout>
           <Login />
-        </AuthLayout>
-      </PublicRoute>
-    }
-  />,
-  <Route
-    key="register"
-    path="/register"
-    element={
-      <PublicRoute>
-        <AuthLayout>
-          <Register />
-        </AuthLayout>
-      </PublicRoute>
-    }
-  />,
-  <Route
-    key="verify-email"
-    path="/verify-email"
-    element={
-      <PublicRoute>
-        <AuthLayout>
-          <VerifyEmail />
         </AuthLayout>
       </PublicRoute>
     }

@@ -25,11 +25,6 @@ export type StoreId = string;
  */
 export type ApiDate = string;
 
-/**
- * Item ID can be string or number based on API response
- * API accepts string array but response shows numbers
- */
-export type ItemId = string | number;
 
 /**
  * Request parameters for the DSPR API endpoint
@@ -43,20 +38,10 @@ export interface DsprApiParams {
 }
 
 /**
- * Request body for the DSPR API call
- * Optional - can be omitted for requests without body
- */
-export interface DsprApiRequestBody {
-  /** Array of item IDs - optional for requests without body */
-  items?: ItemId[];
-}
-
-/**
- * Complete request structure combining path params and optional body
+ * Complete request structure combining path params
  */
 export interface DsprApiRequest {
   params: DsprApiParams;
-  body?: DsprApiRequestBody;
 }
 
 // =============================================================================

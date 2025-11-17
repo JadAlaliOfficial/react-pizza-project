@@ -15,7 +15,6 @@ import { loadToken } from '../../auth/utils/tokenStorage';
 import {
   type DsprApiResponse,
   type DsprApiParams,
-  type DsprApiRequestBody,
   type ApiError,
   type RetryConfig,
   isValidStoreId,
@@ -130,26 +129,24 @@ export class DsprApiService {
 
   /**
    * Fetch DSPR report data from the API
-   * Handles both requests with and without body payload
+   * Handles API calls without any request body payload
    * 
    * @param params - API request parameters (store, date, etc.)
-   * @param requestBody - Optional request body containing items array
    * @returns Promise resolving to validated API response
    * @throws ApiError on validation or request failures
    */
   async fetchDsprReport(
-    params: DsprApiParams,
-    requestBody?: DsprApiRequestBody
+    params: DsprApiParams
   ): Promise<DsprApiResponse> {
     try {
-      // Validate request parameters and body (if provided)
-      this.validateRequest(params, requestBody);
+      // Validate request parameters
+      this.validateRequest(params);
 
       // Build API URL with query parameters
       const url = this.buildApiUrl(params);
 
       // Make request with retry logic
-      const response = await this.makeRequestWithRetry(url, requestBody);
+      const response = await this.makeRequestWithRetry(url);
 
       // Validate and transform response
       return this.validateAndTransformResponse(response);
@@ -160,7 +157,6 @@ export class DsprApiService {
       
       console.error('[DSPR API] Request failed:', {
         params,
-        requestBody,
         error: apiError
       });
 
@@ -178,8 +174,7 @@ export class DsprApiService {
    * @throws ApiError on validation failures
    */
   private validateRequest(
-    params: DsprApiParams,
-    requestBody?: DsprApiRequestBody
+    params: DsprApiParams
   ): void {
     // Validate store ID format
     if (!isValidStoreId(params.store)) {
@@ -195,19 +190,7 @@ export class DsprApiService {
       );
     }
 
-    // Validate items array only if request body is provided
-    if (requestBody) {
-      if (!Array.isArray(requestBody.items) || requestBody.items.length === 0) {
-        throw new Error('Items array must contain at least one item ID when body is provided');
-      }
-
-      // Validate each item ID
-      requestBody.items.forEach((item, index) => {
-        if (item === null || item === undefined || item === '') {
-          throw new Error(`Invalid item ID at index ${index}: ${item}`);
-        }
-      });
-    }
+    // No request body validation required
   }
 
   /**
@@ -229,17 +212,14 @@ export class DsprApiService {
    * @returns Promise resolving to axios response
    */
   private async makeRequestWithRetry(
-    url: string,
-    requestBody?: DsprApiRequestBody
+    url: string
   ): Promise<AxiosResponse<DsprApiResponse>> {
     let lastError: Error | null = null;
 
     for (let attempt = 1; attempt <= this.retryConfig.maxAttempts; attempt++) {
       try {
-        // Make the request - currently uses POST with body or GET without body
-        const response = requestBody 
-          ? await this.axiosInstance.post<DsprApiResponse>(url, requestBody)
-          : await this.axiosInstance.post<DsprApiResponse>(url);
+        // Make the request - always POST without body
+        const response = await this.axiosInstance.post<DsprApiResponse>(url);
         
         // Request successful, return response
         return response;
@@ -542,10 +522,9 @@ export const createDsprApiService = (retryConfig?: Partial<RetryConfig>): DsprAp
  * @returns Promise resolving to DSPR API response
  */
 export const fetchDsprReport = (
-  params: DsprApiParams,
-  requestBody?: DsprApiRequestBody
+  params: DsprApiParams
 ): Promise<DsprApiResponse> => {
-  return dsprApiService.fetchDsprReport(params, requestBody);
+  return dsprApiService.fetchDsprReport(params);
 };
 
 /**
@@ -559,14 +538,13 @@ export const fetchDsprReport = (
  */
 export const fetchDsprReportWithRetry = (
   params: DsprApiParams,
-  requestBody?: DsprApiRequestBody,
   retryConfig?: Partial<RetryConfig>
 ): Promise<DsprApiResponse> => {
   const service = retryConfig 
     ? createDsprApiService(retryConfig)
     : dsprApiService;
   
-  return service.fetchDsprReport(params, requestBody);
+  return service.fetchDsprReport(params);
 };
 
 /**
@@ -580,12 +558,10 @@ export const fetchDsprReportWithRetry = (
  */
 export const fetchDsprReportSimple = async (
   store: string,
-  date: string,
-  items: (string | number)[]
+  date: string
 ): Promise<DsprApiResponse> => {
   return dsprApiService.fetchDsprReport(
-    { store, date },
-    { items }
+    { store, date }
   );
 };
 
@@ -601,12 +577,10 @@ export const fetchDsprReportSimple = async (
 export const fetchDsprReportSimpleWithRetry = async (
   store: string,
   date: string,
-  items: (string | number)[],
   retryConfig: Partial<RetryConfig>
 ): Promise<DsprApiResponse> => {
   const customService = createDsprApiService(retryConfig);
   return customService.fetchDsprReport(
-    { store, date },
-    { items }
+    { store, date }
   );
 };

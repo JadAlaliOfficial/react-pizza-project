@@ -233,13 +233,7 @@ const handleLinkClick = () => {
             </Link>
           </div>
 
-          {/* Sign Up Link */}
-          <div className="mt-4 text-center text-sm">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-primary hover:underline" onClick={handleLinkClick}>
-              Sign up
-            </Link>
-          </div>
+          
         </CardContent>
       </Card>
     </div>

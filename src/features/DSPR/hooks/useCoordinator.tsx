@@ -83,7 +83,7 @@ export interface UseDsprApiReturn {
 
   // Actions
   /** Fetch DSPR data with parameters */
-  fetchData: (params: DsprApiParams, items?: (string | number)[]) => Promise<void>;
+  fetchData: (params: DsprApiParams) => Promise<void>;
   /** Fetch DSPR data with complete request object */
   fetchWithRequest: (request: DsprApiRequest) => Promise<void>;
   /** Refresh current data (bypass cache) */
@@ -101,9 +101,9 @@ export interface UseDsprApiReturn {
 
   // Utilities
   /** Validate request parameters */
-  validateRequest: (params: DsprApiParams, items?: (string | number)[]) => ValidationResult;
+  validateRequest: (params: DsprApiParams) => ValidationResult;
   /** Check if request can be made */
-  canMakeRequest: (params: DsprApiParams, items?: (string | number)[]) => boolean;
+  canMakeRequest: (params: DsprApiParams) => boolean;
   /** Get current request summary */
   getRequestSummary: () => RequestSummary;
 }
@@ -191,12 +191,11 @@ export const useDsprApi = (options: UseDsprApiOptions = {}): UseDsprApiReturn =>
 
   // Actions
   const fetchData = useCallback(async (
-    params: DsprApiParams,
-    items?: (string | number)[]
+    params: DsprApiParams
   ): Promise<void> => {
     try {
       if (enableLogging) {
-        console.log('[useDsprApi] Fetching data', { params, itemCount: items?.length || 0 });
+        console.log('[useDsprApi] Fetching data', { params });
       }
 
       // Auto-clear errors if enabled
@@ -206,7 +205,7 @@ export const useDsprApi = (options: UseDsprApiOptions = {}): UseDsprApiReturn =>
 
       // Validate request if enabled
       if (enableValidation) {
-        const validation = validateRequestInternal(params, items || []);
+        const validation = validateRequestInternal(params);
         if (!validation.isValid) {
           const errorMessage = `Request validation failed: ${validation.errors.join(', ')}`;
           console.error('[useDsprApi]', errorMessage);
@@ -216,8 +215,7 @@ export const useDsprApi = (options: UseDsprApiOptions = {}): UseDsprApiReturn =>
 
       // Create request object - body is optional
       const request: DsprApiRequest = {
-        params,
-        body: items && items.length > 0 ? { items } : undefined
+        params
       };
 
       // Dispatch the async thunk
@@ -250,7 +248,7 @@ export const useDsprApi = (options: UseDsprApiOptions = {}): UseDsprApiReturn =>
 
       // Validate request if enabled
       if (enableValidation) {
-        const validation = validateRequestInternal(request.params, request.body?.items || []);
+        const validation = validateRequestInternal(request.params);
         if (!validation.isValid) {
           const errorMessage = `Request validation failed: ${validation.errors.join(', ')}`;
           console.error('[useDsprApi]', errorMessage);
@@ -344,22 +342,20 @@ export const useDsprApi = (options: UseDsprApiOptions = {}): UseDsprApiReturn =>
 
   // Utilities
   const validateRequest = useCallback((
-    params: DsprApiParams,
-    items?: (string | number)[]
+    params: DsprApiParams
   ): ValidationResult => {
-    return validateRequestInternal(params, items || []);
+    return validateRequestInternal(params);
   }, []);
 
   const canMakeRequest = useCallback((
-    params: DsprApiParams,
-    items?: (string | number)[]
+    params: DsprApiParams
   ): boolean => {
     if (isLoading) {
       return false;
     }
 
     if (enableValidation) {
-      const validation = validateRequestInternal(params, items || []);
+      const validation = validateRequestInternal(params);
       return validation.isValid;
     }
 
@@ -425,8 +421,7 @@ export const useDsprApi = (options: UseDsprApiOptions = {}): UseDsprApiReturn =>
  * @returns Validation result
  */
 function validateRequestInternal(
-  params: DsprApiParams,
-  items: (string | number)[]
+  params: DsprApiParams
 ): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -462,25 +457,7 @@ function validateRequestInternal(
     }
   }
 
-  // Validate items array only if provided and not empty
-  if (items && items.length > 0) {
-    if (!Array.isArray(items)) {
-      errors.push('Items must be an array');
-    } else {
-      // Validate each item
-      items.forEach((item, index) => {
-        if (item === null || item === undefined || item === '') {
-          errors.push(`Invalid item at index ${index}: ${item}`);
-        }
-      });
-
-      // Warn about too many items
-      if (items.length > 50) {
-        warnings.push(`Large number of items (${items.length}). This may impact performance.`);
-      }
-    }
-  }
-  // Note: No error if items array is empty or not provided - this is now valid
+  // No items in request
 
   return {
     isValid: errors.length === 0,

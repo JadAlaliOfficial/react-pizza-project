@@ -188,20 +188,11 @@ export const getAuthErrorMessage = (operation: string, error: any): string => {
   const baseMessage = parseApiError(error);
   
   switch (operation) {
-    case 'register':
-      if (baseMessage.includes('email')) {
-        return 'Registration failed: ' + baseMessage;
-      }
-      return 'Registration failed. Please check your information and try again.';
-      
     case 'login':
       if (isAuthError(error)) {
         return baseMessage;
       }
       return 'Login failed. Please check your credentials and try again.';
-      
-    case 'verifyEmail':
-      return 'Email verification failed: ' + baseMessage;
       
     case 'forgotPassword':
       return 'Password reset request failed: ' + baseMessage;

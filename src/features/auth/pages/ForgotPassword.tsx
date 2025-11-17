@@ -195,18 +195,8 @@ const ForgotPasswordPage: React.FC = () => {
               onClick={handleLinkClick}
             >
               <ArrowLeft className="mr-1 h-3 w-3" />
-              Back to Login
+              Back to Sign In
             </Link>
-            <div>
-              Don't have an account?{' '}
-              <Link
-                to="/register"
-                className="text-primary hover:underline"
-                onClick={handleLinkClick}
-              >
-                Sign up
-              </Link>
-            </div>
           </div>
         </CardContent>
       </Card>

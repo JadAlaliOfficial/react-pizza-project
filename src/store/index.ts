@@ -17,7 +17,7 @@ import schedulePreferencesReducer from '../features/schedulePreferences/store/sc
 import employmentInformationReducer from '../features/employmentInformation/store/employmentInformationSlice';
 import dailySchedulesReducer from '../features/dailySchedules/store/slices/dailySchedulesSlice';
 import weeklySchedulesReducer from '../features/dailySchedules/store/slices/weeklySchedulesSlice';
-import storeItemsReducer from '../features/storeItems/store/storeItemsSlice';
+
 
 // Import the new DSPR slices
 import dsprApiReducer from '../features/DSPR/store/coordinatorSlice';
@@ -45,7 +45,6 @@ export const store = configureStore({
     employmentInformation: employmentInformationReducer,
     dailySchedules: dailySchedulesReducer,
     weeklySchedules: weeklySchedulesReducer,
-    storeItems: storeItemsReducer,
     
     // Add the new DSPR-related slices
     dsprApi: dsprApiReducer,           // Main API coordinator slice

@@ -1,0 +1,1399 @@
+I have the following apis 
+1 - Get All Field Types http://dforms.pneunited.com/api/field-types this is called with a GET request including the
+Bearer token for authorization in the header and the body should be empty and it's response will
+be like :"
+{
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "name": "text",
+            "description": "Single line text input",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 2,
+            "name": "email",
+            "description": "Email address input",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 3,
+            "name": "password",
+            "description": "Password input field",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 4,
+            "name": "textarea",
+            "description": "Multi-line text input",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 5,
+            "name": "number",
+            "description": "Numeric input",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 6,
+            "name": "dropdown",
+            "description": "Dropdown select list",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 7,
+            "name": "radio",
+            "description": "Radio button group",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 8,
+            "name": "checkbox",
+            "description": "Checkbox input",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 9,
+            "name": "date",
+            "description": "Date picker",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 10,
+            "name": "time",
+            "description": "Time picker",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 11,
+            "name": "datetime",
+            "description": "Date and time picker",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 12,
+            "name": "file",
+            "description": "File upload field",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 13,
+            "name": "url",
+            "description": "URL input",
+            "created_at": null,
+            "updated_at": null
+        },
+        {
+            "id": 14,
+            "name": "tel",
+            "description": "Telephone number input",
+            "created_at": null,
+            "updated_at": null
+        }
+    ]
+}"
+
+2 - Get Active Forms Only http://dforms.pneunited.com/api/forms?active_only=1?per_page=15 this is called with a GET request including the
+Bearer token for authorization in the header and the body should be empty and it's response will
+be like :"
+{
+    "success": true,
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T16:24:07.000000Z",
+                "updated_at": "2025-11-13T16:24:07.000000Z",
+                "fields": [
+                    {
+                        "id": 1,
+                        "form_id": 1,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T16:24:07.000000Z",
+                        "updated_at": "2025-11-13T16:24:07.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 2,
+                        "form_id": 1,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T16:24:07.000000Z",
+                        "updated_at": "2025-11-13T16:24:07.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 3,
+                        "form_id": 1,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T16:24:07.000000Z",
+                        "updated_at": "2025-11-13T16:24:07.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T17:04:37.000000Z",
+                "updated_at": "2025-11-13T17:04:37.000000Z",
+                "fields": [
+                    {
+                        "id": 4,
+                        "form_id": 2,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:04:37.000000Z",
+                        "updated_at": "2025-11-13T17:04:37.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 5,
+                        "form_id": 2,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:04:37.000000Z",
+                        "updated_at": "2025-11-13T17:04:37.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 6,
+                        "form_id": 2,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:04:37.000000Z",
+                        "updated_at": "2025-11-13T17:04:37.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            },
+            {
+                "id": 3,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T17:07:59.000000Z",
+                "updated_at": "2025-11-13T17:07:59.000000Z",
+                "fields": [
+                    {
+                        "id": 7,
+                        "form_id": 3,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:07:59.000000Z",
+                        "updated_at": "2025-11-13T17:07:59.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 8,
+                        "form_id": 3,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:07:59.000000Z",
+                        "updated_at": "2025-11-13T17:07:59.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 9,
+                        "form_id": 3,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:07:59.000000Z",
+                        "updated_at": "2025-11-13T17:07:59.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            },
+            {
+                "id": 4,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T17:08:22.000000Z",
+                "updated_at": "2025-11-13T17:08:22.000000Z",
+                "fields": [
+                    {
+                        "id": 10,
+                        "form_id": 4,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:08:22.000000Z",
+                        "updated_at": "2025-11-13T17:08:22.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 11,
+                        "form_id": 4,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:08:22.000000Z",
+                        "updated_at": "2025-11-13T17:08:22.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 12,
+                        "form_id": 4,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:08:22.000000Z",
+                        "updated_at": "2025-11-13T17:08:22.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            },
+            {
+                "id": 5,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T17:11:30.000000Z",
+                "updated_at": "2025-11-13T17:11:30.000000Z",
+                "fields": [
+                    {
+                        "id": 13,
+                        "form_id": 5,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:11:30.000000Z",
+                        "updated_at": "2025-11-13T17:11:30.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 14,
+                        "form_id": 5,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:11:30.000000Z",
+                        "updated_at": "2025-11-13T17:11:30.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 15,
+                        "form_id": 5,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:11:30.000000Z",
+                        "updated_at": "2025-11-13T17:11:30.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            }
+        ],
+        "first_page_url": "https://your-app.test/api/forms?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "https://your-app.test/api/forms?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "&laquo; Previous",
+                "active": false
+            },
+            {
+                "url": "https://your-app.test/api/forms?page=1",
+                "label": "1",
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "Next &raquo;",
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "https://your-app.test/api/forms",
+        "per_page": 15,
+        "prev_page_url": null,
+        "to": 5,
+        "total": 5
+    }
+}
+"
+
+3- Get All Forms http://dforms.pneunited.com/api/forms?per_page=15 this is called with a GET request including the
+Bearer token for authorization in the header and the body should be empty and it's response will
+be like :"
+{
+    "success": true,
+    "data": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 1,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T16:24:07.000000Z",
+                "updated_at": "2025-11-13T16:24:07.000000Z",
+                "fields": [
+                    {
+                        "id": 1,
+                        "form_id": 1,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T16:24:07.000000Z",
+                        "updated_at": "2025-11-13T16:24:07.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 2,
+                        "form_id": 1,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T16:24:07.000000Z",
+                        "updated_at": "2025-11-13T16:24:07.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 3,
+                        "form_id": 1,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T16:24:07.000000Z",
+                        "updated_at": "2025-11-13T16:24:07.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            },
+            {
+                "id": 2,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T17:04:37.000000Z",
+                "updated_at": "2025-11-13T17:04:37.000000Z",
+                "fields": [
+                    {
+                        "id": 4,
+                        "form_id": 2,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:04:37.000000Z",
+                        "updated_at": "2025-11-13T17:04:37.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 5,
+                        "form_id": 2,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:04:37.000000Z",
+                        "updated_at": "2025-11-13T17:04:37.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 6,
+                        "form_id": 2,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:04:37.000000Z",
+                        "updated_at": "2025-11-13T17:04:37.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            },
+            {
+                "id": 3,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T17:07:59.000000Z",
+                "updated_at": "2025-11-13T17:07:59.000000Z",
+                "fields": [
+                    {
+                        "id": 7,
+                        "form_id": 3,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:07:59.000000Z",
+                        "updated_at": "2025-11-13T17:07:59.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 8,
+                        "form_id": 3,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:07:59.000000Z",
+                        "updated_at": "2025-11-13T17:07:59.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 9,
+                        "form_id": 3,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:07:59.000000Z",
+                        "updated_at": "2025-11-13T17:07:59.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            },
+            {
+                "id": 4,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T17:08:22.000000Z",
+                "updated_at": "2025-11-13T17:08:22.000000Z",
+                "fields": [
+                    {
+                        "id": 10,
+                        "form_id": 4,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:08:22.000000Z",
+                        "updated_at": "2025-11-13T17:08:22.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 11,
+                        "form_id": 4,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:08:22.000000Z",
+                        "updated_at": "2025-11-13T17:08:22.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 12,
+                        "form_id": 4,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:08:22.000000Z",
+                        "updated_at": "2025-11-13T17:08:22.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            },
+            {
+                "id": 5,
+                "name": "Contact Form",
+                "description": "Simple contact form",
+                "version": 1,
+                "is_active": true,
+                "created_at": "2025-11-13T17:11:30.000000Z",
+                "updated_at": "2025-11-13T17:11:30.000000Z",
+                "fields": [
+                    {
+                        "id": 13,
+                        "form_id": 5,
+                        "label": "Full Name",
+                        "field_type_id": 1,
+                        "validation_rules": [
+                            "min:3",
+                            "max:255"
+                        ],
+                        "order": 0,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:11:30.000000Z",
+                        "updated_at": "2025-11-13T17:11:30.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "text",
+                            "description": "Single line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 14,
+                        "form_id": 5,
+                        "label": "Email Address",
+                        "field_type_id": 2,
+                        "validation_rules": [
+                            "email"
+                        ],
+                        "order": 1,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:11:30.000000Z",
+                        "updated_at": "2025-11-13T17:11:30.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "email",
+                            "description": "Email address input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    },
+                    {
+                        "id": 15,
+                        "form_id": 5,
+                        "label": "Message",
+                        "field_type_id": 4,
+                        "validation_rules": [
+                            "min:10"
+                        ],
+                        "order": 2,
+                        "is_required": true,
+                        "created_at": "2025-11-13T17:11:30.000000Z",
+                        "updated_at": "2025-11-13T17:11:30.000000Z",
+                        "field_type": {
+                            "id": 4,
+                            "name": "textarea",
+                            "description": "Multi-line text input",
+                            "created_at": null,
+                            "updated_at": null
+                        },
+                        "options": []
+                    }
+                ]
+            }
+        ],
+        "first_page_url": "https://your-app.test/api/forms?page=1",
+        "from": 1,
+        "last_page": 1,
+        "last_page_url": "https://your-app.test/api/forms?page=1",
+        "links": [
+            {
+                "url": null,
+                "label": "&laquo; Previous",
+                "active": false
+            },
+            {
+                "url": "https://your-app.test/api/forms?page=1",
+                "label": "1",
+                "active": true
+            },
+            {
+                "url": null,
+                "label": "Next &raquo;",
+                "active": false
+            }
+        ],
+        "next_page_url": null,
+        "path": "https://your-app.test/api/forms",
+        "per_page": 15,
+        "prev_page_url": null,
+        "to": 5,
+        "total": 5
+    }
+}
+"
+
+4- Get Form by ID http://dforms.pneunited.com/api/forms/1 this is called with a GET request including the
+Bearer token for authorization in the header and the body should be empty and it's response will
+be like :"
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "name": "Contact Form",
+        "description": "Simple contact form",
+        "version": 1,
+        "is_active": true,
+        "created_at": "2025-11-13T16:24:07.000000Z",
+        "updated_at": "2025-11-13T16:24:07.000000Z",
+        "fields": [
+            {
+                "id": 1,
+                "form_id": 1,
+                "label": "Full Name",
+                "field_type_id": 1,
+                "validation_rules": [
+                    "min:3",
+                    "max:255"
+                ],
+                "order": 0,
+                "is_required": true,
+                "created_at": "2025-11-13T16:24:07.000000Z",
+                "updated_at": "2025-11-13T16:24:07.000000Z",
+                "field_type": {
+                    "id": 1,
+                    "name": "text",
+                    "description": "Single line text input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            },
+            {
+                "id": 2,
+                "form_id": 1,
+                "label": "Email Address",
+                "field_type_id": 2,
+                "validation_rules": [
+                    "email"
+                ],
+                "order": 1,
+                "is_required": true,
+                "created_at": "2025-11-13T16:24:07.000000Z",
+                "updated_at": "2025-11-13T16:24:07.000000Z",
+                "field_type": {
+                    "id": 2,
+                    "name": "email",
+                    "description": "Email address input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            },
+            {
+                "id": 3,
+                "form_id": 1,
+                "label": "Message",
+                "field_type_id": 4,
+                "validation_rules": [
+                    "min:10"
+                ],
+                "order": 2,
+                "is_required": true,
+                "created_at": "2025-11-13T16:24:07.000000Z",
+                "updated_at": "2025-11-13T16:24:07.000000Z",
+                "field_type": {
+                    "id": 4,
+                    "name": "textarea",
+                    "description": "Multi-line text input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            }
+        ]
+    }
+}"
+
+5- Create Form http://dforms.pneunited.com/api/forms this is called with a POST request including the
+Bearer token for authorization in the header and the body should be like :"
+{
+  "name": "Contact Form",
+  "description": "Simple contact form",
+  "version": 1,
+  "is_active": true,
+  "fields": [
+    {
+      "label": "Full Name",
+      "field_type_id": 1,
+      "order": 0,
+      "is_required": true,
+      "validation_rules": ["min:3", "max:255"]
+    },
+    {
+      "label": "Email Address",
+      "field_type_id": 2,
+      "order": 1,
+      "is_required": true,
+      "validation_rules": ["email"]
+    },
+    {
+      "label": "Message",
+      "field_type_id": 4,
+      "order": 2,
+      "is_required": true,
+      "validation_rules": ["min:10"]
+    },
+    {
+      "label": "Satisfaction Level",
+      "field_type_id": 6,
+      "order": 1,
+      "is_required": true,
+      "options": [
+        {
+          "value": "very_satisfied",
+          "label": "Very Satisfied",
+          "order": 0
+        },
+        {
+          "value": "satisfied",
+          "label": "Satisfied",
+          "order": 1
+        },
+        {
+          "value": "neutral",
+          "label": "Neutral",
+          "order": 2
+        },
+        {
+          "value": "dissatisfied",
+          "label": "Dissatisfied",
+          "order": 3
+        }
+      ]
+    }
+  ]
+}"
+and it's response will be like :"
+{
+    "success": true,
+    "message": "Form created successfully",
+    "data": {
+        "id": 8,
+        "name": "Contact Form",
+        "description": "Simple contact form",
+        "version": 1,
+        "is_active": true,
+        "created_at": "2025-11-14T11:11:26.000000Z",
+        "updated_at": "2025-11-14T11:11:26.000000Z",
+        "fields": [
+            {
+                "id": 22,
+                "form_id": 8,
+                "label": "Full Name",
+                "field_type_id": 1,
+                "validation_rules": [
+                    "min:3",
+                    "max:255"
+                ],
+                "order": 0,
+                "is_required": true,
+                "created_at": "2025-11-14T11:11:26.000000Z",
+                "updated_at": "2025-11-14T11:11:26.000000Z",
+                "field_type": {
+                    "id": 1,
+                    "name": "text",
+                    "description": "Single line text input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            },
+            {
+                "id": 23,
+                "form_id": 8,
+                "label": "Email Address",
+                "field_type_id": 2,
+                "validation_rules": [
+                    "email"
+                ],
+                "order": 1,
+                "is_required": true,
+                "created_at": "2025-11-14T11:11:26.000000Z",
+                "updated_at": "2025-11-14T11:11:26.000000Z",
+                "field_type": {
+                    "id": 2,
+                    "name": "email",
+                    "description": "Email address input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            },
+            {
+                "id": 25,
+                "form_id": 8,
+                "label": "Satisfaction Level",
+                "field_type_id": 6,
+                "validation_rules": null,
+                "order": 1,
+                "is_required": true,
+                "created_at": "2025-11-14T11:11:26.000000Z",
+                "updated_at": "2025-11-14T11:11:26.000000Z",
+                "field_type": {
+                    "id": 6,
+                    "name": "dropdown",
+                    "description": "Dropdown select list",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": [
+                    {
+                        "id": 1,
+                        "form_field_id": 25,
+                        "value": "very_satisfied",
+                        "label": "Very Satisfied",
+                        "order": 0,
+                        "created_at": "2025-11-14T11:11:26.000000Z",
+                        "updated_at": "2025-11-14T11:11:26.000000Z"
+                    },
+                    {
+                        "id": 2,
+                        "form_field_id": 25,
+                        "value": "satisfied",
+                        "label": "Satisfied",
+                        "order": 1,
+                        "created_at": "2025-11-14T11:11:26.000000Z",
+                        "updated_at": "2025-11-14T11:11:26.000000Z"
+                    },
+                    {
+                        "id": 3,
+                        "form_field_id": 25,
+                        "value": "neutral",
+                        "label": "Neutral",
+                        "order": 2,
+                        "created_at": "2025-11-14T11:11:26.000000Z",
+                        "updated_at": "2025-11-14T11:11:26.000000Z"
+                    },
+                    {
+                        "id": 4,
+                        "form_field_id": 25,
+                        "value": "dissatisfied",
+                        "label": "Dissatisfied",
+                        "order": 3,
+                        "created_at": "2025-11-14T11:11:26.000000Z",
+                        "updated_at": "2025-11-14T11:11:26.000000Z"
+                    }
+                ]
+            },
+            {
+                "id": 24,
+                "form_id": 8,
+                "label": "Message",
+                "field_type_id": 4,
+                "validation_rules": [
+                    "min:10"
+                ],
+                "order": 2,
+                "is_required": true,
+                "created_at": "2025-11-14T11:11:26.000000Z",
+                "updated_at": "2025-11-14T11:11:26.000000Z",
+                "field_type": {
+                    "id": 4,
+                    "name": "textarea",
+                    "description": "Multi-line text input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            }
+        ]
+    }
+}"
+
+6- Update Form http://dforms.pneunited.com/api/forms/1 this is called with a PUT request including the
+Bearer token for authorization in the header and the body should be somthing like :"
+{
+  "name": "Updated Contact Form",
+  "description": "Updated description",
+  "is_active": false
+}"
+the response will be like :"
+{
+    "success": true,
+    "message": "Form updated successfully",
+    "data": {
+        "id": 1,
+        "name": "Updated Contact Form",
+        "description": "Updated description",
+        "version": 1,
+        "is_active": false,
+        "created_at": "2025-11-13T16:24:07.000000Z",
+        "updated_at": "2025-11-14T11:14:39.000000Z",
+        "fields": [
+            {
+                "id": 1,
+                "form_id": 1,
+                "label": "Full Name",
+                "field_type_id": 1,
+                "validation_rules": [
+                    "min:3",
+                    "max:255"
+                ],
+                "order": 0,
+                "is_required": true,
+                "created_at": "2025-11-13T16:24:07.000000Z",
+                "updated_at": "2025-11-13T16:24:07.000000Z",
+                "field_type": {
+                    "id": 1,
+                    "name": "text",
+                    "description": "Single line text input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            },
+            {
+                "id": 2,
+                "form_id": 1,
+                "label": "Email Address",
+                "field_type_id": 2,
+                "validation_rules": [
+                    "email"
+                ],
+                "order": 1,
+                "is_required": true,
+                "created_at": "2025-11-13T16:24:07.000000Z",
+                "updated_at": "2025-11-13T16:24:07.000000Z",
+                "field_type": {
+                    "id": 2,
+                    "name": "email",
+                    "description": "Email address input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            },
+            {
+                "id": 3,
+                "form_id": 1,
+                "label": "Message",
+                "field_type_id": 4,
+                "validation_rules": [
+                    "min:10"
+                ],
+                "order": 2,
+                "is_required": true,
+                "created_at": "2025-11-13T16:24:07.000000Z",
+                "updated_at": "2025-11-13T16:24:07.000000Z",
+                "field_type": {
+                    "id": 4,
+                    "name": "textarea",
+                    "description": "Multi-line text input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            }
+        ]
+    }
+}
+"
+
+7- Duplicate Form http://dforms.pneunited.com/api/forms/1/duplicate this is called with a PUT request including the
+Bearer token for authorization in the header and the body should be somthing like :"
+{
+  "version": 2
+}"
+the response will be like :"
+{
+    "success": true,
+    "message": "Form duplicated successfully",
+    "data": {
+        "id": 7,
+        "name": "Contact Form (Copy)",
+        "description": "Simple contact form",
+        "version": 2,
+        "is_active": false,
+        "created_at": "2025-11-14T11:09:25.000000Z",
+        "updated_at": "2025-11-14T11:09:25.000000Z",
+        "fields": [
+            {
+                "id": 19,
+                "form_id": 7,
+                "label": "Full Name",
+                "field_type_id": 1,
+                "validation_rules": [
+                    "min:3",
+                    "max:255"
+                ],
+                "order": 0,
+                "is_required": true,
+                "created_at": "2025-11-14T11:09:25.000000Z",
+                "updated_at": "2025-11-14T11:09:25.000000Z",
+                "field_type": {
+                    "id": 1,
+                    "name": "text",
+                    "description": "Single line text input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            },
+            {
+                "id": 20,
+                "form_id": 7,
+                "label": "Email Address",
+                "field_type_id": 2,
+                "validation_rules": [
+                    "email"
+                ],
+                "order": 1,
+                "is_required": true,
+                "created_at": "2025-11-14T11:09:25.000000Z",
+                "updated_at": "2025-11-14T11:09:25.000000Z",
+                "field_type": {
+                    "id": 2,
+                    "name": "email",
+                    "description": "Email address input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            },
+            {
+                "id": 21,
+                "form_id": 7,
+                "label": "Message",
+                "field_type_id": 4,
+                "validation_rules": [
+                    "min:10"
+                ],
+                "order": 2,
+                "is_required": true,
+                "created_at": "2025-11-14T11:09:25.000000Z",
+                "updated_at": "2025-11-14T11:09:25.000000Z",
+                "field_type": {
+                    "id": 4,
+                    "name": "textarea",
+                    "description": "Multi-line text input",
+                    "created_at": null,
+                    "updated_at": null
+                },
+                "options": []
+            }
+        ]
+    }
+}"
+
+8- Delete Form http://dforms.pneunited.com/api/forms/1 this is called with a GET request including the
+Bearer token for authorization in the header and the body should be empty and it's response will
+be like :"
+{
+    "success": true,
+    "message": "Form deleted successfully"
+}"
+
