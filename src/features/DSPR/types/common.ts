@@ -8,6 +8,7 @@
  * - DSQR Data (ratings, reviews, performance metrics)
  * - DSPR Data (labor, waste, sales metrics - both daily and weekly)
  */
+import type { DailyDSPRData, WeeklyDSPRData, DailyDSPRByDate } from './DSPRDailyWeekly';
 
 // =============================================================================
 // REQUEST TYPES
@@ -94,7 +95,7 @@ export interface DailyReports {
   /** DSQR performance metrics and ratings */
   dailyDSQRData: any;    // Will be defined in dsqr.types.ts
   /** DSPR operational metrics */
-  dailyDSPRData: any;    // Will be defined in dspr.types.ts
+  dailyDSPRData: DailyDSPRData | DailyDSPRByDate;
 }
 
 /**
@@ -103,7 +104,9 @@ export interface DailyReports {
  */
 export interface WeeklyReports {
   /** Weekly DSPR aggregated metrics */
-  DSPRData: any; // Will be defined in dspr.types.ts
+  DSPRData: WeeklyDSPRData;
+  /** Map of daily DSPR entries keyed by business date */
+  DailyDSPRByDate?: DailyDSPRByDate;
 }
 
 /**

@@ -36,7 +36,8 @@ import {
   selectOverallGrade,
   selectDSPRMetricsLoading,
   selectDSPRMetricsError,
-  selectPerformanceBenchmarks
+  selectPerformanceBenchmarks,
+  selectHNRMetrics
 } from '../store/dSPRSlice';
 import {
   type DSPRAnalysisConfig,
@@ -47,7 +48,12 @@ import {
   AlertPriority,
   SalesChannelType,
   TrendDirection,
+  type DailyDSPRByDate,
+  type DailyDSPRDayWithPrevWeek,
+  type DailyDSPRData,
+  type HNRMetrics
 } from '../types/DSPRDailyWeekly';
+import type { ApiDate } from '../types/common';
 import { useDsprApi } from '../hooks/useCoordinator';
 
 // =============================================================================
@@ -115,6 +121,7 @@ export interface UseDSPRMetricsReturn {
   qualityMetrics: ReturnType<typeof selectQualityMetrics>;
   /** Cost control metrics */
   costControlMetrics: ReturnType<typeof selectCostControlMetrics>;
+  hnrMetrics: HNRMetrics | null;
   /** Weekly trends analysis */
   weeklyTrends: ReturnType<typeof selectWeeklyTrends>;
   /** Overall operational grade */
@@ -219,6 +226,16 @@ export interface UseDSPRMetricsReturn {
   exportData: (format: DSPRMetricsExportFormat, options?: ExportOptions) => DSPRMetricsExportResult;
   /** Generate performance report */
   generateReport: (type: ReportType) => PerformanceReport;
+
+  // New Format Utilities
+  /** Get list of available dates in the new daily map */
+  getAvailableDailyDates: () => ApiDate[];
+  /** Get a normalized daily entry for a specific date from the map */
+  getDailyEntryForDate: (date: ApiDate) => FrontendDailyEntry | null;
+  /** Build a metric series across the daily map (optionally includes PrevWeek) */
+  buildMetricSeriesFromDailyMap: (metric: keyof DailyDSPRData) => MetricSeriesPoint[];
+  /** Get current vs previous week comparison for a specific date */
+  getPrevWeekComparisonForDate: (date: ApiDate) => PrevWeekComparison | null;
 }
 
 // =============================================================================
@@ -397,6 +414,56 @@ export interface CrossChannelInsights {
     resolution: string;
   }>;
   optimization: string[];
+}
+
+/**
+ * Normalized daily entry for frontend consumption (new format)
+ */
+export interface FrontendDailyEntry {
+  /** Business date */
+  date: ApiDate;
+  /** Current day metrics (null if status-only) */
+  current: DailyDSPRData | null;
+  /** Previous week metrics (if available) */
+  prevWeek?: DailyDSPRData | null;
+  /** Optional status message if entry is not metrics */
+  status?: string;
+}
+
+/**
+ * Metric series point across dates
+ */
+export interface MetricSeriesPoint {
+  /** Business date */
+  date: ApiDate;
+  /** Current day value for the metric */
+  value: number | null;
+  /** Previous week value for the metric (if available) */
+  prevWeekValue?: number | null;
+}
+
+/**
+ * Previous week comparison for key fields
+ */
+export interface PrevWeekComparison {
+  /** Business date */
+  date: ApiDate;
+  /** Current metrics snapshot */
+  current: {
+    Total_Sales: number;
+    labor: number;
+    Customer_count: number;
+    waste_total: number;
+    Digital_Sales_Percent: number;
+  } | null;
+  /** Previous week metrics snapshot */
+  prevWeek: {
+    Total_Sales: number;
+    labor: number;
+    Customer_count: number;
+    waste_total: number;
+    Digital_Sales_Percent: number;
+  } | null;
 }
 
 /**
@@ -645,6 +712,7 @@ export const useDSPRMetrics = (options: UseDSPRMetricsOptions = {}): UseDSPRMetr
   const salesChannelMetrics = useSelector((state: RootState) => selectSalesChannelMetrics(state));
   const qualityMetrics = useSelector((state: RootState) => selectQualityMetrics(state));
   const costControlMetrics = useSelector((state: RootState) => selectCostControlMetrics(state));
+  const hnrMetrics = useSelector((state: RootState) => selectHNRMetrics(state));
   const weeklyTrends = useSelector((state: RootState) => selectWeeklyTrends(state));
   const overallGrade = useSelector((state: RootState) => selectOverallGrade(state));
   const alerts = useSelector((state: RootState) => selectOperationalAlerts(state));
@@ -1143,6 +1211,84 @@ export const useDSPRMetrics = (options: UseDSPRMetricsOptions = {}): UseDSPRMetr
     };
   }, [processedData, financialMetrics, operationalMetrics, salesChannelMetrics, qualityMetrics, costControlMetrics, weeklyTrends, alerts, criticalAlerts, overallGrade]);
 
+  /**
+   * Get list of available dates in the new daily map
+   * @returns Array of valid business dates present in `dailyByDate`
+   */
+  const getAvailableDailyDates = useCallback((): ApiDate[] => {
+    const map = (dsprMetricsState as unknown as { dailyByDate?: DailyDSPRByDate }).dailyByDate;
+    if (!map) return [];
+    const dates = Object.keys(map).filter((d) => typeof map[d as ApiDate] !== 'string') as ApiDate[];
+    return dates;
+  }, [dsprMetricsState]);
+
+  /**
+   * Get a normalized daily entry for a specific date from the map
+   * @param date - Business date to retrieve
+   * @returns Frontend-friendly entry with current and optional PrevWeek
+   */
+  const getDailyEntryForDate = useCallback((date: ApiDate): FrontendDailyEntry | null => {
+    const map = (dsprMetricsState as unknown as { dailyByDate?: DailyDSPRByDate }).dailyByDate;
+    if (!map) return null;
+    const raw = map[date];
+    if (!raw) return null;
+    if (typeof raw === 'string') {
+      return { date, current: null, prevWeek: null, status: raw };
+    }
+    const entry = raw as DailyDSPRDayWithPrevWeek;
+    return {
+      date,
+      current: entry,
+      prevWeek: entry.PrevWeek ?? null
+    };
+  }, [dsprMetricsState]);
+
+  /**
+   * Build a metric series across the daily map (optionally includes PrevWeek)
+   * @param metric - Key of `DailyDSPRData` to extract across dates
+   * @returns Array of metric points `{ date, value, prevWeekValue }`
+   */
+  const buildMetricSeriesFromDailyMap = useCallback((metric: keyof DailyDSPRData): MetricSeriesPoint[] => {
+    const map = (dsprMetricsState as unknown as { dailyByDate?: DailyDSPRByDate }).dailyByDate;
+    if (!map) return [];
+    const dates = Object.keys(map) as ApiDate[];
+    const result = dates.map((date) => {
+      const raw = map[date];
+      if (!raw || typeof raw === 'string') {
+        return { date, value: null };
+      }
+      const entry = raw as DailyDSPRDayWithPrevWeek;
+      const currentVal = (entry[metric] as unknown as number) ?? null;
+      const prevVal = entry.PrevWeek ? ((entry.PrevWeek[metric] as unknown as number) ?? null) : undefined;
+      return { date, value: currentVal, prevWeekValue: prevVal };
+    });
+    return result;
+  }, [dsprMetricsState]);
+
+  /**
+   * Get current vs previous week comparison for a specific date
+   * @param date - Business date to compare
+   * @returns Snapshot comparison or null if unavailable
+   */
+  const getPrevWeekComparisonForDate = useCallback((date: ApiDate): PrevWeekComparison | null => {
+    const normalized = getDailyEntryForDate(date);
+    if (!normalized || (!normalized.current && !normalized.prevWeek)) return null;
+
+    const snapshot = (src: DailyDSPRData | null) => (src ? {
+      Total_Sales: src.Total_Sales,
+      labor: src.labor,
+      Customer_count: src.Customer_count,
+      waste_total: (src.waste_gateway || 0) + (src.Waste_Alta || 0),
+      Digital_Sales_Percent: src.Digital_Sales_Percent
+    } : null);
+
+    return {
+      date,
+      current: snapshot(normalized.current),
+      prevWeek: snapshot(normalized.prevWeek ?? null)
+    };
+  }, [getDailyEntryForDate]);
+
   // Additional implementation stubs for remaining functions
   const getWasteAnalysis = useCallback((): WasteAnalysis | null => {
     if (!costControlMetrics || !dailyRawData) return null;
@@ -1491,6 +1637,7 @@ export const useDSPRMetrics = (options: UseDSPRMetricsOptions = {}): UseDSPRMetr
     alerts,
     criticalAlerts,
     benchmarks,
+    hnrMetrics,
     isLoading: isLoading || dsprLoading,
     error,
 
@@ -1546,7 +1693,13 @@ export const useDSPRMetrics = (options: UseDSPRMetricsOptions = {}): UseDSPRMetr
     hasValidData,
     getDataCompleteness,
     exportData,
-    generateReport
+    generateReport,
+
+    // New Format Utilities
+    getAvailableDailyDates,
+    getDailyEntryForDate,
+    buildMetricSeriesFromDailyMap,
+    getPrevWeekComparisonForDate
   };
 };
 

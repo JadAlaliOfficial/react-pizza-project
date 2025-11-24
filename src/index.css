@@ -30,6 +30,85 @@
     --primary-800: color-mix(in srgb, var(--primary) 58%, black);
     --primary-900: color-mix(in srgb, var(--primary) 44%, black);
 
+
+    --dashboard-blue: #2A73E8;
+    /* lighter (toward white) */
+    --dashboard-blue-50: color-mix(in srgb, var(--dashboard-blue) 8%, white);
+    --dashboard-blue-100: color-mix(in srgb, var(--dashboard-blue) 16%, white);
+    --dashboard-blue-200: color-mix(in srgb, var(--dashboard-blue) 32%, white);
+    --dashboard-blue-300: color-mix(in srgb, var(--dashboard-blue) 48%, white);
+    --dashboard-blue-400: color-mix(in srgb, var(--dashboard-blue) 64%, white);
+    /* base */
+    --dashboard-blue-500: var(--dashboard-blue);
+    /* darker (toward black) */
+    --dashboard-blue-600: color-mix(in srgb, var(--dashboard-blue) 86%, black);
+    --dashboard-blue-700: color-mix(in srgb, var(--dashboard-blue) 72%, black);
+    --dashboard-blue-800: color-mix(in srgb, var(--dashboard-blue) 58%, black);
+    --dashboard-blue-900: color-mix(in srgb, var(--dashboard-blue) 44%, black);
+
+
+    --dashboard-ocean: #3F51B5;
+    /* lighter (toward white) */
+    --dashboard-ocean-50: color-mix(in srgb, var(--dashboard-ocean) 8%, white);
+    --dashboard-ocean-100: color-mix(in srgb, var(--dashboard-ocean) 16%, white);
+    --dashboard-ocean-200: color-mix(in srgb, var(--dashboard-ocean) 32%, white);
+    --dashboard-ocean-300: color-mix(in srgb, var(--dashboard-ocean) 48%, white);
+    --dashboard-ocean-400: color-mix(in srgb, var(--dashboard-ocean) 64%, white);
+    /* base */
+    --dashboard-ocean-500: var(--dashboard-ocean);
+    /* darker (toward black) */
+    --dashboard-ocean-600: color-mix(in srgb, var(--dashboard-ocean) 86%, black);
+    --dashboard-ocean-700: color-mix(in srgb, var(--dashboard-ocean) 72%, black);
+    --dashboard-ocean-800: color-mix(in srgb, var(--dashboard-ocean) 58%, black);
+    --dashboard-ocean-900: color-mix(in srgb, var(--dashboard-ocean) 44%, black);
+    
+
+    --dashboard-green: #2ECC71;
+    /* lighter (toward white) */
+    --dashboard-green-50: color-mix(in srgb, var(--dashboard-green) 8%, white);
+    --dashboard-green-100: color-mix(in srgb, var(--dashboard-green) 16%, white);
+    --dashboard-green-200: color-mix(in srgb, var(--dashboard-green) 32%, white);
+    --dashboard-green-300: color-mix(in srgb, var(--dashboard-green) 48%, white);
+    --dashboard-green-400: color-mix(in srgb, var(--dashboard-green) 64%, white);
+    /* base */
+    --dashboard-green-500: var(--dashboard-green);
+    /* darker (toward black) */
+    --dashboard-green-600: color-mix(in srgb, var(--dashboard-green) 86%, black);
+    --dashboard-green-700: color-mix(in srgb, var(--dashboard-green) 72%, black);
+    --dashboard-green-800: color-mix(in srgb, var(--dashboard-green) 58%, black);
+    --dashboard-green-900: color-mix(in srgb, var(--dashboard-green) 44%, black);
+
+
+    --dashboard-yellow: #F4D03F;
+    /* lighter (toward white) */
+    --dashboard-yellow-50: color-mix(in srgb, var(--dashboard-yellow) 8%, white);
+    --dashboard-yellow-100: color-mix(in srgb, var(--dashboard-yellow) 16%, white);
+    --dashboard-yellow-200: color-mix(in srgb, var(--dashboard-yellow) 32%, white);
+    --dashboard-yellow-300: color-mix(in srgb, var(--dashboard-yellow) 48%, white);
+    --dashboard-yellow-400: color-mix(in srgb, var(--dashboard-yellow) 64%, white);
+    /* base */
+    --dashboard-yellow-500: var(--dashboard-yellow);
+    /* darker (toward black) */
+    --dashboard-yellow-600: color-mix(in srgb, var(--dashboard-yellow) 86%, black);
+    --dashboard-yellow-700: color-mix(in srgb, var(--dashboard-yellow) 72%, black);
+    --dashboard-yellow-800: color-mix(in srgb, var(--dashboard-yellow) 58%, black);
+    --dashboard-yellow-900: color-mix(in srgb, var(--dashboard-yellow) 44%, black);
+    
+    --dashboard-purble: #9B59B6;
+    /* lighter (toward white) */
+    --dashboard-purble-50: color-mix(in srgb, var(--dashboard-purble) 8%, white);
+    --dashboard-purble-100: color-mix(in srgb, var(--dashboard-purble) 16%, white);
+    --dashboard-purble-200: color-mix(in srgb, var(--dashboard-purble) 32%, white);
+    --dashboard-purble-300: color-mix(in srgb, var(--dashboard-purble) 48%, white);
+    --dashboard-purble-400: color-mix(in srgb, var(--dashboard-purble) 64%, white);
+    /* base */
+    --dashboard-purble-500: var(--dashboard-purble);
+    /* darker (toward black) */
+    --dashboard-purble-600: color-mix(in srgb, var(--dashboard-purble) 86%, black); 
+    --dashboard-purble-700: color-mix(in srgb, var(--dashboard-purble) 72%, black);
+    --dashboard-purble-800: color-mix(in srgb, var(--dashboard-purble) 58%, black);
+    --dashboard-purble-900: color-mix(in srgb, var(--dashboard-purble) 44%, black);
+
     --secondary: #f4f4f5;
     --secondary-foreground: #09090b;
     --muted: #f4f4f5;
@@ -57,7 +136,7 @@
     --sidebar-border: #e4e4e7;
     --sidebar-ring: #ff6000;
 
-    --font-sans: Afacad, ui-sans-serif, sans-serif, system-ui;
+    --font-sans: "Roboto Condensed", ui-sans-serif, sans-serif, system-ui;
     --font-serif: serif;
     --font-mono: B612 Mono, ui-monospace, monospace;
 
@@ -209,7 +288,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     letter-spacing: var(--tracking-normal);
   }
 }

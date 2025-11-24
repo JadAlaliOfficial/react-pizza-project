@@ -1,3 +1,4 @@
+
 /**
  * Hourly Sales Domain Types
  * TypeScript interfaces for daily hourly sales data structure
@@ -14,6 +15,23 @@ import type { StoreId, ApiDate } from './common';
 // =============================================================================
 // CORE HOURLY SALES TYPES
 // =============================================================================
+
+/**
+ * HNR metrics for a single hour
+ * Matches the "HNR" object inside each hour in the API response
+ */
+export interface HourlyHnrMetrics {
+  /** Total HNR transactions */
+  Transactions: number;
+  /** HNR transactions with CC */
+  Transactions_with_CC: number;
+  /** HNR promise broken percentage */
+  Promise_Broken_Percent: number;
+  /** HNR promise met percentage */
+  Promise_Met_Percent: number;
+  /** HNR promise met transactions */
+  Promise_Met_Transactions: number;
+}
 
 /**
  * Sales data for a single hour
@@ -35,6 +53,8 @@ export interface HourlySalesData {
   Mobile?: number;
   /** Total number of orders for the hour */
   Order_Count?: number;
+  /** HNR metrics for this hour (if present) */
+  HNR?: HourlyHnrMetrics;
 }
 
 /**
@@ -303,7 +323,7 @@ export const defaultHourlySalesConfig: HourlySalesConfig = {
 };
 
 // =============================================================================
-// TYPE GUARDS
+/** TYPE GUARDS */
 // =============================================================================
 
 /**

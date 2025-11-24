@@ -71,10 +71,28 @@ export interface DailyDSPRData {
   Cash_Sales_Vs_Deposite_Difference: number;
   /** Average ticket value */
   Avrage_ticket: number;
+
+  /** HNR: total HNR transactions */
+  HNR_Transactions: number;
+  /** HNR: transactions with CC */
+  HNR_Transactions_with_CC: number;
+  /** HNR: promise broken percentage */
+  HNR_Promise_Broken_Percent: number;
+  /** HNR: promise met percentage */
+  HNR_Promise_Met_Percent: number;
+  /** HNR: promise met transactions */
+  HNR_Promise_Met_Transactions: number;
+
   /** Customer count as percentage of target */
   Customer_count_percent: number;
   /** Customer service score */
   Customer_Service: number;
+}
+
+export interface HNRMetrics {
+  totalTransactions: number;
+  promiseMetTransactions: number;
+  promiseMetPercent: number;
 }
 
 /**
@@ -137,6 +155,54 @@ export interface WeeklyDSPRData {
   /** Weekly customer service average */
   Customer_Service: number;
 }
+
+/**
+ * Previous week weekly DSPR data (same shape as WeeklyDSPRData)
+ * Mirrors the API "PrevWeekDSPRData" block
+ */
+export type PrevWeekDSPRData = WeeklyDSPRData;
+
+/**
+ * Raw weekly DSPR report payload from the API
+ * - DSPRData: current week aggregate
+ * - PrevWeekDSPRData: previous week aggregate (same shape)
+ * - DailyDSPRByDate: per-day metrics with optional PrevWeek comparisons
+ */
+export interface WeeklyDSPRReport {
+  /** Current week aggregated metrics */
+  DSPRData: WeeklyDSPRData;
+
+  /** Previous week aggregated metrics for comparison */
+  PrevWeekDSPRData?: PrevWeekDSPRData;
+
+  /** Map of business date -> DSPR metrics (+ optional PrevWeek) */
+  DailyDSPRByDate: DailyDSPRByDate;
+}
+
+/**
+ * Daily DSPR data with optional previous week comparison
+ * Used in the Weekly DailyDSPRByDate map:
+ * - Key: date string (YYYY-MM-DD)
+ * - Value: current day metrics plus optional PrevWeek
+ */
+export interface DailyDSPRDayWithPrevWeek extends DailyDSPRData {
+  /** Previous week's metrics for the same weekday, if available */
+  PrevWeek?: DailyDSPRData;
+}
+
+/**
+ * Entry type for a single date in DailyDSPRByDate:
+ * - Either a full metrics object (with optional PrevWeek)
+ * - Or a status string like "No Final Summary data available."
+ */
+export type DailyDSPRByDateEntry =
+  | DailyDSPRDayWithPrevWeek
+  | 'No Final Summary data available.';
+
+/**
+ * Map of business date -> DSPR metrics (+ optional PrevWeek comparison)
+ */
+export type DailyDSPRByDate = Record<ApiDate, DailyDSPRByDateEntry>;
 
 // =============================================================================
 // PROCESSED DATA TYPES

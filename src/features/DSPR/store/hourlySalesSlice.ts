@@ -14,6 +14,7 @@ import { createSlice, createSelector, type PayloadAction } from '@reduxjs/toolki
 import { fetchDsprData, refreshDsprData } from './coordinatorSlice';
 import {
   type DailyHourlySales,
+  type HourlySalesData,
   type ProcessedHourlySales,
   type DailySalesSummary,
   type HourlySalesFilter,
@@ -24,7 +25,8 @@ import {
   BusinessTimePeriods,
   SalesChannel,
   hasHourlyActivity,
-  defaultHourlySalesConfig
+  defaultHourlySalesConfig,
+  type HourlySalesConfig
 } from '../types/hourlySales';
 import { ApiStatus } from '../types/common';
 
@@ -59,7 +61,7 @@ export interface HourlySalesState {
   /** Last processing timestamp */
   lastProcessed: number | null;
   /** Analysis configuration */
-  config: typeof defaultHourlySalesConfig;
+  config: HourlySalesConfig;
 }
 
 // =============================================================================
@@ -139,8 +141,8 @@ export const hourlySalesSlice = createSlice({
     /**
      * Update analysis configuration
      */
-    updateHourlySalesConfig: (state, action: PayloadAction<Partial<typeof defaultHourlySalesConfig>>) => {
-      state.config = { ...state.config, ...action.payload };
+    updateHourlySalesConfig: (state, action: PayloadAction<Partial<HourlySalesConfig>>) => {
+      state.config = { ...state.config, ...action.payload } as HourlySalesConfig;
       console.log('[Hourly Sales] Configuration updated', action.payload);
       
       // Trigger reprocessing if data exists
@@ -169,7 +171,7 @@ export const hourlySalesSlice = createSlice({
           state.error = null;
           
           const response = action.payload;
-          const hourlySalesData = response.reports?.daily?.dailyHourlySales;
+          const hourlySalesData = response.reports?.daily?.dailyHourlySales as DailyHourlySales | undefined;
           
           if (hourlySalesData) {
             console.log('[Hourly Sales] Processing new data from API', {
@@ -218,7 +220,7 @@ export const hourlySalesSlice = createSlice({
           state.error = null;
           
           const response = action.payload;
-          const hourlySalesData = response.reports?.daily?.dailyHourlySales;
+          const hourlySalesData = response.reports?.daily?.dailyHourlySales as DailyHourlySales | undefined;
           
           if (hourlySalesData) {
             console.log('[Hourly Sales] Processing refreshed data', {
@@ -293,7 +295,7 @@ export const {
  */
 function processHourlySalesData(
   rawData: DailyHourlySales,
-  config: typeof defaultHourlySalesConfig
+  config: HourlySalesConfig
 ) {
   console.log('[Hourly Sales] Starting data processing', {
     store: rawData.franchise_store,
@@ -331,9 +333,9 @@ function processHourlySalesData(
  * Process individual hour data
  */
 function processHourData(
-  hourData: any,
+  hourData: HourlySalesData,
   hour: number,
-  _config: typeof defaultHourlySalesConfig
+  _config: HourlySalesConfig
 ): ProcessedHourlySales {
   const totalSales = hourData.Total_Sales || 0;
   const orderCount = hourData.Order_Count || 0;
@@ -354,7 +356,7 @@ function processHourData(
 /**
  * Determine primary sales channel for an hour
  */
-function determinePrimaryChannel(hourData: any): SalesChannel | null {
+function determinePrimaryChannel(hourData: HourlySalesData): SalesChannel | null {
   const channels = [
     { channel: SalesChannel.WEBSITE, value: hourData.Website || 0 },
     { channel: SalesChannel.MOBILE, value: hourData.Mobile || 0 },
@@ -376,7 +378,7 @@ function determinePrimaryChannel(hourData: any): SalesChannel | null {
 function generateDailySummary(
   rawData: DailyHourlySales,
   processedData: ProcessedHourlySales[],
-  _config: typeof defaultHourlySalesConfig
+  _config: HourlySalesConfig
 ): DailySalesSummary {
   const activeHours = processedData.filter(hour => hour.hasActivity);
   const totalSales = processedData.reduce((sum, hour) => sum + (hour.Total_Sales || 0), 0);

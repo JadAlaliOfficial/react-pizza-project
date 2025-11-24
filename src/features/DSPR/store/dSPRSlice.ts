@@ -15,6 +15,9 @@ import { fetchDsprData, refreshDsprData } from './coordinatorSlice';
 import {
   type DailyDSPRData,
   type WeeklyDSPRData,
+  type DailyDSPRByDate,
+  type DailyDSPRByDateEntry,
+  type DailyDSPRDayWithPrevWeek,
   type ProcessedDSPRData,
   type OperationalAlert,
   type DSPRAnalysisConfig,
@@ -36,6 +39,7 @@ import {
   determineTrendDirection
 } from '../types/DSPRDailyWeekly';
 import { ApiStatus } from '../types/common';
+import type { HNRMetrics } from '../types/DSPRDailyWeekly';
 
 // =============================================================================
 // STATE INTERFACE
@@ -43,10 +47,24 @@ import { ApiStatus } from '../types/common';
 
 /**
  * State interface for DSPR metrics domain
+ *
+ * Breaking change note:
+ * The DSPR API daily payload may now be returned as a date-keyed map
+ * (DailyDSPRByDate) with optional PrevWeek comparison instead of a single
+ * DailyDSPRData object. To maintain backward compatibility, this slice:
+ * - Continues to expose `dailyRawData` for the selected business date
+ * - Adds `dailyByDate` to store the entire date map when provided
+ * - Adds `dailyPrevWeekRawData` with the selected date's PrevWeek if available
+ * Existing consumers using `dailyRawData` require no changes. New consumers
+ * can use `dailyByDate` for broader access.
  */
 export interface DSPRMetricsState {
   /** Raw daily DSPR data from API */
   dailyRawData: DailyDSPRData | null;
+  /** Raw daily DSPR data mapped by date (new API structure) */
+  dailyByDate: DailyDSPRByDate | null;
+  /** Previous week metrics for the selected date (if provided) */
+  dailyPrevWeekRawData: DailyDSPRData | null;
   /** Raw weekly DSPR data from API */
   weeklyRawData: WeeklyDSPRData | null;
   /** Processed DSPR data with analysis */
@@ -127,6 +145,8 @@ const initialBenchmarks: PerformanceBenchmarks = {
  */
 const initialState: DSPRMetricsState = {
   dailyRawData: null,
+  dailyByDate: null,
+  dailyPrevWeekRawData: null,
   weeklyRawData: null,
   processedData: null,
   config: defaultDSPRConfig,
@@ -235,26 +255,67 @@ export const dsprMetricsSlice = createSlice({
           state.error = null;
           
           const response = action.payload;
-          const dailyData = response.reports?.daily?.dailyDSPRData;
-          const weeklyData = response.reports?.weekly?.DSPRData;
+          const dailySource = response.reports?.daily?.dailyDSPRData as DailyDSPRData | DailyDSPRByDate | undefined;
+          const weeklyData = response.reports?.weekly?.DSPRData as WeeklyDSPRData | undefined;
+          const dailyByDateFromWeekly = response.reports?.weekly?.DailyDSPRByDate as DailyDSPRByDate | undefined;
           
-          if (dailyData) {
+          // New API shape integration: dailyDSPRData may be a map keyed by date
+          // Backward compatibility: still supports single DailyDSPRData object
+          let selectedDaily: DailyDSPRData | null = null;
+          let prevWeekForSelected: DailyDSPRData | null = null;
+          let dailyByDate: DailyDSPRByDate | null = null;
+
+          if (dailySource) {
+            const isSingleDaily = typeof (dailySource as any).Total_Sales === 'number';
+            if (isSingleDaily) {
+              selectedDaily = dailySource as DailyDSPRData;
+            } else {
+              dailyByDate = dailySource as DailyDSPRByDate;
+            }
+          }
+
+          if (!dailyByDate && dailyByDateFromWeekly) {
+            dailyByDate = dailyByDateFromWeekly;
+          }
+
+          if (!selectedDaily && dailyByDate) {
+            const reqDate = response['Filtering Values']?.date;
+            const entry: DailyDSPRByDateEntry | undefined = reqDate ? dailyByDate[reqDate] : undefined;
+            if (entry && typeof entry !== 'string') {
+              selectedDaily = entry as DailyDSPRDayWithPrevWeek;
+              prevWeekForSelected = (entry as DailyDSPRDayWithPrevWeek).PrevWeek ?? null;
+            } else {
+              selectedDaily = null;
+            }
+          }
+
+          if (selectedDaily && dailyByDate && !prevWeekForSelected) {
+            const reqDate = response['Filtering Values']?.date;
+            const entry: DailyDSPRByDateEntry | undefined = reqDate ? dailyByDate[reqDate] : undefined;
+            if (entry && typeof entry !== 'string') {
+              prevWeekForSelected = (entry as DailyDSPRDayWithPrevWeek).PrevWeek ?? null;
+            }
+          }
+          
+          if (selectedDaily) {
             console.log('[DSPR Metrics] Processing new data from API', {
-              hasDaily: !!dailyData,
+              hasDaily: !!selectedDaily,
               hasWeekly: !!weeklyData,
               storeId: response['Filtering Values']?.store,
-              totalSales: dailyData.Total_Sales,
-              laborCost: dailyData.labor
+              totalSales: selectedDaily.Total_Sales,
+              laborCost: selectedDaily.labor
             });
             
             // Store raw data
-            state.dailyRawData = dailyData;
+            state.dailyRawData = selectedDaily;
+            state.dailyByDate = dailyByDate;
+            state.dailyPrevWeekRawData = prevWeekForSelected;
             state.weeklyRawData = weeklyData || null;
             
             // Process the data
             const processingResult = processDSPRMetricsData(
-              dailyData,
-              weeklyData,
+              selectedDaily,
+              weeklyData || null,
               response['Filtering Values']?.store || 'unknown',
               response['Filtering Values']?.date || 'unknown',
               state.config,
@@ -294,18 +355,57 @@ export const dsprMetricsSlice = createSlice({
           state.error = null;
           
           const response = action.payload;
-          const dailyData = response.reports?.daily?.dailyDSPRData;
-          const weeklyData = response.reports?.weekly?.DSPRData;
+          const dailySource = response.reports?.daily?.dailyDSPRData as DailyDSPRData | DailyDSPRByDate | undefined;
+          const weeklyData = response.reports?.weekly?.DSPRData as WeeklyDSPRData | undefined;
+          const dailyByDateFromWeekly = response.reports?.weekly?.DailyDSPRByDate as DailyDSPRByDate | undefined;
           
-          if (dailyData) {
+          let selectedDaily: DailyDSPRData | null = null;
+          let prevWeekForSelected: DailyDSPRData | null = null;
+          let dailyByDate: DailyDSPRByDate | null = null;
+          
+          if (dailySource) {
+            const isSingleDaily = typeof (dailySource as any).Total_Sales === 'number';
+            if (isSingleDaily) {
+              selectedDaily = dailySource as DailyDSPRData;
+            } else {
+              dailyByDate = dailySource as DailyDSPRByDate;
+            }
+          }
+
+          if (!dailyByDate && dailyByDateFromWeekly) {
+            dailyByDate = dailyByDateFromWeekly;
+          }
+
+          if (!selectedDaily && dailyByDate) {
+            const reqDate = response['Filtering Values']?.date;
+            const entry: DailyDSPRByDateEntry | undefined = reqDate ? dailyByDate[reqDate] : undefined;
+            if (entry && typeof entry !== 'string') {
+              selectedDaily = entry as DailyDSPRDayWithPrevWeek;
+              prevWeekForSelected = (entry as DailyDSPRDayWithPrevWeek).PrevWeek ?? null;
+            } else {
+              selectedDaily = null;
+            }
+          }
+
+          if (selectedDaily && dailyByDate && !prevWeekForSelected) {
+            const reqDate = response['Filtering Values']?.date;
+            const entry: DailyDSPRByDateEntry | undefined = reqDate ? dailyByDate[reqDate] : undefined;
+            if (entry && typeof entry !== 'string') {
+              prevWeekForSelected = (entry as DailyDSPRDayWithPrevWeek).PrevWeek ?? null;
+            }
+          }
+          
+          if (selectedDaily) {
             console.log('[DSPR Metrics] Processing refreshed data');
             
-            state.dailyRawData = dailyData;
+            state.dailyRawData = selectedDaily;
+            state.dailyByDate = dailyByDate;
+            state.dailyPrevWeekRawData = prevWeekForSelected;
             state.weeklyRawData = weeklyData || null;
             
             const processingResult = processDSPRMetricsData(
-              dailyData,
-              weeklyData,
+              selectedDaily,
+              weeklyData || null,
               response['Filtering Values']?.store || 'unknown',
               response['Filtering Values']?.date || 'unknown',
               state.config,
@@ -1068,6 +1168,16 @@ export const selectDSPRMetricsError = (state: { dsprMetrics: DSPRMetricsState })
  */
 export const selectPerformanceBenchmarks = (state: { dsprMetrics: DSPRMetricsState }) => 
   state.dsprMetrics.benchmarks;
+
+export const selectHNRMetrics = (state: { dsprMetrics: DSPRMetricsState }): HNRMetrics | null => {
+  const d = state.dsprMetrics.dailyRawData;
+  if (!d) return null;
+  return {
+    totalTransactions: d.HNR_Transactions,
+    promiseMetTransactions: d.HNR_Promise_Met_Transactions,
+    promiseMetPercent: d.HNR_Promise_Met_Percent
+  };
+};
 
 // =============================================================================
 // SLICE EXPORT

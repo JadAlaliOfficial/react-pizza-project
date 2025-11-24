@@ -34,12 +34,16 @@ import {
   type HourlySalesFilter,
   type HourlySalesSort,
   type ProcessedHourlySales,
+  type HourlySalesData,
+  type DailyHourlySales,
+  type DailySalesSummary,
   type SalesTimePeriod,
   BusinessTimePeriods,
   SalesChannel,
   defaultHourlySalesConfig,
   isValidHour,
 } from '../types/hourlySales';
+import type { StoreId, ApiDate } from '../types/common';
 import { useDsprApi } from '../hooks/useCoordinator';
 
 // =============================================================================
@@ -125,6 +129,22 @@ export interface UseHourlySalesReturn {
   getDataQuality: () => DataQuality;
   /** Export data in various formats */
   exportData: (format: ExportFormat) => ExportResult;
+
+  // New Format Utilities
+  /** Transform backend payload into frontend hourly map */
+  createFrontendHourlyMapFromBackend: (raw: DailyHourlySales | null) => FrontendHourlyMap;
+  /** Transform frontend hourly map back to backend payload */
+  createBackendFromFrontendHourlyMap: (map: FrontendHourlyMap, storeId: StoreId, date: ApiDate) => DailyHourlySales;
+  /** Validate a single frontend hourly entry */
+  validateFrontendHourlyEntry: (entry: FrontendHourlyEntry) => FrontendHourlyValidation;
+  /** Validate a frontend hourly map */
+  validateFrontendHourlyMap: (map: FrontendHourlyMap) => FrontendHourlyValidation;
+  /** List available hours present or with activity */
+  getAvailableFrontendHours: (map: FrontendHourlyMap) => number[];
+  /** Merge two frontend hourly maps */
+  mergeFrontendHourlyMaps: (base: FrontendHourlyMap, patch: FrontendHourlyMap) => FrontendHourlyMap;
+  /** Compute daily summary from a frontend hourly map */
+  computeSummaryFromFrontend: (map: FrontendHourlyMap, storeId: StoreId, date: ApiDate) => DailySalesSummary;
 }
 
 /**
@@ -253,6 +273,206 @@ export interface ExportResult {
     exportDate: string;
     recordCount: number;
     dateRange: string;
+  };
+}
+
+// =============================================================================
+// NEW FORMAT INTERFACES
+// =============================================================================
+
+/**
+ * Frontend-oriented hourly entry used by new components
+ */
+export interface FrontendHourlyEntry {
+  /** Hour index (0-23) */
+  hour: number;
+  /** Metrics payload mirroring backend hour fields */
+  metrics: HourlySalesData;
+  /** Derived flags for UI rendering */
+  hasActivity: boolean;
+}
+
+/**
+ * Frontend hourly map keyed by hour (0-23)
+ */
+export type FrontendHourlyMap = Record<number, FrontendHourlyEntry>;
+
+/**
+ * Validation result for new frontend hourly format
+ */
+export interface FrontendHourlyValidation {
+  /** Whether the map is valid */
+  isValid: boolean;
+  /** Validation errors */
+  errors: string[];
+  /** Validation warnings */
+  warnings: string[];
+  /** Completeness percentage (0-100) */
+  completeness: number;
+}
+
+// =============================================================================
+// NEW FORMAT PURE UTILITIES (exported for testing and reuse)
+// =============================================================================
+
+/**
+ * Transform backend `DailyHourlySales` into frontend map
+ * @param raw - Backend payload with 24-hour array
+ * @returns Map keyed by hour with normalized entries
+ */
+export function frontendHourly_createMapFromBackend(raw: DailyHourlySales | null): FrontendHourlyMap {
+  const map: FrontendHourlyMap = {};
+  if (!raw || !raw.hours || raw.hours.length === 0) return map;
+  raw.hours.forEach((h, idx) => {
+    const hasActivity = !!(h.Total_Sales && h.Total_Sales > 0);
+    map[idx] = { hour: idx, metrics: h, hasActivity };
+  });
+  return map;
+}
+
+/**
+ * Transform frontend map back to backend `DailyHourlySales`
+ * @param map - Frontend hourly map keyed by hour
+ * @param storeId - Franchise store identifier
+ * @param date - Business date
+ * @returns Backend payload compatible with API and store
+ */
+export function frontendHourly_createBackendFromMap(
+  map: FrontendHourlyMap,
+  storeId: StoreId,
+  date: ApiDate
+): DailyHourlySales {
+  const hours: HourlySalesData[] = Array.from({ length: 24 }, (_, hour) => {
+    const entry = map[hour];
+    return entry ? entry.metrics : {};
+  });
+  return { franchise_store: storeId, business_date: date, hours };
+}
+
+/**
+ * Validate a single frontend hourly entry
+ * @param entry - Frontend hourly entry to validate
+ * @returns Validation result for the entry
+ */
+export function frontendHourly_validateEntry(entry: FrontendHourlyEntry): FrontendHourlyValidation {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  if (!isValidHour(entry.hour)) {
+    errors.push(`Invalid hour index: ${entry.hour}`);
+  }
+  const m = entry.metrics;
+  const numberFields: (keyof HourlySalesData)[] = [
+    'Total_Sales','Phone_Sales','Call_Center_Agent','Drive_Thru','Website','Mobile','Order_Count'
+  ];
+  numberFields.forEach((f) => {
+    const v = m[f];
+    if (v !== undefined && typeof v !== 'number') errors.push(`Field ${String(f)} must be a number`);
+    if (typeof v === 'number' && v < 0) errors.push(`Field ${String(f)} cannot be negative`);
+  });
+
+  if (m.HNR) {
+    const { Transactions, Transactions_with_CC, Promise_Broken_Percent, Promise_Met_Percent, Promise_Met_Transactions } = m.HNR;
+    if (Transactions < 0 || Transactions_with_CC < 0 || Promise_Met_Transactions < 0) {
+      errors.push('HNR numeric fields cannot be negative');
+    }
+    const sumPct = Promise_Broken_Percent + Promise_Met_Percent;
+    if (sumPct > 100 + 1e-6) warnings.push('HNR percent sum exceeds 100');
+    if (sumPct < 99 - 1e-6) warnings.push('HNR percent sum below 99');
+  }
+
+  const completeness = numberFields.reduce((acc, f) => acc + (m[f] !== undefined ? 1 : 0), 0) / numberFields.length * 100;
+
+  return { isValid: errors.length === 0, errors, warnings, completeness };
+}
+
+/**
+ * Validate an entire frontend map
+ * @param map - Frontend hourly map
+ * @returns Aggregate validation result
+ */
+export function frontendHourly_validateMap(map: FrontendHourlyMap): FrontendHourlyValidation {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  let filled = 0;
+  for (let hour = 0; hour < 24; hour++) {
+    const entry = map[hour];
+    if (!entry) continue;
+    const r = frontendHourly_validateEntry(entry);
+    if (!r.isValid) errors.push(...r.errors.map(e => `Hour ${hour}: ${e}`));
+    warnings.push(...r.warnings.map(w => `Hour ${hour}: ${w}`));
+    filled++;
+  }
+  const completeness = (filled / 24) * 100;
+  return { isValid: errors.length === 0, errors, warnings, completeness };
+}
+
+/**
+ * Helper to list available hours present or with activity
+ * @param map - Frontend hourly map
+ * @returns Array of hour indices present in map and active
+ */
+export function frontendHourly_getAvailableHours(map: FrontendHourlyMap): number[] {
+  return Object.keys(map)
+    .map(h => Number(h))
+    .filter(h => isValidHour(h) && (!!map[h]?.hasActivity || !!map[h]));
+}
+
+/**
+ * Helper to merge two frontend maps (patch over base)
+ * @param base - Base map
+ * @param patch - Patch map to overlay
+ * @returns Merged map
+ */
+export function frontendHourly_mergeMaps(base: FrontendHourlyMap, patch: FrontendHourlyMap): FrontendHourlyMap {
+  const result: FrontendHourlyMap = { ...base };
+  Object.entries(patch).forEach(([k, v]) => { result[Number(k)] = v; });
+  return result;
+}
+
+/**
+ * Compute daily summary from a frontend hourly map
+ * @param map - Frontend hourly map
+ * @param storeId - Store identifier
+ * @param date - Business date
+ * @returns DailySalesSummary using the same shape as backend-derived summary
+ */
+export function frontendHourly_computeSummary(map: FrontendHourlyMap, storeId: StoreId, date: ApiDate): DailySalesSummary {
+  const totals = Array.from({ length: 24 }, (_, hour) => map[hour]?.metrics || {});
+  const totalDailySales = totals.reduce((sum, m) => sum + (m.Total_Sales || 0), 0);
+  const totalOrderCount = totals.reduce((sum, m) => sum + (m.Order_Count || 0), 0);
+  const averageOrderValue = totalOrderCount > 0 ? totalDailySales / totalOrderCount : 0;
+  let peakSalesHour = 0, peakSalesAmount = 0, activeHours = 0;
+  let phone = 0, callCenter = 0, driveThru = 0, website = 0, mobile = 0;
+  totals.forEach((m, hour) => {
+    const ts = m.Total_Sales || 0;
+    if (ts > 0) activeHours++;
+    if (ts > peakSalesAmount) { peakSalesAmount = ts; peakSalesHour = hour; }
+    phone += m.Phone_Sales || 0;
+    callCenter += m.Call_Center_Agent || 0;
+    driveThru += m.Drive_Thru || 0;
+    website += m.Website || 0;
+    mobile += m.Mobile || 0;
+  });
+  const digital = website + mobile;
+  const digitalSalesPercentage = totalDailySales > 0 ? (digital / totalDailySales) * 100 : 0;
+  return {
+    storeId,
+    date,
+    totalDailySales,
+    totalOrderCount,
+    averageOrderValue,
+    peakSalesHour,
+    peakSalesAmount,
+    activeHours,
+    digitalSalesPercentage,
+    channelBreakdown: {
+      phone: { amount: phone, percentage: totalDailySales ? (phone / totalDailySales) * 100 : 0, orderCount: 0, averageOrderValue: 0 },
+      callCenter: { amount: callCenter, percentage: totalDailySales ? (callCenter / totalDailySales) * 100 : 0, orderCount: 0, averageOrderValue: 0 },
+      driveThru: { amount: driveThru, percentage: totalDailySales ? (driveThru / totalDailySales) * 100 : 0, orderCount: 0, averageOrderValue: 0 },
+      website: { amount: website, percentage: totalDailySales ? (website / totalDailySales) * 100 : 0, orderCount: 0, averageOrderValue: 0 },
+      mobile: { amount: mobile, percentage: totalDailySales ? (mobile / totalDailySales) * 100 : 0, orderCount: 0, averageOrderValue: 0 }
+    }
   };
 }
 
@@ -687,6 +907,78 @@ export const useHourlySales = (options: UseHourlySalesOptions = {}): UseHourlySa
     };
   }, [processedData, summary, periodAnalysis, trends, validation]);
 
+  /**
+   * Transform backend `DailyHourlySales` into frontend map
+   * @param raw - Backend payload with 24-hour array
+   * @returns Map keyed by hour with normalized entries
+   */
+  const createFrontendHourlyMapFromBackend = useCallback((raw: DailyHourlySales | null): FrontendHourlyMap => {
+    return frontendHourly_createMapFromBackend(raw);
+  }, []);
+
+  /**
+   * Transform frontend map back to backend `DailyHourlySales`
+   * @param map - Frontend hourly map keyed by hour
+   * @param storeId - Franchise store identifier
+   * @param date - Business date
+   * @returns Backend payload compatible with API and store
+   */
+  const createBackendFromFrontendHourlyMap = useCallback((
+    map: FrontendHourlyMap,
+    storeId: StoreId,
+    date: ApiDate
+  ): DailyHourlySales => {
+    return frontendHourly_createBackendFromMap(map, storeId, date);
+  }, []);
+
+  /**
+   * Validate a single frontend hourly entry
+   * @param entry - Frontend hourly entry to validate
+   * @returns Validation result for the entry
+   */
+  const validateFrontendHourlyEntry = useCallback((entry: FrontendHourlyEntry): FrontendHourlyValidation => {
+    return frontendHourly_validateEntry(entry);
+  }, []);
+
+  /**
+   * Validate an entire frontend map
+   * @param map - Frontend hourly map
+   * @returns Aggregate validation result
+   */
+  const validateFrontendHourlyMap = useCallback((map: FrontendHourlyMap): FrontendHourlyValidation => {
+    return frontendHourly_validateMap(map);
+  }, []);
+
+  /**
+   * Helper to list available hours present or with activity
+   * @param map - Frontend hourly map
+   * @returns Array of hour indices present in map and active
+   */
+  const getAvailableFrontendHours = useCallback((map: FrontendHourlyMap): number[] => {
+    return frontendHourly_getAvailableHours(map);
+  }, []);
+
+  /**
+   * Helper to merge two frontend maps (patch over base)
+   * @param base - Base map
+   * @param patch - Patch map to overlay
+   * @returns Merged map
+   */
+  const mergeFrontendHourlyMaps = useCallback((base: FrontendHourlyMap, patch: FrontendHourlyMap): FrontendHourlyMap => {
+    return frontendHourly_mergeMaps(base, patch);
+  }, []);
+
+  /**
+   * Compute daily summary from a frontend hourly map
+   * @param map - Frontend hourly map
+   * @param storeId - Store identifier
+   * @param date - Business date
+   * @returns DailySalesSummary using the same shape as backend-derived summary
+   */
+  const computeSummaryFromFrontend = useCallback((map: FrontendHourlyMap, storeId: StoreId, date: ApiDate): DailySalesSummary => {
+    return frontendHourly_computeSummary(map, storeId, date);
+  }, []);
+
   return {
     // Data and State
     rawData,
@@ -721,7 +1013,16 @@ export const useHourlySales = (options: UseHourlySalesOptions = {}): UseHourlySa
     // Utilities
     hasValidData,
     getDataQuality,
-    exportData
+    exportData,
+
+    // New Format Utilities
+    createFrontendHourlyMapFromBackend,
+    createBackendFromFrontendHourlyMap,
+    validateFrontendHourlyEntry,
+    validateFrontendHourlyMap,
+    getAvailableFrontendHours,
+    mergeFrontendHourlyMaps,
+    computeSummaryFromFrontend
   };
 };
 
