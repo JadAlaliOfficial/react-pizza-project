@@ -1,14 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useCurrentStore } from '@/components/layouts/mainLayout/CurrentStoreContext';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
+import { useDailyDspr } from '@/features/DSPR/hooks/useDailyDspr';
+import { useWeeklyDspr } from '@/features/DSPR/hooks/useWeeklyDspr';
 import { InfoSection } from '@/features/dashboard/components/onPage/InfoSectionOnPage';
 import { CustomerServiceOverview } from '@/features/dashboard/components/onPage/CustomerServiceOverviewOnPage';
 import { InfoCards } from '@/features/dashboard/components/onPage/InfoCardsOnPage';
 import { ChannelSalesDashboard } from '@/features/dashboard/components/onPage/ChannelSalesDashboardOnPage';
 import { DailyHoursTableOnPage } from '@/features/dashboard/components/onPage/DailyHoursTableOnPage';
-// import { DSQRDashboard } from '../components/DSQRDashboard';
+import { DSQRDashboard } from '@/components/DSQRDashboard';
 import { StoreDatesFilter } from '@/features/storeItems/components/StoreDatesFilter';
 import HNRInfoOnPage from '@/features/dashboard/components/onPage/HNRInfoOnPage';
 import CelebrationBanner from '@/features/dashboard/components/CelebrationBanner';
@@ -25,11 +26,18 @@ const Dashboard: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   const { currentStore } = useCurrentStore();
-  const {
-    hnrMetrics,
-    isLoading: metricsLoading,
-    error: metricsError,
-  } = useDSPRMetrics();
+  const { raw: dailyRaw, hasData: hasDaily } = useDailyDspr();
+  const { hasData: hasWeekly } = useWeeklyDspr();
+  const hnrMetrics = useMemo(() => {
+    if (!dailyRaw) return null;
+    return {
+      promiseMetPercent: (dailyRaw as any).HNR_Promise_Met_Percent ?? null,
+      promiseMetTransactions: (dailyRaw as any).HNR_Promise_Met_Transactions ?? null,
+      totalTransactions: (dailyRaw as any).HNR_Transactions ?? null,
+    } as const;
+  }, [dailyRaw]);
+  const metricsLoading = !hasDaily && !hasWeekly;
+  const metricsError: string | null = null;
   const [storeDateFilterError, setStoreDateFilterError] = useState<
     string | null
   >(null);
@@ -112,7 +120,7 @@ const Dashboard: React.FC = () => {
           <HNRInfoOnPage></HNRInfoOnPage>
         </>
       )}
-      {/* <DSQRDashboard></DSQRDashboard> */}
+      <DSQRDashboard></DSQRDashboard>
     </div>
   );
 };

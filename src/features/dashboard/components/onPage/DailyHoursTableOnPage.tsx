@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useSimpleHourlySales } from '@/features/DSPR/hooks/useHourlySales';
+import { useHourlySales } from '@/features/DSPR/hooks/useHourlySales';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 interface DailyHoursTableOnPageProps {
@@ -34,28 +34,55 @@ export const DailyHoursTableOnPage: React.FC<DailyHoursTableOnPageProps> = ({
   subtitle,
   className,
 }) => {
-  const { data, error, hasData, isLoading } = useSimpleHourlySales();
+  const { financial, operational, salesChannels, hasData, hours } = useHourlySales();
   const isMobile = useIsMobile();
 
   const rows = useMemo(() => {
-    const ordered = [...(data || [])].sort((a, b) => {
-      const ao = a.hour <= 3 ? a.hour + 24 : a.hour;
-      const bo = b.hour <= 3 ? b.hour + 24 : b.hour;
-      return ao - bo;
+    const hrs = Array.isArray(hours) ? hours : [];
+    const hourRows = hrs.map((h, idx) => {
+      const total = Number(h.Total_Sales || 0);
+      const orders = Number(h.Order_Count || 0);
+      const website = Number(h.Website || 0);
+      const mobile = Number(h.Mobile || 0);
+      const phone = Number(h.Phone_Sales || 0);
+      const driveThru = Number(h.Drive_Thru || 0);
+      const aov = orders > 0 ? total / orders : 0;
+      const digital = total > 0 ? ((website + mobile) / total) * 100 : 0;
+      const hasActivity = total > 0 || orders > 0;
+      return {
+        hourLabel: formatHour(idx),
+        totalSales: formatCurrency(total),
+        orders,
+        website: formatCurrency(website),
+        mobile: formatCurrency(mobile),
+        phone: formatCurrency(phone),
+        driveThru: formatCurrency(driveThru),
+        aov: formatCurrency(aov),
+        digitalPct: formatPercentage(digital),
+        hasActivity,
+      };
     });
-    return ordered.map(h => ({
-      hourLabel: formatHour(h.hour),
-      totalSales: formatCurrency(h.Total_Sales),
-      orders: h.Order_Count ?? 0,
-      website: formatCurrency(h.Website),
-      mobile: formatCurrency(h.Mobile),
-      phone: formatCurrency(h.Phone_Sales),
-      driveThru: formatCurrency(h.Drive_Thru),
-      aov: formatCurrency(h.averageOrderValue),
-      digitalPct: formatPercentage(h.digitalSalesPercentage),
-      hasActivity: h.hasActivity,
-    }));
-  }, [data]);
+
+    if (financial && operational && salesChannels) {
+      const digitalPctTotal = (salesChannels.digitalPercent ?? 0) * 100;
+      const hasActivityTotal = (financial.totalSales ?? 0) > 0;
+      const totalRow = {
+        hourLabel: 'Total',
+        totalSales: formatCurrency(financial.totalSales),
+        orders: operational.customerCount ?? 0,
+        website: formatCurrency(salesChannels.websiteSales),
+        mobile: formatCurrency(salesChannels.mobileSales),
+        phone: formatCurrency(salesChannels.phoneSales),
+        driveThru: formatCurrency(salesChannels.driveThruSales),
+        aov: formatCurrency(operational.averageTicket),
+        digitalPct: formatPercentage(digitalPctTotal),
+        hasActivity: hasActivityTotal,
+      };
+      return [...hourRows, totalRow];
+    }
+
+    return hourRows;
+  }, [hours, financial, operational, salesChannels]);
 
   const NoDataState = () => (
     <div className={cn(
@@ -70,29 +97,27 @@ export const DailyHoursTableOnPage: React.FC<DailyHoursTableOnPageProps> = ({
     </div>
   );
 
-  const ErrorState = () => (
-    <div className={cn(
-      'w-full bg-card rounded-lg border border-destructive/20 p-6 shadow-realistic',
-      'flex flex-col items-center justify-center text-center space-y-2',
-      isMobile ? 'min-h-40' : 'min-h-56'
-    )}>
-      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-destructive/10">
-        <ExclamationTriangleIcon className="w-5 h-5 text-destructive" />
-      </div>
-      <div className="text-sm text-destructive">Failed to load hourly sales data</div>
-    </div>
-  );
+  // const ErrorState = () => (
+  //   <div className={cn(
+  //     'w-full bg-card rounded-lg border border-destructive/20 p-6 shadow-realistic',
+  //     'flex flex-col items-center justify-center text-center space-y-2',
+  //     isMobile ? 'min-h-40' : 'min-h-56'
+  //   )}>
+  //     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-destructive/10">
+  //       <ExclamationTriangleIcon className="w-5 h-5 text-destructive" />
+  //     </div>
+  //     <div className="text-sm text-destructive">Failed to load hourly sales data</div>
+  //   </div>
+  // );
 
   return (
     <section className={cn(isMobile ? 'p-2 space-y-2' : 'p-2 space-y-6', className)}>
       <SectionHeader title={title} subtitle={subtitle} />
 
-      {error ? (
-        <ErrorState />
-      ) : !hasData || !data || data.length === 0 ? (
+      {!hasData || rows.length === 0 ? (
         <NoDataState />
       ) : (
-        <Card className={cn('shadow-realistic transition-opacity', isLoading && 'opacity-50 pointer-events-none')}>
+        <Card className={cn('shadow-realistic')}>
           <CardHeader className="py-3">
             <CardTitle className="text-base text-center">
               Hourly Sales

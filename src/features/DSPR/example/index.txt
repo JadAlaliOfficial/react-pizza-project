@@ -1,6 +1,6 @@
 {
     "Filtering Values": {
-        "date": "2025-11-15",
+        "date": "2025-11-22",
         "store": "03795-00001",
         "items": [
             103001.0,
@@ -12,18 +12,18 @@
             103033.0,
             103055.0
         ],
-        "week": 46.0,
-        "weekStartDate": "2025-11-11T05:00:00.000000Z",
-        "weekEndDate": "2025-11-17T05:00:00.000000Z",
-        "look back start": "2025-08-23T04:00:00.000000Z",
-        "look back end": "2025-11-15T05:00:00.000000Z",
-        "depositDeliveryUrl": "https://hook.pneunited.com/api/deposit-delivery-dsqr-weekly/03795-00001/2025-11-11/2025-11-17"
+        "week": 47.0,
+        "weekStartDate": "2025-11-18T05:00:00.000000Z",
+        "weekEndDate": "2025-11-24T05:00:00.000000Z",
+        "look back start": "2025-08-30T04:00:00.000000Z",
+        "look back end": "2025-11-22T05:00:00.000000Z",
+        "depositDeliveryUrl": "https://hook.pneunited.com/api/deposit-delivery-dsqr-weekly/03795-00001/2025-11-18/2025-11-24"
     },
     "reports": {
         "daily": {
             "dailyHourlySales": {
                 "franchise_store": "03795-00001",
-                "business_date": "2025-11-15",
+                "business_date": "2025-11-22",
                 "hours": [
                     {},
                     {},
@@ -36,157 +36,189 @@
                     {},
                     {},
                     {
-                        "Total_Sales": 45.32,
-                        "Phone_Sales": 6.99,
+                        "Total_Sales": 107.06,
+                        "Phone_Sales": 0.0,
+                        "Call_Center_Agent": 0.0,
+                        "Drive_Thru": 0.0,
+                        "Website": 0.0,
+                        "Mobile": 10.98,
+                        "Order_Count": 9.0,
+                        "HNR": {
+                            "Transactions": 8.0,
+                            "Transactions_with_CC": 0.0,
+                            "Promise_Broken_Percent": 0.0,
+                            "Promise_Met_Percent": 1.0,
+                            "Promise_Met_Transactions": 8.0
+                        }
+                    },
+                    {
+                        "Total_Sales": 318.09,
+                        "Phone_Sales": 11.98,
+                        "Call_Center_Agent": 0.0,
+                        "Drive_Thru": 0.0,
+                        "Website": 43.74,
+                        "Mobile": 23.97,
+                        "Order_Count": 23.0,
+                        "HNR": {
+                            "Transactions": 24.0,
+                            "Transactions_with_CC": 0.0,
+                            "Promise_Broken_Percent": 0.0,
+                            "Promise_Met_Percent": 1.0,
+                            "Promise_Met_Transactions": 24.0
+                        }
+                    },
+                    {
+                        "Total_Sales": 364.29,
+                        "Phone_Sales": 0.0,
                         "Call_Center_Agent": 0.0,
                         "Drive_Thru": 0.0,
                         "Website": 0.0,
                         "Mobile": 0.0,
-                        "Order_Count": 3.0,
-                        "HNR": {
-                            "Transactions": 0.0,
-                            "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 0.0,
-                            "Promise_Met_Percent": 1.0,
-                            "Promise_Met_Transactions": 0.0
-                        }
-                    },
-                    {
-                        "Total_Sales": 237.11,
-                        "Phone_Sales": 0.0,
-                        "Call_Center_Agent": 0.0,
-                        "Drive_Thru": 0.0,
-                        "Website": 6.99,
-                        "Mobile": 52.54,
-                        "Order_Count": 17.0,
-                        "HNR": {
-                            "Transactions": 9.0,
-                            "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 22.22,
-                            "Promise_Met_Percent": 77.78,
-                            "Promise_Met_Transactions": 7.0
-                        }
-                    },
-                    {
-                        "Total_Sales": 388.47,
-                        "Phone_Sales": 0.0,
-                        "Call_Center_Agent": 0.0,
-                        "Drive_Thru": 0.0,
-                        "Website": 0.0,
-                        "Mobile": 34.95,
-                        "Order_Count": 23.0,
-                        "HNR": {
-                            "Transactions": 5.0,
-                            "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 20.0,
-                            "Promise_Met_Percent": 80.0,
-                            "Promise_Met_Transactions": 4.0
-                        }
-                    },
-                    {
-                        "Total_Sales": 326.73,
-                        "Phone_Sales": 13.58,
-                        "Call_Center_Agent": 0.0,
-                        "Drive_Thru": 0.0,
-                        "Website": 83.59,
-                        "Mobile": 38.95,
                         "Order_Count": 20.0,
                         "HNR": {
-                            "Transactions": 8.0,
+                            "Transactions": 16.0,
                             "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 25.0,
-                            "Promise_Met_Percent": 75.0,
-                            "Promise_Met_Transactions": 6.0
+                            "Promise_Broken_Percent": 37.5,
+                            "Promise_Met_Percent": 62.5,
+                            "Promise_Met_Transactions": 10.0
                         }
                     },
                     {
-                        "Total_Sales": 506.65,
-                        "Phone_Sales": 9.99,
-                        "Call_Center_Agent": 0.0,
-                        "Drive_Thru": 0.0,
-                        "Website": 13.98,
-                        "Mobile": 6.79,
-                        "Order_Count": 37.0,
-                        "HNR": {
-                            "Transactions": 27.0,
-                            "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 22.22,
-                            "Promise_Met_Percent": 77.78,
-                            "Promise_Met_Transactions": 21.0
-                        }
-                    },
-                    {
-                        "Total_Sales": 620.57,
+                        "Total_Sales": 446.3,
                         "Phone_Sales": 0.0,
                         "Call_Center_Agent": 0.0,
                         "Drive_Thru": 0.0,
-                        "Website": 27.57,
-                        "Mobile": 24.36,
-                        "Order_Count": 41.0,
+                        "Website": 11.98,
+                        "Mobile": 58.71,
+                        "Order_Count": 27.0,
                         "HNR": {
-                            "Transactions": 28.0,
+                            "Transactions": 24.0,
                             "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 17.86,
-                            "Promise_Met_Percent": 82.14,
-                            "Promise_Met_Transactions": 23.0
+                            "Promise_Broken_Percent": 8.33,
+                            "Promise_Met_Percent": 91.67,
+                            "Promise_Met_Transactions": 22.0
                         }
                     },
                     {
-                        "Total_Sales": 673.07,
-                        "Phone_Sales": 6.99,
+                        "Total_Sales": 407.63,
+                        "Phone_Sales": 0.0,
                         "Call_Center_Agent": 0.0,
                         "Drive_Thru": 0.0,
-                        "Website": 39.92,
-                        "Mobile": 119.2,
-                        "Order_Count": 46.0,
+                        "Website": 22.26,
+                        "Mobile": 48.24,
+                        "Order_Count": 31.0,
                         "HNR": {
-                            "Transactions": 21.0,
+                            "Transactions": 28.0,
                             "Transactions_with_CC": 0.0,
                             "Promise_Broken_Percent": 14.29,
                             "Promise_Met_Percent": 85.71,
-                            "Promise_Met_Transactions": 18.0
+                            "Promise_Met_Transactions": 24.0
                         }
                     },
                     {
-                        "Total_Sales": 791.28,
+                        "Total_Sales": 433.0,
                         "Phone_Sales": 0.0,
                         "Call_Center_Agent": 0.0,
                         "Drive_Thru": 0.0,
-                        "Website": 32.44,
-                        "Mobile": 33.53,
-                        "Order_Count": 41.0,
+                        "Website": 63.62,
+                        "Mobile": 16.04,
+                        "Order_Count": 26.0,
                         "HNR": {
-                            "Transactions": 21.0,
+                            "Transactions": 12.0,
                             "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 9.52,
-                            "Promise_Met_Percent": 90.48,
-                            "Promise_Met_Transactions": 19.0
+                            "Promise_Broken_Percent": 16.67,
+                            "Promise_Met_Percent": 83.33,
+                            "Promise_Met_Transactions": 10.0
                         }
                     },
                     {
-                        "Total_Sales": 837.25,
-                        "Phone_Sales": 0.0,
+                        "Total_Sales": 531.87,
+                        "Phone_Sales": 39.15,
                         "Call_Center_Agent": 0.0,
                         "Drive_Thru": 0.0,
-                        "Website": 17.98,
-                        "Mobile": 155.71,
-                        "Order_Count": 56.0,
+                        "Website": 11.98,
+                        "Mobile": 105.94,
+                        "Order_Count": 38.0,
                         "HNR": {
-                            "Transactions": 28.0,
+                            "Transactions": 30.0,
                             "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 3.57,
-                            "Promise_Met_Percent": 96.43,
-                            "Promise_Met_Transactions": 27.0
+                            "Promise_Broken_Percent": 33.33,
+                            "Promise_Met_Percent": 66.67,
+                            "Promise_Met_Transactions": 20.0
                         }
                     },
                     {
-                        "Total_Sales": 768.55,
+                        "Total_Sales": 798.9,
+                        "Phone_Sales": 7.99,
+                        "Call_Center_Agent": 0.0,
+                        "Drive_Thru": 0.0,
+                        "Website": 45.04,
+                        "Mobile": 122.95,
+                        "Order_Count": 45.0,
+                        "HNR": {
+                            "Transactions": 38.0,
+                            "Transactions_with_CC": 0.0,
+                            "Promise_Broken_Percent": 21.05,
+                            "Promise_Met_Percent": 78.95,
+                            "Promise_Met_Transactions": 30.0
+                        }
+                    },
+                    {
+                        "Total_Sales": 1210.12,
+                        "Phone_Sales": 53.14,
+                        "Call_Center_Agent": 0.0,
+                        "Drive_Thru": 0.0,
+                        "Website": 256.85,
+                        "Mobile": 200.23,
+                        "Order_Count": 66.0,
+                        "HNR": {
+                            "Transactions": 64.0,
+                            "Transactions_with_CC": 0.0,
+                            "Promise_Broken_Percent": 25.0,
+                            "Promise_Met_Percent": 75.0,
+                            "Promise_Met_Transactions": 48.0
+                        }
+                    },
+                    {
+                        "Total_Sales": 685.15,
+                        "Phone_Sales": 32.32,
+                        "Call_Center_Agent": 0.0,
+                        "Drive_Thru": 0.0,
+                        "Website": 65.19,
+                        "Mobile": 93.97,
+                        "Order_Count": 47.0,
+                        "HNR": {
+                            "Transactions": 52.0,
+                            "Transactions_with_CC": 0.0,
+                            "Promise_Broken_Percent": 23.08,
+                            "Promise_Met_Percent": 76.92,
+                            "Promise_Met_Transactions": 40.0
+                        }
+                    },
+                    {
+                        "Total_Sales": 486.73,
+                        "Phone_Sales": 21.98,
+                        "Call_Center_Agent": 0.0,
+                        "Drive_Thru": 0.0,
+                        "Website": 62.21,
+                        "Mobile": 24.77,
+                        "Order_Count": 29.0,
+                        "HNR": {
+                            "Transactions": 30.0,
+                            "Transactions_with_CC": 0.0,
+                            "Promise_Broken_Percent": 26.67,
+                            "Promise_Met_Percent": 73.33,
+                            "Promise_Met_Transactions": 22.0
+                        }
+                    },
+                    {
+                        "Total_Sales": 280.69,
                         "Phone_Sales": 0.0,
                         "Call_Center_Agent": 0.0,
                         "Drive_Thru": 0.0,
-                        "Website": 71.79,
-                        "Mobile": 83.93,
-                        "Order_Count": 48.0,
+                        "Website": 53.32,
+                        "Mobile": 9.78,
+                        "Order_Count": 18.0,
                         "HNR": {
                             "Transactions": 16.0,
                             "Transactions_with_CC": 0.0,
@@ -196,67 +228,35 @@
                         }
                     },
                     {
-                        "Total_Sales": 670.62,
-                        "Phone_Sales": 25.57,
-                        "Call_Center_Agent": 0.0,
-                        "Drive_Thru": 0.0,
-                        "Website": 77.63,
-                        "Mobile": 7.79,
-                        "Order_Count": 44.0,
-                        "HNR": {
-                            "Transactions": 16.0,
-                            "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 25.0,
-                            "Promise_Met_Percent": 75.0,
-                            "Promise_Met_Transactions": 12.0
-                        }
-                    },
-                    {
-                        "Total_Sales": 530.2,
-                        "Phone_Sales": 138.68,
-                        "Call_Center_Agent": 0.0,
-                        "Drive_Thru": 0.0,
-                        "Website": 65.65,
-                        "Mobile": 0.0,
-                        "Order_Count": 33.0,
-                        "HNR": {
-                            "Transactions": 11.0,
-                            "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 27.27,
-                            "Promise_Met_Percent": 72.73,
-                            "Promise_Met_Transactions": 8.0
-                        }
-                    },
-                    {
-                        "Total_Sales": 255.23,
+                        "Total_Sales": 292.79,
                         "Phone_Sales": 0.0,
                         "Call_Center_Agent": 0.0,
                         "Drive_Thru": 0.0,
-                        "Website": 10.78,
-                        "Mobile": 49.71,
-                        "Order_Count": 18.0,
+                        "Website": 23.98,
+                        "Mobile": 62.44,
+                        "Order_Count": 24.0,
                         "HNR": {
-                            "Transactions": 9.0,
+                            "Transactions": 18.0,
                             "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 33.33,
-                            "Promise_Met_Percent": 66.67,
-                            "Promise_Met_Transactions": 6.0
+                            "Promise_Broken_Percent": 44.44,
+                            "Promise_Met_Percent": 55.56,
+                            "Promise_Met_Transactions": 10.0
                         }
                     },
                     {
-                        "Total_Sales": 63.01,
-                        "Phone_Sales": 0.0,
+                        "Total_Sales": 123.09,
+                        "Phone_Sales": 6.79,
                         "Call_Center_Agent": 0.0,
                         "Drive_Thru": 0.0,
                         "Website": 0.0,
-                        "Mobile": 11.27,
-                        "Order_Count": 5.0,
+                        "Mobile": 17.46,
+                        "Order_Count": 9.0,
                         "HNR": {
-                            "Transactions": 1.0,
+                            "Transactions": 8.0,
                             "Transactions_with_CC": 0.0,
-                            "Promise_Broken_Percent": 100.0,
-                            "Promise_Met_Percent": 0.0,
-                            "Promise_Met_Transactions": 0.0
+                            "Promise_Broken_Percent": 50.0,
+                            "Promise_Met_Percent": 50.0,
+                            "Promise_Met_Transactions": 4.0
                         }
                     }
                 ]
@@ -265,24 +265,24 @@
                 "score": {
                     "DD_Most_Loved_Restaurant": 0.0,
                     "DD_Optimization_Score": "High",
-                    "DD_Ratings_Average_Rating": 4.27,
-                    "DD_Cancellations_Sales_Lost": 14.46,
-                    "DD_Missing_or_Incorrect_Error_Charges": 95.82,
-                    "DD_Avoidable_Wait_M-Sec": 0.48,
-                    "DD_Total_Dasher_Wait_M-Sec": 3.47,
-                    "DD_number_1_Top_Missing_or_Incorrect_Item": 2.0,
+                    "DD_Ratings_Average_Rating": 4.5,
+                    "DD_Cancellations_Sales_Lost": 14.2,
+                    "DD_Missing_or_Incorrect_Error_Charges": 47.83,
+                    "DD_Avoidable_Wait_M-Sec": 0.49,
+                    "DD_Total_Dasher_Wait_M-Sec": 3.3,
+                    "DD_number_1_Top_Missing_or_Incorrect_Item": 0.0,
                     "DD_Downtime_H-MM": 0.0,
-                    "DD_Reviews_Responded": 0.0,
-                    "UE_Customer_reviews_overview": 68.0,
+                    "DD_Reviews_Responded": 1.0,
+                    "UE_Customer_reviews_overview": 4.3,
                     "UE_Cost_of_Refunds": 0.0,
                     "UE_Unfulfilled_order_rate": 0.0,
                     "UE_Time_unavailable_during_open_hours_hh-mm": 0.0,
                     "UE_Top_inaccurate_item": 0.0,
                     "UE_Reviews_Responded": 1.0,
-                    "GH_Rating": 0.0,
-                    "GH_Food_was_good": 0.0,
-                    "GH_Delivery_was_on_time": 0.0,
-                    "GH_Order_was_accurate": 0.0
+                    "GH_Rating": 4.07,
+                    "GH_Food_was_good": 0.81,
+                    "GH_Delivery_was_on_time": 0.83,
+                    "GH_Order_was_accurate": 0.94
                 },
                 "is_on_track": {
                     "DD_NAOT_Ratings_Average_Rating": "NA",
@@ -291,7 +291,7 @@
                     "DD_NAOT_Avoidable_Wait_M-Sec": "OT",
                     "DD_NAOT_Total_Dasher_Wait_M-Sec": "NA",
                     "DD_NAOT_Downtime_H-MM": "NA",
-                    "UE_NAOT_Customer_reviews_overview": "OT",
+                    "UE_NAOT_Customer_reviews_overview": "NA",
                     "UE_NAOT_Cost_of_Refunds": "OT",
                     "UE_NAOT_Unfulfilled_order_rate": "OT",
                     "UE_NAOT_Time_unavailable_during_open_hours_hh-mm": "OT",
@@ -302,1469 +302,450 @@
                 }
             },
             "dailyDSPRData": {
-                "labor": 0.19,
-                "waste_gateway": 611.92,
-                "over_short": 5.41,
+                "labor": 0.15,
+                "waste_gateway": 484.29,
+                "over_short": 11.65,
                 "Refunded_order_Qty": 0.0,
-                "Total_Cash_Sales": 1044.59,
-                "Total_Sales": 6714.06,
-                "Waste_Alta": 71.56,
+                "Total_Cash_Sales": 1096.35,
+                "Total_Sales": 6485.71,
+                "Waste_Alta": 68.09,
                 "Modified_Order_Qty": 0.0,
-                "Total_TIPS": 99.67,
-                "Customer_count": 432.0,
-                "DoorDash_Sales": 1106.94,
-                "UberEats_Sales": 255.12,
-                "GrubHub_Sales": 14.08,
-                "Phone": 201.8,
+                "Total_TIPS": 140.67,
+                "Customer_count": 412.0,
+                "DoorDash_Sales": 754.34,
+                "UberEats_Sales": 246.88,
+                "GrubHub_Sales": 34.01,
+                "Phone": 173.35,
                 "Call_Center_Agent": 0.0,
-                "Website": 799.87,
-                "Mobile": 997.79,
-                "Digital_Sales_Percent": 0.47,
-                "Total_Portal_Eligible_Transactions": 138.0,
+                "Website": 772.34,
+                "Mobile": 1360.27,
+                "Digital_Sales_Percent": 0.49,
+                "Total_Portal_Eligible_Transactions": 140.0,
                 "Put_into_Portal_Percent": 1.0,
-                "In_Portal_on_Time_Percent": 0.97,
+                "In_Portal_on_Time_Percent": 0.96,
                 "Drive_Thru_Sales": 0.0,
                 "Upselling": 0.75,
-                "Cash_Sales_Vs_Deposite_Difference": 5.41,
-                "Avrage_ticket": 15.54,
-                "HNR_Transactions": 200.0,
+                "Cash_Sales_Vs_Deposite_Difference": 11.65,
+                "Avrage_ticket": 15.74,
+                "HNR_Transactions": 368.0,
                 "HNR_Transactions_with_CC": 0.0,
-                "HNR_Promise_Broken_Percent": 17.5,
-                "HNR_Promise_Met_Percent": 82.5,
-                "HNR_Promise_Met_Transactions": 165.0,
-                "Customer_count_percent": 0.85,
-                "Customer_Service": 0.94
+                "HNR_Promise_Broken_Percent": 22.28,
+                "HNR_Promise_Met_Percent": 77.72,
+                "HNR_Promise_Met_Transactions": 286.0,
+                "Customer_count_percent": 0.8,
+                "Customer_Service": 0.92
             }
         },
         "weekly": {
             "DSPRData": {
                 "labor": 0.21,
-                "waste_gateway": 2440.88,
-                "over_short": 4.47,
-                "Refunded_order_Qty": 0.0,
-                "Total_Cash_Sales": 4278.53,
-                "Total_Sales": 28044.61,
-                "Waste_Alta": 258.3,
-                "Modified_Order_Qty": 0.0,
-                "Total_TIPS": 469.17,
-                "Customer_count": 1923.0,
-                "DoorDash_Sales": 4533.48,
-                "UberEats_Sales": 1124.64,
-                "GrubHub_Sales": 105.47,
-                "Phone": 961.22,
+                "waste_gateway": 2541.31,
+                "over_short": 18.54,
+                "Refunded_order_Qty": 2.0,
+                "Total_Cash_Sales": 5160.46,
+                "Total_Sales": 30566.38,
+                "Waste_Alta": 328.51,
+                "Modified_Order_Qty": 2.0,
+                "Total_TIPS": 440.73,
+                "Customer_count": 2127.0,
+                "DoorDash_Sales": 4216.17,
+                "UberEats_Sales": 1128.04,
+                "GrubHub_Sales": 171.93,
+                "Phone": 1303.54,
                 "Call_Center_Agent": 0.0,
-                "Website": 3194.82,
-                "Mobile": 4425.28,
+                "Website": 3399.42,
+                "Mobile": 5309.61,
                 "Digital_Sales_Percent": 0.47,
-                "Total_Portal_Eligible_Transactions": 624.0,
+                "Total_Portal_Eligible_Transactions": 715.0,
                 "Put_into_Portal_Percent": 0.99,
-                "In_Portal_on_Time_Percent": 0.97,
+                "In_Portal_on_Time_Percent": 0.96,
                 "Drive_Thru_Sales": 0.0,
                 "Upselling": 0.0,
-                "Cash_Sales_Vs_Deposite_Difference": 0.89,
-                "Avrage_ticket": 14.58,
-                "Customer_count_percent": 0.9,
-                "Customer_Service": 0.95
+                "Cash_Sales_Vs_Deposite_Difference": 3.09,
+                "Avrage_ticket": 14.37,
+                "Customer_count_percent": 0.8,
+                "Customer_Service": 0.92
+            },
+            "PrevWeekDSPRData": {
+                "labor": 0.21,
+                "waste_gateway": 3185.11,
+                "over_short": 14.21,
+                "Refunded_order_Qty": 0.0,
+                "Total_Cash_Sales": 5684.79,
+                "Total_Sales": 36660.25,
+                "Waste_Alta": 344.91,
+                "Modified_Order_Qty": 0.0,
+                "Total_TIPS": 617.82,
+                "Customer_count": 2576.0,
+                "DoorDash_Sales": 5754.08,
+                "UberEats_Sales": 1544.28,
+                "GrubHub_Sales": 114.78,
+                "Phone": 1355.98,
+                "Call_Center_Agent": 0.0,
+                "Website": 3834.09,
+                "Mobile": 5639.97,
+                "Digital_Sales_Percent": 0.45,
+                "Total_Portal_Eligible_Transactions": 816.0,
+                "Put_into_Portal_Percent": 0.99,
+                "In_Portal_on_Time_Percent": 0.98,
+                "Drive_Thru_Sales": 0.0,
+                "Upselling": 0.0,
+                "Cash_Sales_Vs_Deposite_Difference": 2.03,
+                "Avrage_ticket": 14.23,
+                "Customer_count_percent": 0.85,
+                "Customer_Service": 0.94
             },
             "DailyDSPRByDate": {
-                "2025-11-11": {
-                    "labor": 0.24,
-                    "waste_gateway": 331.54,
-                    "over_short": -5.25,
-                    "Refunded_order_Qty": 0.0,
-                    "Total_Cash_Sales": 862.25,
-                    "Total_Sales": 4032.92,
-                    "Waste_Alta": 36.06,
-                    "Modified_Order_Qty": 0.0,
-                    "Total_TIPS": 57.24,
-                    "Customer_count": 335.0,
-                    "DoorDash_Sales": 511.49,
-                    "UberEats_Sales": 221.58,
-                    "GrubHub_Sales": 41.16,
-                    "Phone": 67.97,
-                    "Call_Center_Agent": 0.0,
-                    "Website": 521.1,
-                    "Mobile": 357.31,
-                    "Digital_Sales_Percent": 0.41,
-                    "Total_Portal_Eligible_Transactions": 92.0,
-                    "Put_into_Portal_Percent": 0.99,
-                    "In_Portal_on_Time_Percent": 0.96,
-                    "Drive_Thru_Sales": 0.0,
-                    "Upselling": 0.75,
-                    "Cash_Sales_Vs_Deposite_Difference": -5.25,
-                    "Avrage_ticket": 12.04,
-                    "Customer_count_percent": 0.9,
-                    "Customer_Service": 0.95,
-                    "PrevWeek": {
-                        "labor": 0.2,
-                        "waste_gateway": 444.28,
-                        "over_short": 0.63,
-                        "Refunded_order_Qty": 0.0,
-                        "Total_Cash_Sales": 1050.37,
-                        "Total_Sales": 4891.62,
-                        "Waste_Alta": 69.09,
-                        "Modified_Order_Qty": 0.0,
-                        "Total_TIPS": 75.63,
-                        "Customer_count": 348.0,
-                        "DoorDash_Sales": 605.08,
-                        "UberEats_Sales": 83.45,
-                        "GrubHub_Sales": 37.01,
-                        "Phone": 210.8,
-                        "Call_Center_Agent": 0.0,
-                        "Website": 581.35,
-                        "Mobile": 855.07,
-                        "Digital_Sales_Percent": 0.44,
-                        "Total_Portal_Eligible_Transactions": 95.0,
-                        "Put_into_Portal_Percent": 1.0,
-                        "In_Portal_on_Time_Percent": 0.99,
-                        "Drive_Thru_Sales": 0.0,
-                        "Upselling": 0.75,
-                        "Cash_Sales_Vs_Deposite_Difference": 0.63,
-                        "Avrage_ticket": 14.06,
-                        "Customer_count_percent": 0.95,
-                        "Customer_Service": 0.98
-                    }
-                },
-                "2025-11-12": {
+                "2025-11-18": {
                     "labor": 0.23,
-                    "waste_gateway": 480.13,
-                    "over_short": -2.24,
+                    "waste_gateway": 345.81,
+                    "over_short": -46.83,
                     "Refunded_order_Qty": 0.0,
-                    "Total_Cash_Sales": 718.24,
-                    "Total_Sales": 4945.02,
-                    "Waste_Alta": 29.91,
+                    "Total_Cash_Sales": 712.83,
+                    "Total_Sales": 3695.31,
+                    "Waste_Alta": 71.76,
                     "Modified_Order_Qty": 0.0,
-                    "Total_TIPS": 77.85,
-                    "Customer_count": 363.0,
-                    "DoorDash_Sales": 879.98,
-                    "UberEats_Sales": 246.41,
-                    "GrubHub_Sales": 0.0,
-                    "Phone": 87.06,
+                    "Total_TIPS": 38.26,
+                    "Customer_count": 277.0,
+                    "DoorDash_Sales": 569.15,
+                    "UberEats_Sales": 172.9,
+                    "GrubHub_Sales": 51.4,
+                    "Phone": 122.11,
                     "Call_Center_Agent": 0.0,
-                    "Website": 483.6,
-                    "Mobile": 716.55,
-                    "Digital_Sales_Percent": 0.47,
-                    "Total_Portal_Eligible_Transactions": 119.0,
-                    "Put_into_Portal_Percent": 0.98,
-                    "In_Portal_on_Time_Percent": 0.98,
-                    "Drive_Thru_Sales": 0.0,
-                    "Upselling": 0.75,
-                    "Cash_Sales_Vs_Deposite_Difference": -2.24,
-                    "Avrage_ticket": 13.62,
-                    "Customer_count_percent": 0.95,
-                    "Customer_Service": 0.97,
-                    "PrevWeek": {
-                        "labor": 0.23,
-                        "waste_gateway": 472.68,
-                        "over_short": -0.23,
-                        "Refunded_order_Qty": 0.0,
-                        "Total_Cash_Sales": 751.23,
-                        "Total_Sales": 4966.31,
-                        "Waste_Alta": 52.78,
-                        "Modified_Order_Qty": 0.0,
-                        "Total_TIPS": 89.25,
-                        "Customer_count": 375.0,
-                        "DoorDash_Sales": 728.92,
-                        "UberEats_Sales": 290.64,
-                        "GrubHub_Sales": 94.9,
-                        "Phone": 89.07,
-                        "Call_Center_Agent": 0.0,
-                        "Website": 352.63,
-                        "Mobile": 760.51,
-                        "Digital_Sales_Percent": 0.45,
-                        "Total_Portal_Eligible_Transactions": 130.0,
-                        "Put_into_Portal_Percent": 0.99,
-                        "In_Portal_on_Time_Percent": 0.95,
-                        "Drive_Thru_Sales": 0.0,
-                        "Upselling": 0.75,
-                        "Cash_Sales_Vs_Deposite_Difference": -0.23,
-                        "Avrage_ticket": 13.24,
-                        "Customer_count_percent": 1.0,
-                        "Customer_Service": 0.98
-                    }
-                },
-                "2025-11-13": {
-                    "labor": 0.18,
-                    "waste_gateway": 422.62,
-                    "over_short": 4.35,
-                    "Refunded_order_Qty": 0.0,
-                    "Total_Cash_Sales": 659.65,
-                    "Total_Sales": 5185.49,
-                    "Waste_Alta": 52.15,
-                    "Modified_Order_Qty": 0.0,
-                    "Total_TIPS": 80.98,
-                    "Customer_count": 361.0,
-                    "DoorDash_Sales": 818.79,
-                    "UberEats_Sales": 155.55,
-                    "GrubHub_Sales": 23.02,
-                    "Phone": 121.15,
-                    "Call_Center_Agent": 0.0,
-                    "Website": 613.61,
-                    "Mobile": 935.17,
-                    "Digital_Sales_Percent": 0.49,
-                    "Total_Portal_Eligible_Transactions": 120.0,
+                    "Website": 389.99,
+                    "Mobile": 586.78,
+                    "Digital_Sales_Percent": 0.48,
+                    "Total_Portal_Eligible_Transactions": 109.0,
                     "Put_into_Portal_Percent": 0.99,
-                    "In_Portal_on_Time_Percent": 0.97,
-                    "Drive_Thru_Sales": 0.0,
-                    "Upselling": 0.75,
-                    "Cash_Sales_Vs_Deposite_Difference": 4.35,
-                    "Avrage_ticket": 14.36,
-                    "Customer_count_percent": 0.85,
-                    "Customer_Service": 0.94,
-                    "PrevWeek": {
-                        "labor": 0.24,
-                        "waste_gateway": 463.85,
-                        "over_short": 14.53,
-                        "Refunded_order_Qty": 0.0,
-                        "Total_Cash_Sales": 745.47,
-                        "Total_Sales": 4441.57,
-                        "Waste_Alta": 67.27,
-                        "Modified_Order_Qty": 0.0,
-                        "Total_TIPS": 116.12,
-                        "Customer_count": 332.0,
-                        "DoorDash_Sales": 542.97,
-                        "UberEats_Sales": 278.63,
-                        "GrubHub_Sales": 0.0,
-                        "Phone": 223.32,
-                        "Call_Center_Agent": 0.0,
-                        "Website": 471.18,
-                        "Mobile": 688.0,
-                        "Digital_Sales_Percent": 0.45,
-                        "Total_Portal_Eligible_Transactions": 103.0,
-                        "Put_into_Portal_Percent": 0.99,
-                        "In_Portal_on_Time_Percent": 0.98,
-                        "Drive_Thru_Sales": 0.0,
-                        "Upselling": 0.75,
-                        "Cash_Sales_Vs_Deposite_Difference": 14.53,
-                        "Avrage_ticket": 13.38,
-                        "Customer_count_percent": 0.75,
-                        "Customer_Service": 0.91
-                    }
-                },
-                "2025-11-14": {
-                    "labor": 0.18,
-                    "waste_gateway": 594.67,
-                    "over_short": 2.2,
-                    "Refunded_order_Qty": 0.0,
-                    "Total_Cash_Sales": 993.8,
-                    "Total_Sales": 7167.12,
-                    "Waste_Alta": 68.62,
-                    "Modified_Order_Qty": 0.0,
-                    "Total_TIPS": 153.43,
-                    "Customer_count": 432.0,
-                    "DoorDash_Sales": 1216.28,
-                    "UberEats_Sales": 245.98,
-                    "GrubHub_Sales": 27.21,
-                    "Phone": 483.24,
-                    "Call_Center_Agent": 0.0,
-                    "Website": 776.64,
-                    "Mobile": 1418.46,
-                    "Digital_Sales_Percent": 0.51,
-                    "Total_Portal_Eligible_Transactions": 155.0,
-                    "Put_into_Portal_Percent": 0.98,
                     "In_Portal_on_Time_Percent": 0.99,
                     "Drive_Thru_Sales": 0.0,
                     "Upselling": 0.75,
-                    "Cash_Sales_Vs_Deposite_Difference": 2.2,
-                    "Avrage_ticket": 16.59,
-                    "Customer_count_percent": 0.8,
-                    "Customer_Service": 0.92,
+                    "Cash_Sales_Vs_Deposite_Difference": -46.83,
+                    "Avrage_ticket": 13.34,
+                    "Customer_count_percent": 0.75,
+                    "Customer_Service": 0.91,
                     "PrevWeek": {
-                        "labor": 0.17,
-                        "waste_gateway": 731.1,
-                        "over_short": 0.44,
+                        "labor": 0.24,
+                        "waste_gateway": 331.54,
+                        "over_short": -5.25,
                         "Refunded_order_Qty": 0.0,
-                        "Total_Cash_Sales": 1003.56,
-                        "Total_Sales": 7311.02,
-                        "Waste_Alta": 72.76,
+                        "Total_Cash_Sales": 862.25,
+                        "Total_Sales": 4032.92,
+                        "Waste_Alta": 36.06,
                         "Modified_Order_Qty": 0.0,
-                        "Total_TIPS": 117.86,
-                        "Customer_count": 484.0,
-                        "DoorDash_Sales": 989.15,
-                        "UberEats_Sales": 368.19,
-                        "GrubHub_Sales": 18.62,
-                        "Phone": 252.75,
+                        "Total_TIPS": 57.24,
+                        "Customer_count": 335.0,
+                        "DoorDash_Sales": 511.49,
+                        "UberEats_Sales": 221.58,
+                        "GrubHub_Sales": 41.16,
+                        "Phone": 67.97,
                         "Call_Center_Agent": 0.0,
-                        "Website": 711.3,
-                        "Mobile": 1377.12,
+                        "Website": 521.1,
+                        "Mobile": 357.31,
+                        "Digital_Sales_Percent": 0.41,
+                        "Total_Portal_Eligible_Transactions": 92.0,
+                        "Put_into_Portal_Percent": 0.99,
+                        "In_Portal_on_Time_Percent": 0.96,
+                        "Drive_Thru_Sales": 0.0,
+                        "Upselling": 0.75,
+                        "Cash_Sales_Vs_Deposite_Difference": -5.25,
+                        "Avrage_ticket": 12.04,
+                        "Customer_count_percent": 0.95,
+                        "Customer_Service": 0.97
+                    }
+                },
+                "2025-11-19": {
+                    "labor": 0.27,
+                    "waste_gateway": 338.96,
+                    "over_short": 50.74,
+                    "Refunded_order_Qty": 2.0,
+                    "Total_Cash_Sales": 640.26,
+                    "Total_Sales": 3886.09,
+                    "Waste_Alta": 57.72,
+                    "Modified_Order_Qty": 2.0,
+                    "Total_TIPS": 48.06,
+                    "Customer_count": 311.0,
+                    "DoorDash_Sales": 520.13,
+                    "UberEats_Sales": 198.13,
+                    "GrubHub_Sales": 16.47,
+                    "Phone": 57.92,
+                    "Call_Center_Agent": 0.0,
+                    "Website": 448.22,
+                    "Mobile": 584.34,
+                    "Digital_Sales_Percent": 0.45,
+                    "Total_Portal_Eligible_Transactions": 101.0,
+                    "Put_into_Portal_Percent": 0.97,
+                    "In_Portal_on_Time_Percent": 0.95,
+                    "Drive_Thru_Sales": 0.0,
+                    "Upselling": 0.75,
+                    "Cash_Sales_Vs_Deposite_Difference": 50.74,
+                    "Avrage_ticket": 12.5,
+                    "Customer_count_percent": 0.8,
+                    "Customer_Service": 0.91,
+                    "PrevWeek": {
+                        "labor": 0.23,
+                        "waste_gateway": 480.13,
+                        "over_short": -2.24,
+                        "Refunded_order_Qty": 0.0,
+                        "Total_Cash_Sales": 718.24,
+                        "Total_Sales": 4945.02,
+                        "Waste_Alta": 29.91,
+                        "Modified_Order_Qty": 0.0,
+                        "Total_TIPS": 77.85,
+                        "Customer_count": 363.0,
+                        "DoorDash_Sales": 879.98,
+                        "UberEats_Sales": 246.41,
+                        "GrubHub_Sales": 0.0,
+                        "Phone": 87.06,
+                        "Call_Center_Agent": 0.0,
+                        "Website": 483.6,
+                        "Mobile": 716.55,
                         "Digital_Sales_Percent": 0.47,
-                        "Total_Portal_Eligible_Transactions": 159.0,
-                        "Put_into_Portal_Percent": 1.0,
+                        "Total_Portal_Eligible_Transactions": 119.0,
+                        "Put_into_Portal_Percent": 0.98,
                         "In_Portal_on_Time_Percent": 0.98,
                         "Drive_Thru_Sales": 0.0,
                         "Upselling": 0.75,
-                        "Cash_Sales_Vs_Deposite_Difference": 0.44,
-                        "Avrage_ticket": 15.11,
-                        "Customer_count_percent": 0.9,
-                        "Customer_Service": 0.96
+                        "Cash_Sales_Vs_Deposite_Difference": -2.24,
+                        "Avrage_ticket": 13.62,
+                        "Customer_count_percent": 0.95,
+                        "Customer_Service": 0.97
                     }
                 },
-                "2025-11-15": {
-                    "labor": 0.19,
-                    "waste_gateway": 611.92,
-                    "over_short": 5.41,
+                "2025-11-20": {
+                    "labor": 0.24,
+                    "waste_gateway": 451.89,
+                    "over_short": 1.9,
                     "Refunded_order_Qty": 0.0,
-                    "Total_Cash_Sales": 1044.59,
-                    "Total_Sales": 6714.06,
-                    "Waste_Alta": 71.56,
+                    "Total_Cash_Sales": 893.1,
+                    "Total_Sales": 4917.46,
+                    "Waste_Alta": 46.36,
                     "Modified_Order_Qty": 0.0,
-                    "Total_TIPS": 99.67,
-                    "Customer_count": 432.0,
-                    "DoorDash_Sales": 1106.94,
-                    "UberEats_Sales": 255.12,
-                    "GrubHub_Sales": 14.08,
-                    "Phone": 201.8,
+                    "Total_TIPS": 66.23,
+                    "Customer_count": 346.0,
+                    "DoorDash_Sales": 613.07,
+                    "UberEats_Sales": 176.94,
+                    "GrubHub_Sales": 17.91,
+                    "Phone": 182.34,
                     "Call_Center_Agent": 0.0,
-                    "Website": 799.87,
-                    "Mobile": 997.79,
-                    "Digital_Sales_Percent": 0.47,
-                    "Total_Portal_Eligible_Transactions": 138.0,
+                    "Website": 506.19,
+                    "Mobile": 904.74,
+                    "Digital_Sales_Percent": 0.45,
+                    "Total_Portal_Eligible_Transactions": 117.0,
+                    "Put_into_Portal_Percent": 1.0,
+                    "In_Portal_on_Time_Percent": 0.91,
+                    "Drive_Thru_Sales": 0.0,
+                    "Upselling": 0.75,
+                    "Cash_Sales_Vs_Deposite_Difference": 1.9,
+                    "Avrage_ticket": 14.21,
+                    "Customer_count_percent": 0.8,
+                    "Customer_Service": 0.9,
+                    "PrevWeek": {
+                        "labor": 0.18,
+                        "waste_gateway": 422.62,
+                        "over_short": 4.35,
+                        "Refunded_order_Qty": 0.0,
+                        "Total_Cash_Sales": 659.65,
+                        "Total_Sales": 5185.49,
+                        "Waste_Alta": 52.15,
+                        "Modified_Order_Qty": 0.0,
+                        "Total_TIPS": 80.98,
+                        "Customer_count": 361.0,
+                        "DoorDash_Sales": 818.79,
+                        "UberEats_Sales": 155.55,
+                        "GrubHub_Sales": 23.02,
+                        "Phone": 121.15,
+                        "Call_Center_Agent": 0.0,
+                        "Website": 613.61,
+                        "Mobile": 935.17,
+                        "Digital_Sales_Percent": 0.49,
+                        "Total_Portal_Eligible_Transactions": 120.0,
+                        "Put_into_Portal_Percent": 0.99,
+                        "In_Portal_on_Time_Percent": 0.97,
+                        "Drive_Thru_Sales": 0.0,
+                        "Upselling": 0.75,
+                        "Cash_Sales_Vs_Deposite_Difference": 4.35,
+                        "Avrage_ticket": 14.36,
+                        "Customer_count_percent": 0.85,
+                        "Customer_Service": 0.94
+                    }
+                },
+                "2025-11-21": {
+                    "labor": 0.19,
+                    "waste_gateway": 456.04,
+                    "over_short": 0.69,
+                    "Refunded_order_Qty": 0.0,
+                    "Total_Cash_Sales": 1112.31,
+                    "Total_Sales": 6300.2,
+                    "Waste_Alta": 33.86,
+                    "Modified_Order_Qty": 0.0,
+                    "Total_TIPS": 77.5,
+                    "Customer_count": 429.0,
+                    "DoorDash_Sales": 870.06,
+                    "UberEats_Sales": 146.27,
+                    "GrubHub_Sales": 18.62,
+                    "Phone": 538.35,
+                    "Call_Center_Agent": 0.0,
+                    "Website": 861.36,
+                    "Mobile": 894.3,
+                    "Digital_Sales_Percent": 0.44,
+                    "Total_Portal_Eligible_Transactions": 135.0,
+                    "Put_into_Portal_Percent": 0.97,
+                    "In_Portal_on_Time_Percent": 0.96,
+                    "Drive_Thru_Sales": 0.0,
+                    "Upselling": 0.75,
+                    "Cash_Sales_Vs_Deposite_Difference": 0.69,
+                    "Avrage_ticket": 14.69,
+                    "Customer_count_percent": 0.8,
+                    "Customer_Service": 0.91,
+                    "PrevWeek": {
+                        "labor": 0.18,
+                        "waste_gateway": 594.67,
+                        "over_short": 2.2,
+                        "Refunded_order_Qty": 0.0,
+                        "Total_Cash_Sales": 993.8,
+                        "Total_Sales": 7167.12,
+                        "Waste_Alta": 68.62,
+                        "Modified_Order_Qty": 0.0,
+                        "Total_TIPS": 153.43,
+                        "Customer_count": 432.0,
+                        "DoorDash_Sales": 1216.28,
+                        "UberEats_Sales": 245.98,
+                        "GrubHub_Sales": 27.21,
+                        "Phone": 483.24,
+                        "Call_Center_Agent": 0.0,
+                        "Website": 776.64,
+                        "Mobile": 1418.46,
+                        "Digital_Sales_Percent": 0.51,
+                        "Total_Portal_Eligible_Transactions": 155.0,
+                        "Put_into_Portal_Percent": 0.98,
+                        "In_Portal_on_Time_Percent": 0.99,
+                        "Drive_Thru_Sales": 0.0,
+                        "Upselling": 0.75,
+                        "Cash_Sales_Vs_Deposite_Difference": 2.2,
+                        "Avrage_ticket": 16.59,
+                        "Customer_count_percent": 0.8,
+                        "Customer_Service": 0.92
+                    }
+                },
+                "2025-11-22": {
+                    "labor": 0.15,
+                    "waste_gateway": 484.29,
+                    "over_short": 11.65,
+                    "Refunded_order_Qty": 0.0,
+                    "Total_Cash_Sales": 1096.35,
+                    "Total_Sales": 6485.71,
+                    "Waste_Alta": 68.09,
+                    "Modified_Order_Qty": 0.0,
+                    "Total_TIPS": 140.67,
+                    "Customer_count": 412.0,
+                    "DoorDash_Sales": 754.34,
+                    "UberEats_Sales": 246.88,
+                    "GrubHub_Sales": 34.01,
+                    "Phone": 173.35,
+                    "Call_Center_Agent": 0.0,
+                    "Website": 772.34,
+                    "Mobile": 1360.27,
+                    "Digital_Sales_Percent": 0.49,
+                    "Total_Portal_Eligible_Transactions": 140.0,
+                    "Put_into_Portal_Percent": 1.0,
+                    "In_Portal_on_Time_Percent": 0.96,
+                    "Drive_Thru_Sales": 0.0,
+                    "Upselling": 0.75,
+                    "Cash_Sales_Vs_Deposite_Difference": 11.65,
+                    "Avrage_ticket": 15.74,
+                    "Customer_count_percent": 0.8,
+                    "Customer_Service": 0.92,
+                    "PrevWeek": {
+                        "labor": 0.19,
+                        "waste_gateway": 611.68,
+                        "over_short": 5.41,
+                        "Refunded_order_Qty": 0.0,
+                        "Total_Cash_Sales": 1044.59,
+                        "Total_Sales": 6714.06,
+                        "Waste_Alta": 71.56,
+                        "Modified_Order_Qty": 0.0,
+                        "Total_TIPS": 103.67,
+                        "Customer_count": 432.0,
+                        "DoorDash_Sales": 1106.94,
+                        "UberEats_Sales": 255.12,
+                        "GrubHub_Sales": 14.08,
+                        "Phone": 201.8,
+                        "Call_Center_Agent": 0.0,
+                        "Website": 799.87,
+                        "Mobile": 997.79,
+                        "Digital_Sales_Percent": 0.47,
+                        "Total_Portal_Eligible_Transactions": 138.0,
+                        "Put_into_Portal_Percent": 1.0,
+                        "In_Portal_on_Time_Percent": 0.97,
+                        "Drive_Thru_Sales": 0.0,
+                        "Upselling": 0.75,
+                        "Cash_Sales_Vs_Deposite_Difference": 5.41,
+                        "Avrage_ticket": 15.54,
+                        "Customer_count_percent": 0.85,
+                        "Customer_Service": 0.94
+                    }
+                },
+                "2025-11-23": {
+                    "labor": 0.19,
+                    "waste_gateway": 464.32,
+                    "over_short": 0.39,
+                    "Refunded_order_Qty": 0.0,
+                    "Total_Cash_Sales": 705.61,
+                    "Total_Sales": 5281.61,
+                    "Waste_Alta": 50.72,
+                    "Modified_Order_Qty": 0.0,
+                    "Total_TIPS": 70.01,
+                    "Customer_count": 352.0,
+                    "DoorDash_Sales": 889.42,
+                    "UberEats_Sales": 186.92,
+                    "GrubHub_Sales": 33.52,
+                    "Phone": 229.47,
+                    "Call_Center_Agent": 0.0,
+                    "Website": 421.32,
+                    "Mobile": 979.18,
+                    "Digital_Sales_Percent": 0.48,
+                    "Total_Portal_Eligible_Transactions": 113.0,
                     "Put_into_Portal_Percent": 1.0,
                     "In_Portal_on_Time_Percent": 0.97,
                     "Drive_Thru_Sales": 0.0,
                     "Upselling": 0.75,
-                    "Cash_Sales_Vs_Deposite_Difference": 5.41,
-                    "Avrage_ticket": 15.54,
+                    "Cash_Sales_Vs_Deposite_Difference": 0.39,
+                    "Avrage_ticket": 15.0,
                     "Customer_count_percent": 0.85,
                     "Customer_Service": 0.94,
                     "PrevWeek": {
-                        "labor": 0.16,
-                        "waste_gateway": 649.85,
-                        "over_short": 0.08,
+                        "labor": 0.2,
+                        "waste_gateway": 338.29,
+                        "over_short": 2.14,
                         "Refunded_order_Qty": 0.0,
-                        "Total_Cash_Sales": 980.92,
-                        "Total_Sales": 7548.57,
-                        "Waste_Alta": 35.27,
+                        "Total_Cash_Sales": 627.86,
+                        "Total_Sales": 4899.3,
+                        "Waste_Alta": 20.21,
                         "Modified_Order_Qty": 0.0,
-                        "Total_TIPS": 114.54,
-                        "Customer_count": 475.0,
-                        "DoorDash_Sales": 1091.97,
-                        "UberEats_Sales": 346.14,
-                        "GrubHub_Sales": 60.84,
-                        "Phone": 271.21,
+                        "Total_TIPS": 60.99,
+                        "Customer_count": 348.0,
+                        "DoorDash_Sales": 757.63,
+                        "UberEats_Sales": 258.5,
+                        "GrubHub_Sales": 9.31,
+                        "Phone": 160.08,
                         "Call_Center_Agent": 0.0,
-                        "Website": 742.64,
-                        "Mobile": 1506.73,
-                        "Digital_Sales_Percent": 0.5,
-                        "Total_Portal_Eligible_Transactions": 158.0,
+                        "Website": 386.87,
+                        "Mobile": 717.91,
+                        "Digital_Sales_Percent": 0.43,
+                        "Total_Portal_Eligible_Transactions": 113.0,
                         "Put_into_Portal_Percent": 1.0,
-                        "In_Portal_on_Time_Percent": 1.0,
+                        "In_Portal_on_Time_Percent": 0.99,
                         "Drive_Thru_Sales": 0.0,
                         "Upselling": 0.75,
-                        "Cash_Sales_Vs_Deposite_Difference": 0.08,
-                        "Avrage_ticket": 15.89,
-                        "Customer_count_percent": 1.0,
-                        "Customer_Service": 1.0
+                        "Cash_Sales_Vs_Deposite_Difference": 2.14,
+                        "Avrage_ticket": 14.08,
+                        "Customer_count_percent": 0.85,
+                        "Customer_Service": 0.95
                     }
                 },
-                "2025-11-16": "No Final Summary data available.",
-                "2025-11-17": "No Final Summary data available."
+                "2025-11-24": "No Final Summary data available."
             }
         }
     }
 }
-
-
-
-/**
- * DSPR (Daily Store Performance Report) Domain Types
- * TypeScript interfaces for DSPR operational metrics and performance data
- * 
- * This domain handles:
- * - Labor efficiency and cost metrics
- * - Waste tracking and management
- * - Sales performance across channels
- * - Operational KPIs and customer service metrics
- * - Both daily and weekly aggregated data
- */
-
-import type { StoreId, ApiDate } from './common';
-
-// =============================================================================
-// CORE DSPR TYPES
-// =============================================================================
-
-/**
- * Daily DSPR operational data
- * Core performance metrics for daily store operations
- */
-export interface DailyDSPRData {
-  /** Labor cost as percentage of sales */
-  labor: number;
-  /** Waste amount tracked through gateway system */
-  waste_gateway: number;
-  /** Over/short cash variance (negative = short, positive = over) */
-  over_short: number;
-  /** Number of refunded orders */
-  Refunded_order_Qty: number;
-  /** Total cash sales amount */
-  Total_Cash_Sales: number;
-  /** Total sales across all channels */
-  Total_Sales: number;
-  /** Waste amount tracked through Alta system */
-  Waste_Alta: number;
-  /** Number of modified orders */
-  Modified_Order_Qty: number;
-  /** Total tips collected */
-  Total_TIPS: number;
-  /** Total customer count for the day */
-  Customer_count: number;
-  /** DoorDash sales amount */
-  DoorDash_Sales: number;
-  /** UberEats sales amount */
-  UberEats_Sales: number;
-  /** GrubHub sales amount */
-  GrubHub_Sales: number;
-  /** Phone order sales */
-  Phone: number;
-  /** Call center agent sales */
-  Call_Center_Agent: number;
-  /** Website sales */
-  Website: number;
-  /** Mobile app sales */
-  Mobile: number;
-  /** Digital sales as percentage of total sales */
-  Digital_Sales_Percent: number;
-  /** Total portal eligible transactions */
-  Total_Portal_Eligible_Transactions: number;
-  /** Percentage of orders put into portal system */
-  Put_into_Portal_Percent: number;
-  /** Percentage of portal orders completed on time */
-  In_Portal_on_Time_Percent: number;
-  /** Drive-thru sales amount */
-  Drive_Thru_Sales: number;
-  /** Upselling metrics (nullable) */
-  Upselling: number | null;
-  /** Cash sales vs deposit difference */
-  Cash_Sales_Vs_Deposite_Difference: number;
-  /** Average ticket value */
-  Avrage_ticket: number;
-
-  /** HNR: total HNR transactions */
-  HNR_Transactions: number;
-  /** HNR: transactions with CC */
-  HNR_Transactions_with_CC: number;
-  /** HNR: promise broken percentage */
-  HNR_Promise_Broken_Percent: number;
-  /** HNR: promise met percentage */
-  HNR_Promise_Met_Percent: number;
-  /** HNR: promise met transactions */
-  HNR_Promise_Met_Transactions: number;
-
-  /** Customer count as percentage of target */
-  Customer_count_percent: number;
-  /** Customer service score */
-  Customer_Service: number;
-}
-
-/**
- * Weekly DSPR aggregated data
- * Weekly summary of operational performance metrics
- */
-export interface WeeklyDSPRData {
-  /** Weekly labor cost percentage */
-  labor: number;
-  /** Weekly waste gateway total */
-  waste_gateway: number;
-  /** Weekly over/short total */
-  over_short: number;
-  /** Weekly refunded orders total */
-  Refunded_order_Qty: number;
-  /** Weekly cash sales total */
-  Total_Cash_Sales: number;
-  /** Weekly total sales */
-  Total_Sales: number;
-  /** Weekly Alta waste total */
-  Waste_Alta: number;
-  /** Weekly modified orders total */
-  Modified_Order_Qty: number;
-  /** Weekly tips total */
-  Total_TIPS: number;
-  /** Weekly customer count */
-  Customer_count: number;
-  /** Weekly DoorDash sales */
-  DoorDash_Sales: number;
-  /** Weekly UberEats sales */
-  UberEats_Sales: number;
-  /** Weekly GrubHub sales */
-  GrubHub_Sales: number;
-  /** Weekly phone sales */
-  Phone: number;
-  /** Weekly call center sales */
-  Call_Center_Agent: number;
-  /** Weekly website sales */
-  Website: number;
-  /** Weekly mobile sales */
-  Mobile: number;
-  /** Weekly digital sales percentage */
-  Digital_Sales_Percent: number;
-  /** Weekly portal eligible transactions */
-  Total_Portal_Eligible_Transactions: number;
-  /** Weekly portal utilization percentage */
-  Put_into_Portal_Percent: number;
-  /** Weekly portal on-time percentage */
-  In_Portal_on_Time_Percent: number;
-  /** Weekly drive-thru sales */
-  Drive_Thru_Sales: number;
-  /** Weekly upselling metrics */
-  Upselling: number | null;
-  /** Weekly cash variance */
-  Cash_Sales_Vs_Deposite_Difference: number;
-  /** Weekly average ticket */
-  Avrage_ticket: number;
-  /** Weekly customer count percentage */
-  Customer_count_percent: number;
-  /** Weekly customer service average */
-  Customer_Service: number;
-}
-
-/**
- * Daily DSPR data with optional previous week comparison
- * Used in the Weekly DailyDSPRByDate map:
- * - Key: date string (YYYY-MM-DD)
- * - Value: current day metrics plus optional PrevWeek
- */
-export interface DailyDSPRDayWithPrevWeek extends DailyDSPRData {
-  /** Previous week's metrics for the same weekday, if available */
-  PrevWeek?: DailyDSPRData;
-}
-
-/**
- * Entry type for a single date in DailyDSPRByDate:
- * - Either a full metrics object (with optional PrevWeek)
- * - Or a status string like "No Final Summary data available."
- */
-export type DailyDSPRByDateEntry =
-  | DailyDSPRDayWithPrevWeek
-  | 'No Final Summary data available.';
-
-/**
- * Map of business date -> DSPR metrics (+ optional PrevWeek comparison)
- */
-export type DailyDSPRByDate = Record<ApiDate, DailyDSPRByDateEntry>;
-
-// =============================================================================
-// PROCESSED DATA TYPES
-// =============================================================================
-
-/**
- * Processed DSPR data with calculated insights
- * Enhanced operational metrics with business intelligence
- */
-export interface ProcessedDSPRData {
-  /** Store identifier */
-  storeId: StoreId;
-  /** Business date */
-  date: ApiDate;
-  /** Processed daily metrics */
-  daily: ProcessedDailyMetrics;
-  /** Processed weekly metrics (if available) */
-  weekly?: ProcessedWeeklyMetrics;
-  /** Performance alerts and recommendations */
-  alerts: OperationalAlert[];
-  /** Overall operational grade */
-  overallGrade: OperationalGrade;
-}
-
-/**
- * Processed daily operational metrics
- */
-export interface ProcessedDailyMetrics {
-  /** Financial performance metrics */
-  financial: FinancialMetrics;
-  /** Operational efficiency metrics */
-  operational: OperationalMetrics;
-  /** Sales channel performance */
-  salesChannels: SalesChannelMetrics;
-  /** Quality and service metrics */
-  quality: QualityMetrics;
-  /** Waste and cost control */
-  costControl: CostControlMetrics;
-}
-
-/**
- * Processed weekly operational metrics
- */
-export interface ProcessedWeeklyMetrics {
-  /** Weekly financial summary */
-  financial: FinancialMetrics;
-  /** Weekly operational summary */
-  operational: OperationalMetrics;
-  /** Weekly sales channel summary */
-  salesChannels: SalesChannelMetrics;
-  /** Weekly quality summary */
-  quality: QualityMetrics;
-  /** Weekly cost control summary */
-  costControl: CostControlMetrics;
-  /** Week-over-week trends */
-  trends: WeeklyTrends;
-}
-
-/**
- * Financial performance metrics
- */
-export interface FinancialMetrics {
-  /** Total sales amount */
-  totalSales: number;
-  /** Cash sales amount */
-  cashSales: number;
-  /** Digital sales amount */
-  digitalSales: number;
-  /** Average transaction value */
-  averageTicket: number;
-  /** Tips collected */
-  tips: number;
-  /** Cash variance (over/short) */
-  cashVariance: number;
-  /** Labor cost percentage */
-  laborCostPercentage: number;
-  /** Revenue per customer */
-  revenuePerCustomer: number;
-  /** Financial performance grade */
-  performanceGrade: PerformanceGrade;
-}
-
-/**
- * Operational efficiency metrics
- */
-export interface OperationalMetrics {
-  /** Total customer count */
-  customerCount: number;
-  /** Customer count vs target percentage */
-  customerCountPercentage: number;
-  /** Portal utilization rate */
-  portalUtilization: number;
-  /** Portal on-time performance */
-  portalOnTimePercentage: number;
-  /** Order modification rate */
-  modificationRate: number;
-  /** Refund rate */
-  refundRate: number;
-  /** Operational efficiency score */
-  efficiencyScore: number;
-}
-
-/**
- * Sales channel performance metrics
- */
-export interface SalesChannelMetrics {
-  /** In-store/traditional channels */
-  traditional: ChannelPerformance;
-  /** Digital channels (website + mobile) */
-  digital: ChannelPerformance;
-  /** Third-party delivery platforms */
-  delivery: ChannelPerformance;
-  /** Phone and call center */
-  phone: ChannelPerformance;
-  /** Best performing channel */
-  topChannel: SalesChannelType;
-  /** Digital adoption rate */
-  digitalAdoptionRate: number;
-}
-
-/**
- * Performance metrics for a specific sales channel
- */
-export interface ChannelPerformance {
-  /** Channel identifier */
-  channel: SalesChannelType;
-  /** Sales amount */
-  sales: number;
-  /** Percentage of total sales */
-  percentage: number;
-  /** Order count */
-  orders: number;
-  /** Average order value */
-  averageOrderValue: number;
-  /** Performance trend */
-  trend: TrendDirection;
-  /** Performance level */
-  performanceLevel: PerformanceLevel;
-}
-
-/**
- * Quality and service metrics
- */
-export interface QualityMetrics {
-  /** Customer service score */
-  customerServiceScore: number;
-  /** Order accuracy (calculated from modifications/refunds) */
-  orderAccuracy: number;
-  /** Service consistency score */
-  serviceConsistency: number;
-  /** Quality grade */
-  qualityGrade: QualityGrade;
-}
-
-/**
- * Cost control and waste metrics
- */
-export interface CostControlMetrics {
-  /** Total waste amount (gateway + alta) */
-  totalWaste: number;
-  /** Waste as percentage of sales */
-  wastePercentage: number;
-  /** Labor efficiency score */
-  laborEfficiency: number;
-  /** Cost control grade */
-  costControlGrade: CostControlGrade;
-}
-
-// =============================================================================
-// ENUM-LIKE TYPES
-// =============================================================================
-
-/**
- * Sales channel types for categorization
- */
-export const SalesChannelType = {
-  TRADITIONAL: 'traditional',
-  DIGITAL: 'digital',
-  DELIVERY: 'delivery',
-  PHONE: 'phone',
-  DRIVE_THRU: 'drive_thru'
-} as const;
-
-export type SalesChannelType = typeof SalesChannelType[keyof typeof SalesChannelType];
-
-/**
- * Performance level classifications
- */
-export const PerformanceLevel = {
-  EXCELLENT: 'excellent',
-  GOOD: 'good',
-  AVERAGE: 'average',
-  BELOW_AVERAGE: 'below_average',
-  POOR: 'poor'
-} as const;
-
-export type PerformanceLevel = typeof PerformanceLevel[keyof typeof PerformanceLevel];
-
-/**
- * Performance grade scale
- */
-export const PerformanceGrade = {
-  A_PLUS: 'A+',
-  A: 'A',
-  B_PLUS: 'B+',
-  B: 'B',
-  C_PLUS: 'C+',
-  C: 'C',
-  D_PLUS: 'D+',
-  D: 'D',
-  F: 'F'
-} as const;
-
-export type PerformanceGrade = typeof PerformanceGrade[keyof typeof PerformanceGrade];
-
-/**
- * Operational performance grade
- */
-export const OperationalGrade = {
-  OUTSTANDING: 'Outstanding',
-  EXCEEDS_EXPECTATIONS: 'Exceeds Expectations',
-  MEETS_EXPECTATIONS: 'Meets Expectations',
-  BELOW_EXPECTATIONS: 'Below Expectations',
-  NEEDS_IMPROVEMENT: 'Needs Improvement'
-} as const;
-
-export type OperationalGrade = typeof OperationalGrade[keyof typeof OperationalGrade];
-
-/**
- * Quality grade classifications
- */
-export const QualityGrade = {
-  PREMIUM: 'Premium',
-  HIGH: 'High',
-  STANDARD: 'Standard',
-  BELOW_STANDARD: 'Below Standard',
-  CRITICAL: 'Critical'
-} as const;
-
-export type QualityGrade = typeof QualityGrade[keyof typeof QualityGrade];
-
-/**
- * Cost control grade classifications
- */
-export const CostControlGrade = {
-  OPTIMAL: 'Optimal',
-  EFFICIENT: 'Efficient',
-  ACCEPTABLE: 'Acceptable',
-  CONCERNING: 'Concerning',
-  CRITICAL: 'Critical'
-} as const;
-
-export type CostControlGrade = typeof CostControlGrade[keyof typeof CostControlGrade];
-
-/**
- * Trend direction indicators
- */
-export const TrendDirection = {
-  STRONG_UP: 'strong_up',
-  UP: 'up',
-  STABLE: 'stable',
-  DOWN: 'down',
-  STRONG_DOWN: 'strong_down'
-} as const;
-
-export type TrendDirection = typeof TrendDirection[keyof typeof TrendDirection];
-
-// =============================================================================
-// ALERT AND ANALYSIS TYPES
-// =============================================================================
-
-/**
- * Operational alert for metrics requiring attention
- */
-export interface OperationalAlert {
-  /** Alert severity */
-  severity: AlertSeverity;
-  /** Category of the alert */
-  category: AlertCategory;
-  /** Metric that triggered the alert */
-  metric: string;
-  /** Alert title */
-  title: string;
-  /** Detailed message */
-  message: string;
-  /** Current value */
-  currentValue: number;
-  /** Target or threshold value */
-  targetValue: number;
-  /** Variance from target */
-  variance: number;
-  /** Recommended actions */
-  recommendations: string[];
-  /** Priority level */
-  priority: AlertPriority;
-  /** Impact assessment */
-  impact: AlertImpact;
-}
-
-/**
- * Alert severity levels
- */
-export const AlertSeverity = {
-  INFO: 'info',
-  WARNING: 'warning',
-  ERROR: 'error',
-  CRITICAL: 'critical'
-} as const;
-
-export type AlertSeverity = typeof AlertSeverity[keyof typeof AlertSeverity];
-
-/**
- * Alert categories for organization
- */
-export const AlertCategory = {
-  FINANCIAL: 'financial',
-  OPERATIONAL: 'operational',
-  QUALITY: 'quality',
-  COST_CONTROL: 'cost_control',
-  SALES: 'sales'
-} as const;
-
-export type AlertCategory = typeof AlertCategory[keyof typeof AlertCategory];
-
-/**
- * Alert priority levels
- */
-export const AlertPriority = {
-  LOW: 'low',
-  MEDIUM: 'medium',
-  HIGH: 'high',
-  URGENT: 'urgent'
-} as const;
-
-export type AlertPriority = typeof AlertPriority[keyof typeof AlertPriority];
-
-/**
- * Alert impact assessment
- */
-export const AlertImpact = {
-  MINIMAL: 'minimal',
-  LOW: 'low',
-  MODERATE: 'moderate',
-  HIGH: 'high',
-  SEVERE: 'severe'
-} as const;
-
-export type AlertImpact = typeof AlertImpact[keyof typeof AlertImpact];
-
-/**
- * Weekly trends analysis
- */
-export interface WeeklyTrends {
-  /** Sales trend */
-  salesTrend: TrendAnalysis;
-  /** Labor cost trend */
-  laborTrend: TrendAnalysis;
-  /** Customer count trend */
-  customerTrend: TrendAnalysis;
-  /** Waste trend */
-  wasteTrend: TrendAnalysis;
-  /** Digital adoption trend */
-  digitalTrend: TrendAnalysis;
-}
-
-/**
- * Trend analysis data
- */
-export interface TrendAnalysis {
-  /** Metric name */
-  metric: string;
-  /** Current period value */
-  current: number;
-  /** Previous period value */
-  previous: number;
-  /** Percentage change */
-  percentageChange: number;
-  /** Trend direction */
-  direction: TrendDirection;
-  /** Trend significance */
-  significance: TrendSignificance;
-}
-
-/**
- * Trend significance levels
- */
-export const TrendSignificance = {
-  HIGHLY_SIGNIFICANT: 'highly_significant',
-  SIGNIFICANT: 'significant',
-  MODERATE: 'moderate',
-  MINOR: 'minor',
-  NEGLIGIBLE: 'negligible'
-} as const;
-
-export type TrendSignificance = typeof TrendSignificance[keyof typeof TrendSignificance];
-
-// =============================================================================
-// CONFIGURATION AND TARGETS
-// =============================================================================
-
-/**
- * DSPR analysis configuration
- */
-export interface DSPRAnalysisConfig {
-  /** Performance targets and thresholds */
-  targets: PerformanceTargets;
-  /** Alert generation settings */
-  alertSettings: AlertSettings;
-  /** Grade calculation weights */
-  gradeWeights: GradeWeights;
-  /** Cost control thresholds */
-  costThresholds: CostThresholds;
-}
-
-/**
- * Performance targets for various metrics
- */
-export interface PerformanceTargets {
-  /** Labor cost percentage target */
-  laborCostTarget: number;
-  /** Customer service score target */
-  customerServiceTarget: number;
-  /** Digital sales percentage target */
-  digitalSalesTarget: number;
-  /** Portal utilization target */
-  portalUtilizationTarget: number;
-  /** Waste percentage target */
-  wastePercentageTarget: number;
-  /** Customer count percentage target */
-  customerCountTarget: number;
-}
-
-/**
- * Alert generation settings
- */
-export interface AlertSettings {
-  /** Enable automatic alert generation */
-  enableAlerts: boolean;
-  /** Maximum alerts per analysis */
-  maxAlertsPerAnalysis: number;
-  /** Minimum variance threshold for alerts */
-  minVarianceThreshold: number;
-  /** Alert categories to monitor */
-  monitoredCategories: AlertCategory[];
-}
-
-/**
- * Grade calculation weights
- */
-export interface GradeWeights {
-  /** Financial metrics weight */
-  financial: number;
-  /** Operational metrics weight */
-  operational: number;
-  /** Quality metrics weight */
-  quality: number;
-  /** Cost control weight */
-  costControl: number;
-}
-
-/**
- * Cost control thresholds
- */
-export interface CostThresholds {
-  /** Maximum acceptable labor percentage */
-  maxLaborPercentage: number;
-  /** Maximum acceptable waste percentage */
-  maxWastePercentage: number;
-  /** Acceptable cash variance range */
-  cashVarianceRange: { min: number; max: number };
-}
-
-/**
- * Default DSPR analysis configuration
- */
-export const defaultDSPRConfig: DSPRAnalysisConfig = {
-  targets: {
-    laborCostTarget: 0.30,
-    customerServiceTarget: 0.95,
-    digitalSalesTarget: 0.65,
-    portalUtilizationTarget: 0.95,
-    wastePercentageTarget: 0.03,
-    customerCountTarget: 1.0
-  },
-  alertSettings: {
-    enableAlerts: true,
-    maxAlertsPerAnalysis: 8,
-    minVarianceThreshold: 0.05,
-    monitoredCategories: [
-      AlertCategory.FINANCIAL,
-      AlertCategory.OPERATIONAL,
-      AlertCategory.QUALITY,
-      AlertCategory.COST_CONTROL
-    ]
-  },
-  gradeWeights: {
-    financial: 0.35,
-    operational: 0.25,
-    quality: 0.25,
-    costControl: 0.15
-  },
-  costThresholds: {
-    maxLaborPercentage: 0.35,
-    maxWastePercentage: 0.05,
-    cashVarianceRange: { min: -5.0, max: 5.0 }
-  }
-};
-
-// =============================================================================
-// TYPE GUARDS AND UTILITIES
-// =============================================================================
-
-/**
- * Type guard for sales channel type validation
- * @param channel - Channel to validate
- * @returns True if valid sales channel type
- */
-export const isValidSalesChannelType = (channel: string): channel is SalesChannelType => {
-  return Object.values(SalesChannelType).includes(channel as SalesChannelType);
-};
-
-/**
- * Type guard for performance level validation
- * @param level - Level to validate
- * @returns True if valid performance level
- */
-export const isValidPerformanceLevel = (level: string): level is PerformanceLevel => {
-  return Object.values(PerformanceLevel).includes(level as PerformanceLevel);
-};
-
-/**
- * Utility to check if a metric value is within acceptable range
- * @param value - Value to check
- * @param target - Target value
- * @param tolerance - Acceptable tolerance percentage
- * @returns True if value is within acceptable range
- */
-export const isWithinAcceptableRange = (
-  value: number, 
-  target: number, 
-  tolerance: number = 0.1
-): boolean => {
-  const minAcceptable = target * (1 - tolerance);
-  const maxAcceptable = target * (1 + tolerance);
-  return value >= minAcceptable && value <= maxAcceptable;
-};
-
-/**
- * Utility to calculate percentage variance from target
- * @param current - Current value
- * @param target - Target value
- * @returns Percentage variance (positive = above target, negative = below target)
- */
-export const calculateVariance = (current: number, target: number): number => {
-  if (target === 0) return 0;
-  return ((current - target) / target) * 100;
-};
-
-/**
- * Utility to determine trend direction from percentage change
- * @param percentageChange - Percentage change value
- * @returns Trend direction classification
- */
-export const determineTrendDirection = (percentageChange: number): TrendDirection => {
-  if (percentageChange >= 10) return TrendDirection.STRONG_UP;
-  if (percentageChange >= 2) return TrendDirection.UP;
-  if (percentageChange <= -10) return TrendDirection.STRONG_DOWN;
-  if (percentageChange <= -2) return TrendDirection.DOWN;
-  return TrendDirection.STABLE;
-};
-
-
-
-/**
- * Hourly Sales Domain Types
- * TypeScript interfaces for daily hourly sales data structure
- * 
- * This domain handles:
- * - Hourly sales breakdown by channel (Website, Mobile, Phone, etc.)
- * - Order counts per hour
- * - Sales channel performance metrics
- * - Time-based sales analysis data
- */
-
-import type { StoreId, ApiDate } from './common';
-
-// =============================================================================
-// CORE HOURLY SALES TYPES
-// =============================================================================
-
-/**
- * HNR metrics for a single hour
- * Matches the "HNR" object inside each hour in the API response
- */
-export interface HourlyHnrMetrics {
-  /** Total HNR transactions */
-  Transactions: number;
-  /** HNR transactions with CC */
-  Transactions_with_CC: number;
-  /** HNR promise broken percentage */
-  Promise_Broken_Percent: number;
-  /** HNR promise met percentage */
-  Promise_Met_Percent: number;
-  /** HNR promise met transactions */
-  Promise_Met_Transactions: number;
-}
-
-/**
- * Sales data for a single hour
- * Contains breakdown by sales channel and order metrics
- * Empty objects in API response represent hours with no sales
- */
-export interface HourlySalesData {
-  /** Total sales amount for the hour */
-  Total_Sales?: number;
-  /** Sales from phone orders */
-  Phone_Sales?: number;
-  /** Sales from call center agents */
-  Call_Center_Agent?: number;
-  /** Sales from drive-thru channel */
-  Drive_Thru?: number;
-  /** Sales from website orders */
-  Website?: number;
-  /** Sales from mobile app orders */
-  Mobile?: number;
-  /** Total number of orders for the hour */
-  Order_Count?: number;
-  /** HNR metrics for this hour (if present) */
-  HNR?: HourlyHnrMetrics;
-}
-
-/**
- * Complete daily hourly sales structure
- * Contains metadata and 24-hour array of sales data
- */
-export interface DailyHourlySales {
-  /** Store identifier for this sales data */
-  franchise_store: StoreId;
-  /** Business date for this sales data */
-  business_date: ApiDate;
-  /** Array of 24 hourly sales objects (0-23 hours) */
-  hours: HourlySalesData[];
-}
-
-// =============================================================================
-// PROCESSED DATA TYPES
-// =============================================================================
-
-/**
- * Sales channel enumeration for type safety
- * Maps to the channel fields in HourlySalesData
- */
-export const SalesChannel = {
-  TOTAL_SALES: 'Total_Sales',
-  PHONE_SALES: 'Phone_Sales',
-  CALL_CENTER: 'Call_Center_Agent',
-  DRIVE_THRU: 'Drive_Thru',
-  WEBSITE: 'Website',
-  MOBILE: 'Mobile'
-} as const;
-
-export type SalesChannel = typeof SalesChannel[keyof typeof SalesChannel];
-
-/**
- * Processed hourly sales data with calculated fields
- * Enhanced version of HourlySalesData with business logic applied
- */
-export interface ProcessedHourlySales extends HourlySalesData {
-  /** Hour index (0-23) */
-  hour: number;
-  /** Whether this hour has any sales activity */
-  hasActivity: boolean;
-  /** Average order value for the hour */
-  averageOrderValue: number;
-  /** Digital sales percentage (Website + Mobile) */
-  digitalSalesPercentage: number;
-  /** Primary sales channel for the hour */
-  primaryChannel: SalesChannel | null;
-}
-
-/**
- * Daily sales summary with aggregated metrics
- * Business-level insights derived from hourly data
- */
-export interface DailySalesSummary {
-  /** Store identifier */
-  storeId: StoreId;
-  /** Business date */
-  date: ApiDate;
-  /** Total daily sales across all channels */
-  totalDailySales: number;
-  /** Total daily order count */
-  totalOrderCount: number;
-  /** Average order value for the day */
-  averageOrderValue: number;
-  /** Peak sales hour (0-23) */
-  peakSalesHour: number;
-  /** Peak sales amount */
-  peakSalesAmount: number;
-  /** Hours with sales activity */
-  activeHours: number;
-  /** Digital sales percentage for the day */
-  digitalSalesPercentage: number;
-  /** Sales by channel breakdown */
-  channelBreakdown: ChannelSalesBreakdown;
-}
-
-/**
- * Sales breakdown by channel
- * Aggregated channel performance for the day
- */
-export interface ChannelSalesBreakdown {
-  /** Phone sales total and percentage */
-  phone: ChannelMetrics;
-  /** Call center sales total and percentage */
-  callCenter: ChannelMetrics;
-  /** Drive-thru sales total and percentage */
-  driveThru: ChannelMetrics;
-  /** Website sales total and percentage */
-  website: ChannelMetrics;
-  /** Mobile sales total and percentage */
-  mobile: ChannelMetrics;
-}
-
-/**
- * Metrics for a specific sales channel
- * Contains both absolute and relative performance data
- */
-export interface ChannelMetrics {
-  /** Total sales amount for the channel */
-  amount: number;
-  /** Percentage of total daily sales */
-  percentage: number;
-  /** Number of orders from this channel */
-  orderCount: number;
-  /** Average order value for this channel */
-  averageOrderValue: number;
-}
-
-// =============================================================================
-// ANALYSIS TYPES
-// =============================================================================
-
-/**
- * Time period for sales analysis
- * Used for filtering and grouping hourly data
- */
-export interface SalesTimePeriod {
-  /** Start hour (0-23) */
-  startHour: number;
-  /** End hour (0-23) */
-  endHour: number;
-  /** Display label for the period */
-  label: string;
-}
-
-/**
- * Predefined business time periods
- * Common time ranges for sales analysis
- */
-export const BusinessTimePeriods: Record<string, SalesTimePeriod> = {
-  MORNING: { startHour: 6, endHour: 11, label: 'Morning (6AM-11AM)' },
-  LUNCH: { startHour: 11, endHour: 14, label: 'Lunch (11AM-2PM)' },
-  AFTERNOON: { startHour: 14, endHour: 17, label: 'Afternoon (2PM-5PM)' },
-  DINNER: { startHour: 17, endHour: 21, label: 'Dinner (5PM-9PM)' },
-  LATE_NIGHT: { startHour: 21, endHour: 23, label: 'Late Night (9PM-11PM)' },
-  OVERNIGHT: { startHour: 0, endHour: 6, label: 'Overnight (12AM-6AM)' }
-};
-
-/**
- * Sales performance metrics for a time period
- * Aggregated data for business period analysis
- */
-export interface PeriodSalesMetrics {
-  /** Time period information */
-  period: SalesTimePeriod;
-  /** Total sales for the period */
-  totalSales: number;
-  /** Total orders for the period */
-  totalOrders: number;
-  /** Average order value */
-  averageOrderValue: number;
-  /** Percentage of daily sales */
-  percentageOfDaily: number;
-  /** Most active hour in the period */
-  peakHour: number;
-  /** Sales per active hour */
-  salesPerHour: number;
-}
-
-/**
- * Trend analysis data for hourly sales
- * Used for identifying patterns and anomalies
- */
-export interface SalesTrendData {
-  /** Hour index (0-23) */
-  hour: number;
-  /** Current period sales */
-  currentSales: number;
-  /** Percentage change from average */
-  percentageChange: number;
-  /** Trend direction */
-  trend: 'up' | 'down' | 'stable';
-  /** Whether this hour is above daily average */
-  aboveAverage: boolean;
-}
-
-// =============================================================================
-// FILTERING AND SORTING TYPES
-// =============================================================================
-
-/**
- * Sort options for hourly sales data
- * Defines how to order hourly sales records
- */
-export const HourlySalesSort = {
-  HOUR_ASC: 'hour_asc',
-  HOUR_DESC: 'hour_desc',
-  SALES_ASC: 'sales_asc',
-  SALES_DESC: 'sales_desc',
-  ORDERS_ASC: 'orders_asc',
-  ORDERS_DESC: 'orders_desc'
-} as const;
-
-export type HourlySalesSort = typeof HourlySalesSort[keyof typeof HourlySalesSort];
-
-/**
- * Filter criteria for hourly sales analysis
- * Used to focus on specific aspects of sales data
- */
-export interface HourlySalesFilter {
-  /** Minimum sales threshold */
-  minSales?: number;
-  /** Maximum sales threshold */
-  maxSales?: number;
-  /** Minimum order count */
-  minOrders?: number;
-  /** Maximum order count */
-  maxOrders?: number;
-  /** Specific hours to include (0-23) */
-  includeHours?: number[];
-  /** Hours to exclude (0-23) */
-  excludeHours?: number[];
-  /** Only show hours with activity */
-  activeOnly?: boolean;
-  /** Specific channels to analyze */
-  channels?: SalesChannel[];
-}
-
-// =============================================================================
-// VALIDATION AND UTILITY TYPES
-// =============================================================================
-
-/**
- * Validation result for hourly sales data
- * Used to ensure data integrity and completeness
- */
-export interface HourlySalesValidation {
-  /** Whether the data is valid */
-  isValid: boolean;
-  /** Array of validation errors */
-  errors: string[];
-  /** Array of validation warnings */
-  warnings: string[];
-  /** Data completeness percentage (0-100) */
-  completeness: number;
-}
-
-/**
- * Configuration for hourly sales calculations
- * Customizable parameters for business logic
- */
-export interface HourlySalesConfig {
-  /** Minimum sales amount to consider active */
-  minimumSalesThreshold: number;
-  /** Hours to exclude from calculations */
-  excludedHours: number[];
-  /** Whether to include zero-value hours in averages */
-  includeZeroHours: boolean;
-  /** Decimal places for monetary calculations */
-  currencyPrecision: number;
-  /** Decimal places for percentage calculations */
-  percentagePrecision: number;
-}
-
-/**
- * Default configuration for hourly sales processing
- */
-export const defaultHourlySalesConfig: HourlySalesConfig = {
-  minimumSalesThreshold: 0.01,
-  excludedHours: [],
-  includeZeroHours: false,
-  currencyPrecision: 2,
-  percentagePrecision: 2
-};
-
-// =============================================================================
-/** TYPE GUARDS */
-// =============================================================================
-
-/**
- * Type guard to check if an hour has sales activity
- * @param hourData - Hour data to check
- * @returns True if hour has meaningful sales data
- */
-export const hasHourlyActivity = (hourData: HourlySalesData): boolean => {
-  return !!(hourData.Total_Sales && hourData.Total_Sales > 0);
-};
-
-/**
- * Type guard to check if sales channel is valid
- * @param channel - Channel to validate
- * @returns True if channel is a valid SalesChannel
- */
-export const isValidSalesChannel = (channel: string): channel is SalesChannel => {
-  return Object.values(SalesChannel).includes(channel as SalesChannel);
-};
-
-/**
- * Type guard to check if hour index is valid
- * @param hour - Hour to validate
- * @returns True if hour is between 0-23
- */
-export const isValidHour = (hour: number): boolean => {
-  return Number.isInteger(hour) && hour >= 0 && hour <= 23;
-};

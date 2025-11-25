@@ -3,7 +3,9 @@ import { cn } from '@/lib/utils';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { PerformanceGrid } from '@/features/dashboard/components/performance/PerformanceGridFour';
 import type { PerformanceItemProps } from '@/features/dashboard/types/performance';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
+import { useDailyDspr } from '@/features/DSPR/hooks/useDailyDspr';
+import { useWeeklyDspr } from '@/features/DSPR/hooks/useWeeklyDspr';
+import { useDsprApi } from '@/features/DSPR/hooks/useDsprApi';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
@@ -14,20 +16,15 @@ interface CustomerServiceOverviewProps {
   className?: string;
 }
 
-export const CustomerServiceOverview: React.FC<CustomerServiceOverviewProps> = ({
-  title = 'Customer Services Overview',
-  subtitle,
-  className,
-}) => {
+export const CustomerServiceOverview: React.FC<
+  CustomerServiceOverviewProps
+> = ({ title = 'Customer Services Overview', subtitle, className }) => {
   const isMobile = useIsMobile();
 
-  // Use DSPR hook to get dynamic data
-  const {
-    dailyRawData,
-    weeklyRawData,
-    isLoading,
-    error,
-  } = useDSPRMetrics();
+  // Use DSPR hooks to get dynamic data
+  const { raw: dailyRawData } = useDailyDspr();
+  const { raw: weeklyRawData } = useWeeklyDspr();
+  const { isLoading, error } = useDsprApi();
 
   // Helper function to format percentage values
   const formatPercentage = (value: number | null | undefined): string => {
@@ -50,14 +47,14 @@ export const CustomerServiceOverview: React.FC<CustomerServiceOverviewProps> = (
         bgColor: 'bg-performance-bg-1',
         icon: 'users',
         daily: formatNumber(dailyRawData?.Customer_count),
-        weekly: formatNumber(weeklyRawData?.Customer_count),
+        weekly: formatNumber(weeklyRawData?.Customercount),
       },
       {
         title: 'Customer Count %',
         bgColor: 'bg-performance-bg-2',
         icon: 'trending',
         daily: formatPercentage(dailyRawData?.Customer_count_percent),
-        weekly: formatPercentage(weeklyRawData?.Customer_count_percent),
+        weekly: formatPercentage(weeklyRawData?.Customercountpercent),
       },
       {
         title: 'Upselling %',
@@ -71,7 +68,7 @@ export const CustomerServiceOverview: React.FC<CustomerServiceOverviewProps> = (
         bgColor: 'bg-performance-bg-4',
         icon: 'computer',
         daily: formatPercentage(dailyRawData?.Digital_Sales_Percent),
-        weekly: formatPercentage(weeklyRawData?.Digital_Sales_Percent),
+        weekly: formatPercentage(weeklyRawData?.DigitalSalesPercent),
       },
     ];
 
@@ -82,28 +79,28 @@ export const CustomerServiceOverview: React.FC<CustomerServiceOverviewProps> = (
         bgColor: 'bg-performance-bg-5',
         icon: 'microphone',
         daily: formatPercentage(dailyRawData?.Customer_Service),
-        weekly: formatPercentage(weeklyRawData?.Customer_Service),
+        weekly: formatPercentage(weeklyRawData?.CustomerService),
       },
       {
         title: 'Put Into Portal %',
         bgColor: 'bg-performance-bg-6',
         icon: 'arrowUp',
         daily: formatPercentage(dailyRawData?.Put_into_Portal_Percent),
-        weekly: formatPercentage(weeklyRawData?.Put_into_Portal_Percent),
+        weekly: formatPercentage(weeklyRawData?.PutintoPortalPercent),
       },
       {
         title: 'In Portal On Time %',
         bgColor: 'bg-performance-bg-7',
         icon: 'clock',
         daily: formatPercentage(dailyRawData?.In_Portal_on_Time_Percent),
-        weekly: formatPercentage(weeklyRawData?.In_Portal_on_Time_Percent),
+        weekly: formatPercentage(weeklyRawData?.InPortalonTimePercent),
       },
       {
         title: 'Portal Eligible Transactions',
         bgColor: 'bg-performance-bg-8',
         icon: 'document',
         daily: formatNumber(dailyRawData?.Total_Portal_Eligible_Transactions),
-        weekly: formatNumber(weeklyRawData?.Total_Portal_Eligible_Transactions),
+        weekly: formatNumber(weeklyRawData?.TotalPortalEligibleTransactions),
       },
     ];
 
@@ -114,11 +111,13 @@ export const CustomerServiceOverview: React.FC<CustomerServiceOverviewProps> = (
 
   // Error state component
   const ErrorState = () => (
-    <div className={cn(
-      'w-full bg-card rounded-lg border border-destructive/20 p-6 shadow-realistic',
-      'flex flex-col items-center justify-center text-center space-y-4',
-      isMobile ? 'min-h-48' : 'min-h-64'
-    )}>
+    <div
+      className={cn(
+        'w-full bg-card rounded-lg border border-destructive/20 p-6 shadow-realistic',
+        'flex flex-col items-center justify-center text-center space-y-4',
+        isMobile ? 'min-h-48' : 'min-h-64',
+      )}
+    >
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
         <ExclamationTriangleIcon className="w-6 h-6 text-destructive" />
       </div>
@@ -127,20 +126,24 @@ export const CustomerServiceOverview: React.FC<CustomerServiceOverviewProps> = (
           Unable to Load Data
         </h3>
         <p className="text-sm text-muted-foreground max-w-md">
-          We're experiencing difficulties loading your customer service metrics. This could be due to a temporary connection issue or data processing error.
-          <p className='font-bold mt-1'>Try changing the Date filter.</p>
+          We're experiencing difficulties loading your customer service metrics.
+          This could be due to a temporary connection issue or data processing
+          error.
         </p>
+        <p className="font-bold mt-1">Try changing the Date filter.</p>
       </div>
     </div>
   );
 
   // No data state component
   const NoDataState = () => (
-    <div className={cn(
-      'w-full bg-card rounded-lg border border-border p-6 shadow-realistic',
-      'flex flex-col items-center justify-center text-center space-y-4',
-      isMobile ? 'min-h-48' : 'min-h-64'
-    )}>
+    <div
+      className={cn(
+        'w-full bg-card rounded-lg border border-border p-6 shadow-realistic',
+        'flex flex-col items-center justify-center text-center space-y-4',
+        isMobile ? 'min-h-48' : 'min-h-64',
+      )}
+    >
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
         <ExclamationTriangleIcon className="w-6 h-6 text-muted-foreground" />
       </div>
@@ -149,9 +152,10 @@ export const CustomerServiceOverview: React.FC<CustomerServiceOverviewProps> = (
           No Data Available
         </h3>
         <p className="text-sm text-muted-foreground max-w-md">
-          There's currently no customer service data available to display. Please check back later or contact support if this issue persists.
-          <p className='font-bold mt-1'>Try changing the Date filter.</p>
+          There's currently no customer service data available to display.
+          Please check back later or contact support if this issue persists.
         </p>
+        <p className="font-bold mt-1">Try changing the Date filter.</p>
       </div>
     </div>
   );
@@ -165,10 +169,7 @@ export const CustomerServiceOverview: React.FC<CustomerServiceOverviewProps> = (
         className,
       )}
     >
-      <SectionHeader
-        title={title}
-        subtitle={subtitle}
-      />
+      <SectionHeader title={title} subtitle={subtitle} />
 
       {/* Handle error states */}
       {error ? (

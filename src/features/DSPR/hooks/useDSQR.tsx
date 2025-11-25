@@ -1,1050 +1,747 @@
 /**
- * DSQR Custom Hook
- * Domain-specific hook for managing DSQR (Delivery Service Quality Rating) data and analysis
+ * ============================================================================
+ * USE DSQR HOOK
+ * ============================================================================
+ * Domain: DSQR (Delivery Service Quality Rating)
  * 
- * This hook:
- * - Provides access to processed DSQR performance data
- * - Manages platform-specific metrics and alerts
- * - Offers performance analysis and recommendations
- * - Handles filtering and alert management
- * - Integrates with the main DSPR API coordination
+ * Responsibility:
+ * - React hook for consuming DSQR Redux state
+ * - Provides simple interface for accessing platform metrics and alerts
+ * - Exposes configuration methods for thresholds and filters
+ * - Handles automatic data derivation from central DSPR API
+ * - Provides convenience methods for platform-specific data
+ * 
+ * Related Files:
+ * - State: state/dsprDsqrSlice.ts (Redux slice)
+ * - Types: types/dspr.dsqr.ts (all DSQR types)
+ * - Central API: state/dsprApiSlice.ts (data source)
+ * 
+ * Usage:
+ * ```
+ * function DsqrDashboard() {
+ *   const {
+ *     platforms,
+ *     summary,
+ *     alerts,
+ *     doorDash,
+ *     uberEats,
+ *     grubHub,
+ *     overallPerformance,
+ *     grade,
+ *     hasData,
+ *     toggleAlerts,
+ *   } = useDsqr();
+ * 
+ *   if (!hasData) return <NoData />;
+ * 
+ *   return (
+ *     <div>
+ *       <PerformanceBadge grade={grade} />
+ *       <PlatformMetrics platforms={platforms} />
+ *       <AlertPanel alerts={alerts} />
+ *     </div>
+ *   );
+ * }
+ * ```
  */
 
 import { useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch, RootState } from '../../../store';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
-  resetDSQRState,
-  clearDSQRError,
-  setDSQRFilter,
-  updateDSQRConfig,
-  dismissAlert,
-  clearAllAlerts,
-  reprocessDSQRData,
-  selectDSQRState,
-  selectRawDSQRData,
-  selectProcessedDSQRData,
-  selectFilteredPlatformMetrics,
-  selectPerformanceAlerts,
-  selectCriticalAlerts,
-  selectDSQRLoading,
-  selectDSQRError,
-  selectOverallSummary,
+  selectRawDsqr,
+  selectProcessedDsqr,
+  selectPlatformData,
+  selectDoorDashMetrics,
+  selectUberEatsMetrics,
+  selectGrubHubMetrics,
+  selectDsqrSummary,
+  selectDsqrAlerts,
+  selectCriticalDsqrAlerts,
+  selectUrgentDsqrAlerts,
+  selectDsqrConfig,
+  selectDsqrFilter,
+  selectLastProcessedTime,
+  selectDsqrStore,
+  selectDsqrDate,
+  selectHasDsqrData,
+  selectOverallPerformance,
+  selectPerformanceGrade,
+  selectAverageRating,
   selectBestPlatform,
-  selectAttentionRequired
-} from '../store/dSQRSlice';
+  selectAttentionRequiredPlatform,
+  selectAlertsEnabled,
+  selectAlertCount,
+  selectHasCriticalAlerts,
+  selectHasUrgentAlerts,
+  selectTotalOnTrack,
+  selectTotalApplicable,
+  setFilter as setFilterAction,
+  clearFilter as clearFilterAction,
+  setPerformanceThresholds as setPerformanceThresholdsAction,
+  setAlertConfig as setAlertConfigAction,
+  toggleAlerts as toggleAlertsAction,
+  resetConfig as resetConfigAction,
+  clearDsqrData as clearDataAction,
+} from '../store/dsprDsqrSlice';
 import {
+  type DailyDSQRData,
+  type ProcessedDSQRData,
+  type PlatformData,
+  type PlatformMetrics,
+  type DSQRSummary,
+  type PerformanceAlert,
+  DeliveryPlatform,
+  PerformanceGrade,
   type DSQRFilter,
   type DSQRAnalysisConfig,
-  type PerformanceAlert,
-  type PlatformMetrics,
-  DeliveryPlatform,
-  AlertSeverity,
-  PerformanceLevel,
-  PerformanceGrade,
-  isValidDeliveryPlatform,
-  isOnTrack,
-} from '../types/DSQR';
-import { useDsprApi } from './useCoordinator';
+  type PerformanceThresholds,
+  type AlertConfiguration,
+} from '../types/dspr.dsqr';
+import type { StoreId, ApiDate } from '../types/dspr.common';
 
-// =============================================================================
-// HOOK INTERFACE
-// =============================================================================
+// ============================================================================
+// HOOK RETURN TYPE
+// ============================================================================
 
 /**
- * Configuration options for the DSQR hook
+ * Return type for useDsqr hook
  */
-export interface UseDSQROptions {
-  /** Whether to automatically process alerts when data changes */
-  autoProcessAlerts?: boolean;
-  /** Default filter to apply */
-  defaultFilter?: DSQRFilter;
-  /** Whether to enable detailed logging */
-  enableLogging?: boolean;
-  /** Custom configuration overrides */
-  configOverrides?: Partial<DSQRAnalysisConfig>;
-  /** Platforms to monitor specifically */
-  focusPlatforms?: DeliveryPlatform[];
-}
-
-/**
- * Action item for platform recommendations
- */
-export interface ActionItem {
-  action: string;
-  impact: 'High' | 'Medium' | 'Low';
-  effort: 'High' | 'Medium' | 'Low';
-  timeline: string;
-}
-
-/**
- * Return type of the useDSQR hook
- */
-export interface UseDSQRReturn {
-  // Data and State
+export interface UseDsqrReturn {
+  // ========================================================================
+  // DATA
+  // ========================================================================
+  
   /** Raw DSQR data from API */
-  rawData: ReturnType<typeof selectRawDSQRData>;
-  /** Processed DSQR data with analysis */
-  processedData: ReturnType<typeof selectProcessedDSQRData>;
-  /** Platform metrics with current filter applied */
-  platformMetrics: ReturnType<typeof selectFilteredPlatformMetrics>;
+  raw: DailyDSQRData | null;
+  
+  /** Processed DSQR with platform metrics */
+  processed: ProcessedDSQRData | null;
+  
+  /** All platform data */
+  platforms: PlatformData | null;
+  
+  /** DoorDash metrics */
+  doorDash: PlatformMetrics | null;
+  
+  /** UberEats metrics */
+  uberEats: PlatformMetrics | null;
+  
+  /** GrubHub metrics */
+  grubHub: PlatformMetrics | null;
+  
+  /** Overall DSQR summary */
+  summary: DSQRSummary | null;
+  
   /** All performance alerts */
-  alerts: ReturnType<typeof selectPerformanceAlerts>;
+  alerts: PerformanceAlert[];
+  
   /** Critical alerts only */
-  criticalAlerts: ReturnType<typeof selectCriticalAlerts>;
-  /** Overall performance summary */
-  overallSummary: ReturnType<typeof selectOverallSummary>;
-  /** Current loading state */
-  isLoading: boolean;
-  /** Current error state */
-  error: string | null;
-
-  // Current Settings
-  /** Current filter configuration */
-  currentFilter: DSQRFilter | null;
-  /** Current analysis configuration */
-  currentConfig: DSQRAnalysisConfig;
-
-  // Actions
-  /** Update filter settings */
-  setFilter: (filter: DSQRFilter | null) => void;
-  /** Update analysis configuration */
-  updateConfig: (config: Partial<DSQRAnalysisConfig>) => void;
-  /** Dismiss specific alert */
-  dismissSpecificAlert: (alertIndex: number) => void;
-  /** Clear all alerts */
-  clearAllPerformanceAlerts: () => void;
-  /** Manually reprocess data */
-  reprocessData: () => void;
-  /** Reset DSQR state */
-  resetState: () => void;
-  /** Clear current error */
-  clearError: () => void;
-
-  // Platform Analysis Functions
-  /** Get metrics for specific platform */
-  getPlatformMetrics: (platform: DeliveryPlatform) => PlatformMetrics | null;
-  /** Get platform performance comparison */
-  getPlatformComparison: () => PlatformComparison;
-  /** Get platform recommendations */
-  getPlatformRecommendations: (platform: DeliveryPlatform) => PlatformRecommendations;
-  /** Calculate platform ranking */
-  getPlatformRanking: () => PlatformRanking[];
-
-  // Alert Management Functions
-  /** Get alerts by severity */
-  getAlertsBySeverity: (severity: AlertSeverity) => PerformanceAlert[];
-  /** Get alerts by platform */
-  getAlertsByPlatform: (platform: DeliveryPlatform) => PerformanceAlert[];
-  /** Get alert summary */
-  getAlertSummary: () => AlertSummary;
-  /** Check if platform needs attention */
-  needsAttention: (platform: DeliveryPlatform) => boolean;
-
-  // Performance Analysis Functions
-  /** Get overall performance grade */
-  getOverallGrade: () => PerformanceGrade | null;
-  /** Get performance trends */
-  getPerformanceTrends: () => PerformanceTrends | null;
-  /** Calculate improvement opportunities */
-  getImprovementOpportunities: () => ImprovementOpportunity[];
-  /** Get benchmark comparison */
-  getBenchmarkComparison: () => BenchmarkComparison | null;
-
-  // Utilities
-  /** Check if data is available and valid */
-  hasValidData: () => boolean;
-  /** Get data quality assessment */
-  getDataQuality: () => DSQRDataQuality;
-  /** Export DSQR data */
-  exportData: (format: DSQRExportFormat) => DSQRExportResult;
-}
-
-/**
- * Platform comparison analysis
- */
-export interface PlatformComparison {
+  criticalAlerts: PerformanceAlert[];
+  
+  /** Urgent alerts only */
+  urgentAlerts: PerformanceAlert[];
+  
+  // ========================================================================
+  // METRICS
+  // ========================================================================
+  
+  /** Overall performance percentage (0-100) */
+  overallPerformance: number;
+  
+  /** Performance grade */
+  grade: PerformanceGrade | null;
+  
+  /** Average rating across all platforms */
+  averageRating: number;
+  
   /** Best performing platform */
-  best: {
-    platform: DeliveryPlatform;
-    score: number;
-    strengths: string[];
-  };
-  /** Worst performing platform */
-  worst: {
-    platform: DeliveryPlatform;
-    score: number;
-    weaknesses: string[];
-  };
-  /** Performance gaps between platforms */
-  gaps: Array<{
-    metric: string;
-    bestValue: number;
-    worstValue: number;
-    gap: number;
-  }>;
-}
-
-/**
- * Platform-specific recommendations
- */
-export interface PlatformRecommendations {
-  /** Platform identifier */
-  platform: DeliveryPlatform;
-  /** Priority level */
-  priority: 'High' | 'Medium' | 'Low';
-  /** Key areas for improvement */
-  focusAreas: string[];
-  /** Specific action items */
-  actions: ActionItem[];
-  /** Expected outcomes */
-  expectedOutcomes: string[];
-}
-
-/**
- * Platform ranking information
- */
-export interface PlatformRanking {
-  /** Platform identifier */
-  platform: DeliveryPlatform;
-  /** Overall score */
-  score: number;
-  /** Ranking position */
-  rank: number;
-  /** Performance level */
-  level: PerformanceLevel;
-  /** Key metrics summary */
-  keyMetrics: {
-    rating: number;
-    onTrackPercentage: number;
-    criticalIssues: number;
-  };
-}
-
-/**
- * Alert summary information
- */
-export interface AlertSummary {
+  bestPlatform: DeliveryPlatform | null;
+  
+  /** Platform requiring attention */
+  attentionRequired: DeliveryPlatform | null;
+  
+  /** Total metrics on track */
+  totalOnTrack: number;
+  
+  /** Total applicable metrics */
+  totalApplicable: number;
+  
+  // ========================================================================
+  // STATE
+  // ========================================================================
+  
+  /** Whether DSQR data exists */
+  hasData: boolean;
+  
+  /** Store ID */
+  store: StoreId | null;
+  
+  /** Business date */
+  date: ApiDate | null;
+  
+  /** Last processed timestamp */
+  lastProcessed: string | null;
+  
+  /** Whether alerts are enabled */
+  alertsEnabled: boolean;
+  
   /** Total alert count */
-  total: number;
-  /** Count by severity */
-  bySeverity: Record<AlertSeverity, number>;
-  /** Count by platform */
-  byPlatform: Record<DeliveryPlatform, number>;
-  /** Most critical platform */
-  mostCritical: DeliveryPlatform | null;
-  /** Recent alert trends */
-  trends: {
-    increasing: boolean;
-    changePercent: number;
-  };
+  alertCount: number;
+  
+  /** Whether there are critical alerts */
+  hasCriticalAlerts: boolean;
+  
+  /** Whether there are urgent alerts */
+  hasUrgentAlerts: boolean;
+  
+  // ========================================================================
+  // CONFIGURATION
+  // ========================================================================
+  
+  /** Current configuration */
+  config: DSQRAnalysisConfig;
+  
+  /** Current filter */
+  filter: DSQRFilter;
+  
+  // ========================================================================
+  // ACTIONS
+  // ========================================================================
+  
+  /**
+   * Sets filter options
+   * @param filter - Partial filter to apply
+   */
+  setFilter: (filter: Partial<DSQRFilter>) => void;
+  
+  /**
+   * Clears all filters
+   */
+  clearFilter: () => void;
+  
+  /**
+   * Updates performance thresholds
+   * @param thresholds - Partial thresholds to update
+   */
+  setPerformanceThresholds: (thresholds: Partial<PerformanceThresholds>) => void;
+  
+  /**
+   * Updates alert configuration
+   * @param config - Partial alert config to update
+   */
+  setAlertConfig: (config: Partial<AlertConfiguration>) => void;
+  
+  /**
+   * Toggles alerts on/off
+   * @param enabled - Whether to enable alerts
+   */
+  toggleAlerts: (enabled: boolean) => void;
+  
+  /**
+   * Resets configuration to defaults
+   */
+  resetConfig: () => void;
+  
+  /**
+   * Clears all DSQR data
+   */
+  clearData: () => void;
 }
 
-/**
- * Performance trends analysis
- */
-export interface PerformanceTrends {
-  /** Overall trend direction */
-  overall: 'improving' | 'declining' | 'stable';
-  /** Platform-specific trends */
-  byPlatform: Record<DeliveryPlatform, {
-    trend: 'improving' | 'declining' | 'stable';
-    changePercent: number;
-    keyChanges: string[];
-  }>;
-  /** Metric trends */
-  byMetric: Array<{
-    metric: string;
-    trend: 'improving' | 'declining' | 'stable';
-    platforms: DeliveryPlatform[];
-  }>;
-}
+// ============================================================================
+// HOOK
+// ============================================================================
 
 /**
- * Improvement opportunity
- */
-export interface ImprovementOpportunity {
-  /** Opportunity description */
-  title: string;
-  /** Affected platforms */
-  platforms: DeliveryPlatform[];
-  /** Potential impact */
-  impact: {
-    rating: 'High' | 'Medium' | 'Low';
-    description: string;
-    estimatedImprovement: number;
-  };
-  /** Implementation details */
-  implementation: {
-    effort: 'High' | 'Medium' | 'Low';
-    timeline: string;
-    resources: string[];
-  };
-  /** Success metrics */
-  successMetrics: string[];
-}
-
-/**
- * Benchmark comparison
- */
-export interface BenchmarkComparison {
-  /** Industry benchmarks */
-  industry: Record<string, number>;
-  /** Current performance */
-  current: Record<string, number>;
-  /** Performance gaps */
-  gaps: Array<{
-    metric: string;
-    current: number;
-    benchmark: number;
-    gap: number;
-    status: 'above' | 'below' | 'at';
-  }>;
-  /** Overall benchmark score */
-  overallScore: number;
-}
-
-/**
- * DSQR data quality assessment
- */
-export interface DSQRDataQuality {
-  /** Overall quality score */
-  overallScore: number;
-  /** Data completeness */
-  completeness: number;
-  /** Metric coverage */
-  metricCoverage: number;
-  /** Platform coverage */
-  platformCoverage: number;
-  /** Quality issues */
-  issues: string[];
-  /** Quality level */
-  level: 'Excellent' | 'Good' | 'Fair' | 'Poor';
-}
-
-/**
- * Export formats for DSQR data
- */
-export type DSQRExportFormat = 'detailed' | 'summary' | 'alerts' | 'recommendations';
-
-/**
- * DSQR export result
- */
-export interface DSQRExportResult {
-  /** Export format used */
-  format: DSQRExportFormat;
-  /** Exported data */
-  data: object;
-  /** Filename suggestion */
-  filename: string;
-  /** Export metadata */
-  metadata: {
-    exportDate: string;
-    platforms: DeliveryPlatform[];
-    alertCount: number;
-  };
-}
-
-// =============================================================================
-// HOOK IMPLEMENTATION
-// =============================================================================
-
-/**
- * DSQR domain hook
- * Provides comprehensive access to DSQR data and performance analysis
+ * Custom hook for accessing and managing DSQR data
  * 
- * @param options - Configuration options for the hook
- * @returns Object containing data, actions, and analysis functions
+ * Provides a simple interface for consuming delivery service quality
+ * ratings, platform metrics, alerts, and configuration. Data is automatically
+ * derived from the central DSPR API response.
+ * 
+ * @returns Object with data, metrics, state, and action methods
+ * 
+ * @example
+ * ```
+ * function Dashboard() {
+ *   const {
+ *     platforms,
+ *     summary,
+ *     alerts,
+ *     grade,
+ *     hasData,
+ *     setFilter,
+ *   } = useDsqr();
+ * 
+ *   if (!hasData) return <NoData />;
+ * 
+ *   return (
+ *     <div>
+ *       <PerformanceOverview summary={summary} grade={grade} />
+ *       <PlatformComparison platforms={platforms} />
+ *       <AlertList alerts={alerts} />
+ *     </div>
+ *   );
+ * }
+ * ```
  */
-export const useDSQR = (options: UseDSQROptions = {}): UseDSQRReturn => {
-  const {
-    defaultFilter,
-    enableLogging = process.env.NODE_ENV === 'development',
-    configOverrides,
-    focusPlatforms
-  } = options;
-
-  const dispatch = useDispatch<AppDispatch>();
-
-  // Get DSPR API state for coordination
-  const {  isLoading: dsprLoading } = useDsprApi();
-
-  // Selectors
-  const dsqrState = useSelector((state: RootState) => selectDSQRState(state));
-  const rawData = useSelector((state: RootState) => selectRawDSQRData(state));
-  const processedData = useSelector((state: RootState) => selectProcessedDSQRData(state));
-  const platformMetrics = useSelector((state: RootState) => selectFilteredPlatformMetrics(state));
-  const alerts = useSelector((state: RootState) => selectPerformanceAlerts(state));
-  const criticalAlerts = useSelector((state: RootState) => selectCriticalAlerts(state));
-  const overallSummary = useSelector((state: RootState) => selectOverallSummary(state));
-  const isLoading = useSelector((state: RootState) => selectDSQRLoading(state));
-  const error = useSelector((state: RootState) => selectDSQRError(state));
-  const bestPlatform = useSelector((state: RootState) => selectBestPlatform(state));
-  const attentionRequired = useSelector((state: RootState) => selectAttentionRequired(state));
-
-  // Apply default filter and focus platforms
-  useMemo(() => {
-    let filterToApply = defaultFilter;
-    
-    if (focusPlatforms && focusPlatforms.length > 0) {
-      filterToApply = {
-        ...defaultFilter,
-        platforms: focusPlatforms
-      };
-    }
-    
-    if (filterToApply && !dsqrState.currentFilter) {
-      dispatch(setDSQRFilter(filterToApply));
-    }
-  }, [defaultFilter, focusPlatforms, dsqrState.currentFilter, dispatch]);
-
-  // Apply configuration overrides
-  useMemo(() => {
-    if (configOverrides) {
-      dispatch(updateDSQRConfig(configOverrides));
-      if (enableLogging) {
-        console.log('[useDSQR] Configuration overrides applied', configOverrides);
-      }
-    }
-  }, [configOverrides, dispatch, enableLogging]);
-
-  // Actions
-  const setFilter = useCallback((filter: DSQRFilter | null) => {
-    dispatch(setDSQRFilter(filter));
-    if (enableLogging) {
-      console.log('[useDSQR] Filter updated', filter);
-    }
-  }, [dispatch, enableLogging]);
-
-  const updateConfig = useCallback((config: Partial<DSQRAnalysisConfig>) => {
-    dispatch(updateDSQRConfig(config));
-    if (enableLogging) {
-      console.log('[useDSQR] Configuration updated', config);
-    }
-  }, [dispatch, enableLogging]);
-
-  const dismissSpecificAlert = useCallback((alertIndex: number) => {
-    dispatch(dismissAlert(alertIndex));
-    if (enableLogging) {
-      console.log('[useDSQR] Alert dismissed', { alertIndex });
-    }
-  }, [dispatch, enableLogging]);
-
-  const clearAllPerformanceAlerts = useCallback(() => {
-    dispatch(clearAllAlerts());
-    if (enableLogging) {
-      console.log('[useDSQR] All alerts cleared');
-    }
-  }, [dispatch, enableLogging]);
-
-  const reprocessData = useCallback(() => {
-    dispatch(reprocessDSQRData());
-    if (enableLogging) {
-      console.log('[useDSQR] Data reprocessing triggered');
-    }
-  }, [dispatch, enableLogging]);
-
-  const resetState = useCallback(() => {
-    dispatch(resetDSQRState());
-    if (enableLogging) {
-      console.log('[useDSQR] State reset');
-    }
-  }, [dispatch, enableLogging]);
-
-  const clearError = useCallback(() => {
-    dispatch(clearDSQRError());
-    if (enableLogging) {
-      console.log('[useDSQR] Error cleared');
-    }
-  }, [dispatch, enableLogging]);
-
-  // Platform Analysis Functions
-  const getPlatformMetrics = useCallback((platform: DeliveryPlatform): PlatformMetrics | null => {
-    if (!platformMetrics || !isValidDeliveryPlatform(platform)) {
-      return null;
-    }
-    return platformMetrics[platform] || null;
-  }, [platformMetrics]);
-
-  const getPlatformComparison = useCallback((): PlatformComparison => {
-    if (!platformMetrics) {
-      throw new Error('No platform metrics available for comparison');
-    }
-
-    const validPlatforms = Object.entries(platformMetrics)
-      .filter(([_, metrics]) => metrics !== null)
-      .map(([platform, metrics]) => ({ platform: platform as DeliveryPlatform, metrics: metrics! }));
-
-    if (validPlatforms.length < 2) {
-      throw new Error('Need at least 2 platforms for comparison');
-    }
-
-    const sortedByPerformance = validPlatforms.sort((a, b) => 
-      b.metrics.performancePercentage - a.metrics.performancePercentage
-    );
-
-    const best = sortedByPerformance[0];
-    const worst = sortedByPerformance[sortedByPerformance.length - 1];
-
-    // Identify strengths and weaknesses
-    const bestStrengths = best.metrics.kpis
-      .filter(kpi => isOnTrack(kpi.status))
-      .map(kpi => kpi.label)
-      .slice(0, 3);
-
-    const worstWeaknesses = worst.metrics.kpis
-      .filter(kpi => !isOnTrack(kpi.status))
-      .map(kpi => kpi.label)
-      .slice(0, 3);
-
-    // Calculate gaps
-    const gaps = best.metrics.kpis.map(bestKpi => {
-      const worstKpi = worst.metrics.kpis.find(k => k.name === bestKpi.name);
-      if (!worstKpi || typeof bestKpi.value !== 'number' || typeof worstKpi.value !== 'number') {
-        return null;
-      }
-
-      return {
-        metric: bestKpi.label,
-        bestValue: bestKpi.value,
-        worstValue: worstKpi.value,
-        gap: Math.abs(bestKpi.value - worstKpi.value)
-      };
-    }).filter(Boolean) as any[];
-
-    return {
-      best: {
-        platform: best.platform,
-        score: best.metrics.performancePercentage,
-        strengths: bestStrengths
-      },
-      worst: {
-        platform: worst.platform,
-        score: worst.metrics.performancePercentage,
-        weaknesses: worstWeaknesses
-      },
-      gaps
-    };
-  }, [platformMetrics]);
-
-  const getPlatformRecommendations = useCallback((platform: DeliveryPlatform): PlatformRecommendations => {
-    const metrics = getPlatformMetrics(platform);
-    if (!metrics) {
-      throw new Error(`No metrics available for platform: ${platform}`);
-    }
-
-    const offTrackKPIs = metrics.kpis.filter(kpi => !isOnTrack(kpi.status));
-    const criticalKPIs = offTrackKPIs.filter(kpi => kpi.isCritical);
-
-    let priority: 'High' | 'Medium' | 'Low' = 'Low';
-    if (criticalKPIs.length > 0) priority = 'High';
-    else if (offTrackKPIs.length > 2) priority = 'Medium';
-
-    const focusAreas = offTrackKPIs.map(kpi => kpi.label).slice(0, 3);
-
-    // Generate platform-specific actions
-    const actions = generatePlatformActions(platform, offTrackKPIs);
-    
-    const expectedOutcomes = [
-      'Improved customer satisfaction ratings',
-      'Reduced operational issues',
-      'Better delivery performance metrics'
-    ];
-
-    return {
-      platform,
-      priority,
-      focusAreas,
-      actions,
-      expectedOutcomes
-    };
-  }, [getPlatformMetrics]);
-
-  const getPlatformRanking = useCallback((): PlatformRanking[] => {
-    if (!platformMetrics) {
-      return [];
-    }
-
-    const validPlatforms = Object.entries(platformMetrics)
-      .filter(([_, metrics]) => metrics !== null)
-      .map(([platform, metrics]) => ({
-        platform: platform as DeliveryPlatform,
-        metrics: metrics!
-      }));
-
-    return validPlatforms
-      .sort((a, b) => b.metrics.performancePercentage - a.metrics.performancePercentage)
-      .map((item, index) => ({
-        platform: item.platform,
-        score: item.metrics.performancePercentage,
-        rank: index + 1,
-        level: item.metrics.performanceLevel,
-        keyMetrics: {
-          rating: item.metrics.overallRating,
-          onTrackPercentage: item.metrics.performancePercentage,
-          criticalIssues: item.metrics.kpis.filter(kpi => kpi.isCritical && !isOnTrack(kpi.status)).length
-        }
-      }));
-  }, [platformMetrics]);
-
-  // Alert Management Functions
-  const getAlertsBySeverity = useCallback((severity: AlertSeverity): PerformanceAlert[] => {
-    return alerts.filter(alert => alert.severity === severity);
-  }, [alerts]);
-
-  const getAlertsByPlatform = useCallback((platform: DeliveryPlatform): PerformanceAlert[] => {
-    return alerts.filter(alert => alert.platform === platform);
-  }, [alerts]);
-
-  const getAlertSummary = useCallback((): AlertSummary => {
-    const bySeverity = alerts.reduce((acc, alert) => {
-      acc[alert.severity] = (acc[alert.severity] || 0) + 1;
-      return acc;
-    }, {} as Record<AlertSeverity, number>);
-
-    const byPlatform = alerts.reduce((acc, alert) => {
-      acc[alert.platform] = (acc[alert.platform] || 0) + 1;
-      return acc;
-    }, {} as Record<DeliveryPlatform, number>);
-
-    const mostCritical = Object.entries(byPlatform)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] as DeliveryPlatform || null;
-
-    return {
-      total: alerts.length,
-      bySeverity,
-      byPlatform,
-      mostCritical,
-      trends: {
-        increasing: false, // Would need historical data
-        changePercent: 0   // Would need historical data
-      }
-    };
-  }, [alerts]);
-
-  const needsAttention = useCallback((platform: DeliveryPlatform): boolean => {
-    const platformAlerts = getAlertsByPlatform(platform);
-    const criticalAlerts = platformAlerts.filter(alert => 
-      alert.severity === AlertSeverity.CRITICAL || alert.severity === AlertSeverity.ERROR
-    );
-    return criticalAlerts.length > 0;
-  }, [getAlertsByPlatform]);
-
-  // Performance Analysis Functions
-  const getOverallGrade = useCallback((): PerformanceGrade | null => {
-    return overallSummary?.performanceGrade || null;
-  }, [overallSummary]);
-
-  const getPerformanceTrends = useCallback((): PerformanceTrends | null => {
-    // This would require historical data - returning placeholder structure
-    if (!platformMetrics) return null;
-
-    const byPlatform = Object.keys(platformMetrics).reduce((acc, platform) => {
-      acc[platform as DeliveryPlatform] = {
-        trend: 'stable' as const,
-        changePercent: 0,
-        keyChanges: []
-      };
-      return acc;
-    }, {} as Record<DeliveryPlatform, any>);
-
-    return {
-      overall: 'stable',
-      byPlatform,
-      byMetric: []
-    };
-  }, [platformMetrics]);
-
-  const getImprovementOpportunities = useCallback((): ImprovementOpportunity[] => {
-    if (!alerts || alerts.length === 0) {
-      return [];
-    }
-
-    // Group alerts by common themes to identify opportunities
-    const opportunities: ImprovementOpportunity[] = [];
-
-    // Rating improvement opportunity
-    const ratingAlerts = alerts.filter(alert => 
-      alert.metric.includes('Rating') || alert.metric.includes('reviews')
-    );
-
-    if (ratingAlerts.length > 0) {
-      opportunities.push({
-        title: 'Improve Customer Rating Scores',
-        platforms: ratingAlerts.map(alert => alert.platform),
-        impact: {
-          rating: 'High',
-          description: 'Higher ratings improve platform visibility and customer trust',
-          estimatedImprovement: 15
-        },
-        implementation: {
-          effort: 'Medium',
-          timeline: '30-60 days',
-          resources: ['Kitchen staff training', 'Quality control processes']
-        },
-        successMetrics: ['Average rating > 4.5', 'Positive review percentage > 90%']
-      });
-    }
-
-    // Operational efficiency opportunity
-    const operationalAlerts = alerts.filter(alert =>
-      alert.metric.includes('Wait') || alert.metric.includes('Downtime')
-    );
-
-    if (operationalAlerts.length > 0) {
-      opportunities.push({
-        title: 'Optimize Operational Efficiency',
-        platforms: operationalAlerts.map(alert => alert.platform),
-        impact: {
-          rating: 'Medium',
-          description: 'Reduced wait times and downtime improve delivery partner satisfaction',
-          estimatedImprovement: 10
-        },
-        implementation: {
-          effort: 'High',
-          timeline: '60-90 days',
-          resources: ['Process optimization', 'Staff scheduling', 'Technology upgrades']
-        },
-        successMetrics: ['Wait time < 2 minutes', 'Downtime < 30 minutes/day']
-      });
-    }
-
-    return opportunities;
-  }, [alerts]);
-
-  const getBenchmarkComparison = useCallback((): BenchmarkComparison | null => {
-    if (!overallSummary || !platformMetrics) {
-      return null;
-    }
-
-    // Industry benchmarks (these would typically come from configuration)
-    const industry = {
-      'Average Rating': 4.3,
-      'On Track Percentage': 85,
-      'Customer Satisfaction': 90
-    };
-
-    const current = {
-      'Average Rating': overallSummary.averageRating,
-      'On Track Percentage': overallSummary.overallPerformance,
-      'Customer Satisfaction': overallSummary.overallPerformance
-    };
-
-    const gaps = Object.entries(industry).map(([metric, benchmark]) => {
-      const currentValue = (current as Record<string, number>)[metric] || 0;
-      const gap = currentValue - benchmark;
+export function useDsqr(): UseDsqrReturn {
+  const dispatch = useAppDispatch();
+  
+  // ========================================================================
+  // SELECTORS
+  // ========================================================================
+  
+  const raw = useAppSelector(selectRawDsqr);
+  const processed = useAppSelector(selectProcessedDsqr);
+  const platforms = useAppSelector(selectPlatformData);
+  const doorDash = useAppSelector(selectDoorDashMetrics);
+  const uberEats = useAppSelector(selectUberEatsMetrics);
+  const grubHub = useAppSelector(selectGrubHubMetrics);
+  const summary = useAppSelector(selectDsqrSummary);
+  const alerts = useAppSelector(selectDsqrAlerts);
+  const criticalAlerts = useAppSelector(selectCriticalDsqrAlerts);
+  const urgentAlerts = useAppSelector(selectUrgentDsqrAlerts);
+  const config = useAppSelector(selectDsqrConfig);
+  const filter = useAppSelector(selectDsqrFilter);
+  const lastProcessed = useAppSelector(selectLastProcessedTime);
+  const store = useAppSelector(selectDsqrStore);
+  const date = useAppSelector(selectDsqrDate);
+  const hasData = useAppSelector(selectHasDsqrData);
+  const overallPerformance = useAppSelector(selectOverallPerformance);
+  const grade = useAppSelector(selectPerformanceGrade);
+  const averageRating = useAppSelector(selectAverageRating);
+  const bestPlatform = useAppSelector(selectBestPlatform);
+  const attentionRequired = useAppSelector(selectAttentionRequiredPlatform);
+  const alertsEnabled = useAppSelector(selectAlertsEnabled);
+  const alertCount = useAppSelector(selectAlertCount);
+  const hasCriticalAlerts = useAppSelector(selectHasCriticalAlerts);
+  const hasUrgentAlerts = useAppSelector(selectHasUrgentAlerts);
+  const totalOnTrack = useAppSelector(selectTotalOnTrack);
+  const totalApplicable = useAppSelector(selectTotalApplicable);
+  
+  // ========================================================================
+  // ACTIONS
+  // ========================================================================
+  
+  /**
+   * Sets filter options
+   */
+  const setFilter = useCallback(
+    (filter: Partial<DSQRFilter>) => {
+      dispatch(setFilterAction(filter));
       
-      return {
-        metric,
-        current: currentValue,
-        benchmark,
-        gap,
-        status: gap > 0 ? 'above' as const : gap < 0 ? 'below' as const : 'at' as const
-      };
-    });
-
-    const overallScore = gaps.reduce((acc, gap) => {
-      const score = gap.status === 'above' ? 100 : gap.status === 'at' ? 90 : Math.max(0, 90 + (gap.gap / gap.benchmark) * 90);
-      return acc + score;
-    }, 0) / gaps.length;
-
-    return {
-      industry,
-      current,
-      gaps,
-      overallScore
-    };
-  }, [overallSummary, platformMetrics]);
-
-  // Utilities
-  const hasValidData = useCallback((): boolean => {
-    return !!(processedData && platformMetrics && Object.values(platformMetrics).some(m => m !== null));
-  }, [processedData, platformMetrics]);
-
-  const getDataQuality = useCallback((): DSQRDataQuality => {
-    if (!rawData || !processedData) {
-      return {
-        overallScore: 0,
-        completeness: 0,
-        metricCoverage: 0,
-        platformCoverage: 0,
-        issues: ['No data available'],
-        level: 'Poor'
-      };
-    }
-
-    // Calculate completeness based on available metrics
-    const totalPossibleMetrics = 20; // Approximate total DSQR metrics
-    const availableMetrics = Object.values(rawData.score).filter(value => 
-      value !== null && value !== undefined && value !== 0
-    ).length;
-    
-    const completeness = (availableMetrics / totalPossibleMetrics) * 100;
-
-    // Calculate platform coverage
-    const totalPlatforms = Object.values(DeliveryPlatform).length;
-    const activePlatforms = platformMetrics ? 
-      Object.values(platformMetrics).filter(m => m !== null).length : 0;
-    const platformCoverage = (activePlatforms / totalPlatforms) * 100;
-
-    const metricCoverage = completeness; // Same calculation for now
-    const overallScore = (completeness + platformCoverage + metricCoverage) / 3;
-
-    let level: DSQRDataQuality['level'] = 'Poor';
-    if (overallScore >= 90) level = 'Excellent';
-    else if (overallScore >= 75) level = 'Good';
-    else if (overallScore >= 60) level = 'Fair';
-
-    return {
-      overallScore,
-      completeness,
-      metricCoverage,
-      platformCoverage,
-      issues: alerts.map(alert => alert.message),
-      level
-    };
-  }, [rawData, processedData, platformMetrics, alerts]);
-
-  const exportData = useCallback((format: DSQRExportFormat): DSQRExportResult => {
-    if (!processedData) {
-      throw new Error('No data available for export');
-    }
-
-    const exportDate = new Date().toISOString();
-    const platforms = Object.keys(platformMetrics || {}) as DeliveryPlatform[];
-    const alertCount = alerts.length;
-
-    let data: object;
-    let filename: string;
-
-    switch (format) {
-      case 'detailed':
-        data = {
-          summary: overallSummary,
-          platforms: platformMetrics,
-          alerts,
-          rawData
-        };
-        filename = `dsqr-detailed-${exportDate.split('T')[0]}.json`;
-        break;
-
-      case 'summary':
-        data = {
-          overallGrade: overallSummary?.performanceGrade,
-          averageRating: overallSummary?.averageRating,
-          totalOnTrack: overallSummary?.totalOnTrack,
-          totalApplicable: overallSummary?.totalApplicable,
-          bestPlatform: bestPlatform,
-          attentionRequired: attentionRequired
-        };
-        filename = `dsqr-summary-${exportDate.split('T')[0]}.json`;
-        break;
-
-      case 'alerts':
-        data = {
-          alerts,
-          summary: getAlertSummary(),
-          criticalAlerts
-        };
-        filename = `dsqr-alerts-${exportDate.split('T')[0]}.json`;
-        break;
-
-      case 'recommendations':
-        const recommendations = platforms.map(platform => 
-          getPlatformRecommendations(platform)
-        );
-        data = {
-          recommendations,
-          improvementOpportunities: getImprovementOpportunities()
-        };
-        filename = `dsqr-recommendations-${exportDate.split('T')[0]}.json`;
-        break;
-
-      default:
-        throw new Error(`Unsupported export format: ${format}`);
-    }
-
-    return {
-      format,
-      data,
-      filename,
-      metadata: {
-        exportDate,
-        platforms,
-        alertCount
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[useDsqr] Filter updated:', filter);
       }
-    };
-  }, [processedData, platformMetrics, alerts, overallSummary, bestPlatform, attentionRequired, getAlertSummary, getPlatformRecommendations, getImprovementOpportunities]);
-
+    },
+    [dispatch]
+  );
+  
+  /**
+   * Clears all filters
+   */
+  const clearFilter = useCallback(() => {
+    dispatch(clearFilterAction());
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[useDsqr] Filter cleared');
+    }
+  }, [dispatch]);
+  
+  /**
+   * Updates performance thresholds
+   */
+  const setPerformanceThresholds = useCallback(
+    (thresholds: Partial<PerformanceThresholds>) => {
+      dispatch(setPerformanceThresholdsAction(thresholds));
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[useDsqr] Performance thresholds updated:', thresholds);
+      }
+    },
+    [dispatch]
+  );
+  
+  /**
+   * Updates alert configuration
+   */
+  const setAlertConfig = useCallback(
+    (config: Partial<AlertConfiguration>) => {
+      dispatch(setAlertConfigAction(config));
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[useDsqr] Alert config updated:', config);
+      }
+    },
+    [dispatch]
+  );
+  
+  /**
+   * Toggles alerts on/off
+   */
+  const toggleAlerts = useCallback(
+    (enabled: boolean) => {
+      dispatch(toggleAlertsAction(enabled));
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[useDsqr] Alerts toggled:', enabled);
+      }
+    },
+    [dispatch]
+  );
+  
+  /**
+   * Resets configuration to defaults
+   */
+  const resetConfig = useCallback(() => {
+    dispatch(resetConfigAction());
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[useDsqr] Configuration reset to defaults');
+    }
+  }, [dispatch]);
+  
+  /**
+   * Clears all DSQR data
+   */
+  const clearData = useCallback(() => {
+    dispatch(clearDataAction());
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[useDsqr] Data cleared');
+    }
+  }, [dispatch]);
+  
+  // ========================================================================
+  // RETURN
+  // ========================================================================
+  
   return {
-    // Data and State
-    rawData,
-    processedData,
-    platformMetrics,
+    // Data
+    raw,
+    processed,
+    platforms,
+    doorDash,
+    uberEats,
+    grubHub,
+    summary,
     alerts,
     criticalAlerts,
-    overallSummary,
-    isLoading: isLoading || dsprLoading,
-    error,
-
-    // Current Settings
-    currentFilter: dsqrState.currentFilter,
-    currentConfig: dsqrState.config,
-
+    urgentAlerts,
+    
+    // Metrics
+    overallPerformance,
+    grade,
+    averageRating,
+    bestPlatform,
+    attentionRequired,
+    totalOnTrack,
+    totalApplicable,
+    
+    // State
+    hasData,
+    store,
+    date,
+    lastProcessed,
+    alertsEnabled,
+    alertCount,
+    hasCriticalAlerts,
+    hasUrgentAlerts,
+    
+    // Configuration
+    config,
+    filter,
+    
     // Actions
     setFilter,
-    updateConfig,
-    dismissSpecificAlert,
-    clearAllPerformanceAlerts,
-    reprocessData,
-    resetState,
-    clearError,
-
-    // Platform Analysis Functions
-    getPlatformMetrics,
-    getPlatformComparison,
-    getPlatformRecommendations,
-    getPlatformRanking,
-
-    // Alert Management Functions
-    getAlertsBySeverity,
-    getAlertsByPlatform,
-    getAlertSummary,
-    needsAttention,
-
-    // Performance Analysis Functions
-    getOverallGrade,
-    getPerformanceTrends,
-    getImprovementOpportunities,
-    getBenchmarkComparison,
-
-    // Utilities
-    hasValidData,
-    getDataQuality,
-    exportData
+    clearFilter,
+    setPerformanceThresholds,
+    setAlertConfig,
+    toggleAlerts,
+    resetConfig,
+    clearData,
   };
-};
-
-// =============================================================================
-// UTILITY FUNCTIONS
-// =============================================================================
-
-/**
- * Generate platform-specific action recommendations
- */
-function generatePlatformActions(platform: DeliveryPlatform, offTrackKPIs: any[]): ActionItem[] {
-  const actions: ActionItem[] = [];
-
-  for (const kpi of offTrackKPIs.slice(0, 3)) { // Limit to top 3
-    switch (platform) {
-      case DeliveryPlatform.DOORDASH:
-        if (kpi.name.includes('Rating')) {
-          actions.push({
-            action: 'Implement order accuracy checklist',
-            impact: 'High',
-            effort: 'Medium',
-            timeline: '2-3 weeks'
-          });
-        }
-        break;
-      case DeliveryPlatform.UBEREATS:
-        if (kpi.name.includes('reviews')) {
-          actions.push({
-            action: 'Enhance food packaging and presentation',
-            impact: 'Medium',
-            effort: 'Low',
-            timeline: '1-2 weeks'
-          });
-        }
-        break;
-      case DeliveryPlatform.GRUBHUB:
-        if (kpi.name.includes('Rating')) {
-          actions.push({
-            action: 'Optimize preparation timing',
-            impact: 'High',
-            effort: 'Medium',
-            timeline: '3-4 weeks'
-          });
-        }
-        break;
-    }
-  }
-
-  return actions;
 }
 
-// =============================================================================
+// ============================================================================
 // CONVENIENCE HOOKS
-// =============================================================================
+// ============================================================================
 
 /**
- * Simplified hook for basic DSQR data
+ * Hook for checking if DSQR data is available
+ * 
+ * @returns Boolean indicating if data exists
+ * 
+ * @example
+ * ```
+ * const hasData = useHasDsqr();
+ * if (!hasData) return <LoadingState />;
+ * ```
  */
-export const useSimpleDSQR = () => {
-  const {
-    overallSummary,
-    alerts,
-    isLoading,
-    error,
-    hasValidData
-  } = useDSQR();
-
-  return {
-    summary: overallSummary,
-    alerts: alerts.slice(0, 5), // Top 5 alerts
-    isLoading,
-    error,
-    hasData: hasValidData()
-  };
-};
+export function useHasDsqr(): boolean {
+  return useAppSelector(selectHasDsqrData);
+}
 
 /**
- * Hook for platform comparison analysis
+ * Hook for accessing only DoorDash metrics
+ * 
+ * @returns DoorDash platform metrics or null
+ * 
+ * @example
+ * ```
+ * const doorDash = useDoorDashMetrics();
+ * return <PlatformDashboard platform={doorDash} />;
+ * ```
  */
-export const usePlatformComparison = () => {
-  const { getPlatformComparison, getPlatformRanking } = useDSQR();
+export function useDoorDashMetrics(): PlatformMetrics | null {
+  return useAppSelector(selectDoorDashMetrics);
+}
 
-  const comparison = useMemo(() => {
-    try {
-      return getPlatformComparison();
-    } catch {
-      return null;
+/**
+ * Hook for accessing only UberEats metrics
+ * 
+ * @returns UberEats platform metrics or null
+ * 
+ * @example
+ * ```
+ * const uberEats = useUberEatsMetrics();
+ * return <PlatformDashboard platform={uberEats} />;
+ * ```
+ */
+export function useUberEatsMetrics(): PlatformMetrics | null {
+  return useAppSelector(selectUberEatsMetrics);
+}
+
+/**
+ * Hook for accessing only GrubHub metrics
+ * 
+ * @returns GrubHub platform metrics or null
+ * 
+ * @example
+ * ```
+ * const grubHub = useGrubHubMetrics();
+ * return <PlatformDashboard platform={grubHub} />;
+ * ```
+ */
+export function useGrubHubMetrics(): PlatformMetrics | null {
+  return useAppSelector(selectGrubHubMetrics);
+}
+
+/**
+ * Hook for accessing specific platform metrics
+ * 
+ * @param platform - Platform to get metrics for
+ * @returns Platform metrics or null
+ * 
+ * @example
+ * ```
+ * const metrics = usePlatformMetrics('DoorDash');
+ * return <PlatformCard metrics={metrics} />;
+ * ```
+ */
+export function usePlatformMetrics(platform: DeliveryPlatform): PlatformMetrics | null {
+  const platforms = useAppSelector(selectPlatformData);
+  
+  return useMemo(() => {
+    if (!platforms) return null;
+    
+    switch (platform) {
+      case 'DoorDash':
+        return platforms.doorDash;
+      case 'UberEats':
+        return platforms.uberEats;
+      case 'GrubHub':
+        return platforms.grubHub;
+      default:
+        return null;
     }
-  }, [getPlatformComparison]);
-
-  const ranking = getPlatformRanking();
-
-  return {
-    comparison,
-    ranking
-  };
-};
+  }, [platforms, platform]);
+}
 
 /**
- * Hook for alert management
+ * Hook for accessing only DSQR summary
+ * 
+ * @returns DSQR summary or null
+ * 
+ * @example
+ * ```
+ * const summary = useDsqrSummary();
+ * return <SummaryDashboard summary={summary} />;
+ * ```
  */
-export const useAlertManagement = () => {
-  const {
-    alerts,
-    criticalAlerts,
-    getAlertSummary,
-    dismissSpecificAlert,
-    clearAllPerformanceAlerts
-  } = useDSQR();
+export function useDsqrSummary(): DSQRSummary | null {
+  return useAppSelector(selectDsqrSummary);
+}
 
-  const summary = getAlertSummary();
+/**
+ * Hook for accessing only DSQR alerts
+ * 
+ * @returns Array of performance alerts
+ * 
+ * @example
+ * ```
+ * const alerts = useDsqrAlerts();
+ * return <AlertPanel alerts={alerts} />;
+ * ```
+ */
+export function useDsqrAlerts(): PerformanceAlert[] {
+  return useAppSelector(selectDsqrAlerts);
+}
 
-  return {
-    alerts,
-    criticalAlerts,
-    summary,
-    dismissAlert: dismissSpecificAlert,
-    clearAllAlerts: clearAllPerformanceAlerts
-  };
-};
+/**
+ * Hook for accessing critical alerts only
+ * 
+ * @returns Array of critical alerts
+ * 
+ * @example
+ * ```
+ * const criticalAlerts = useCriticalDsqrAlerts();
+ * if (criticalAlerts.length > 0) return <UrgentBanner alerts={criticalAlerts} />;
+ * ```
+ */
+export function useCriticalDsqrAlerts(): PerformanceAlert[] {
+  return useAppSelector(selectCriticalDsqrAlerts);
+}
 
-// =============================================================================
-// HOOK EXPORTS
-// =============================================================================
+/**
+ * Hook for accessing urgent alerts only
+ * 
+ * @returns Array of urgent alerts
+ * 
+ * @example
+ * ```
+ * const urgentAlerts = useUrgentDsqrAlerts();
+ * return <UrgentNotifications alerts={urgentAlerts} />;
+ * ```
+ */
+export function useUrgentDsqrAlerts(): PerformanceAlert[] {
+  return useAppSelector(selectUrgentDsqrAlerts);
+}
 
-export default useDSQR;
+/**
+ * Hook for checking if there are critical alerts
+ * 
+ * @returns Boolean indicating if critical alerts exist
+ * 
+ * @example
+ * ```
+ * const hasCritical = useHasCriticalDsqrAlerts();
+ * return <StatusIndicator critical={hasCritical} />;
+ * ```
+ */
+export function useHasCriticalDsqrAlerts(): boolean {
+  return useAppSelector(selectHasCriticalAlerts);
+}
+
+/**
+ * Hook for checking if there are urgent alerts
+ * 
+ * @returns Boolean indicating if urgent alerts exist
+ * 
+ * @example
+ * ```
+ * const hasUrgent = useHasUrgentDsqrAlerts();
+ * return <UrgentBadge show={hasUrgent} />;
+ * ```
+ */
+export function useHasUrgentDsqrAlerts(): boolean {
+  return useAppSelector(selectHasUrgentAlerts);
+}
+
+/**
+ * Hook for accessing performance grade
+ * 
+ * @returns Performance grade or null
+ * 
+ * @example
+ * ```
+ * const grade = useDsqrGrade();
+ * return <GradeBadge grade={grade} />;
+ * ```
+ */
+export function useDsqrGrade(): PerformanceGrade | null {
+  return useAppSelector(selectPerformanceGrade);
+}
+
+/**
+ * Hook for accessing key DSQR metrics only
+ * 
+ * @returns Object with key metrics
+ * 
+ * @example
+ * ```
+ * const metrics = useDsqrMetrics();
+ * return <MetricsDashboard {...metrics} />;
+ * ```
+ */
+export function useDsqrMetrics() {
+  const overallPerformance = useAppSelector(selectOverallPerformance);
+  const averageRating = useAppSelector(selectAverageRating);
+  const totalOnTrack = useAppSelector(selectTotalOnTrack);
+  const totalApplicable = useAppSelector(selectTotalApplicable);
+  const bestPlatform = useAppSelector(selectBestPlatform);
+  const attentionRequired = useAppSelector(selectAttentionRequiredPlatform);
+  const grade = useAppSelector(selectPerformanceGrade);
+  
+  return useMemo(
+    () => ({
+      overallPerformance,
+      averageRating,
+      totalOnTrack,
+      totalApplicable,
+      bestPlatform,
+      attentionRequired,
+      grade,
+    }),
+    [
+      overallPerformance,
+      averageRating,
+      totalOnTrack,
+      totalApplicable,
+      bestPlatform,
+      attentionRequired,
+      grade,
+    ]
+  );
+}
+
+/**
+ * Hook for getting filtered platform data based on current filter
+ * 
+ * @returns Filtered platform data
+ * 
+ * @example
+ * ```
+ * const filteredPlatforms = useFilteredPlatforms();
+ * return <PlatformList platforms={filteredPlatforms} />;
+ * ```
+ */
+export function useFilteredPlatforms(): PlatformMetrics[] {
+  const platforms = useAppSelector(selectPlatformData);
+  const filter = useAppSelector(selectDsqrFilter);
+  
+  return useMemo(() => {
+    if (!platforms) return [];
+    
+    let allPlatforms = [platforms.doorDash, platforms.uberEats, platforms.grubHub];
+    
+    // Apply platform filter
+    if (filter.platforms && filter.platforms.length > 0) {
+      allPlatforms = allPlatforms.filter(p => filter.platforms!.includes(p.platform));
+    }
+    
+    // Apply rating filter
+    if (filter.minRating !== undefined) {
+      allPlatforms = allPlatforms.filter(p => p.overallRating >= filter.minRating!);
+    }
+    
+    // Apply performance level filter
+    if (filter.performanceLevels && filter.performanceLevels.length > 0) {
+      allPlatforms = allPlatforms.filter(p => filter.performanceLevels!.includes(p.performanceLevel));
+    }
+    
+    return allPlatforms;
+  }, [platforms, filter]);
+}
+

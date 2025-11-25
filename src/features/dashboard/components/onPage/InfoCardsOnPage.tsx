@@ -2,7 +2,9 @@ import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { PerformanceGridFive } from '@/features/dashboard/components/performance/PerformanceGridFive';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
+import { useDailyDspr } from '@/features/DSPR/hooks/useDailyDspr';
+import { useWeeklyDspr } from '@/features/DSPR/hooks/useWeeklyDspr';
+import { useDsprApi } from '@/features/DSPR/hooks/useDsprApi';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { CardDataProps } from '@/features/dashboard/types/infoCards';
 import type { PerformanceItemProps } from '@/features/dashboard/types/performance';
@@ -32,40 +34,35 @@ export const InfoCards: React.FC<InfoCardsProps> = ({
   data: externalData,
   className,
 }) => {
-  const { 
-    dailyRawData, 
-    weeklyRawData, 
-    isLoading, 
-    error,
-    hasValidData 
-  } = useDSPRMetrics();
+  const { raw: dailyRawData } = useDailyDspr();
+  const { raw: weeklyRawData } = useWeeklyDspr();
+  const { isLoading, error } = useDsprApi();
   const isMobile = useIsMobile();
+  const hasData = !!(dailyRawData || weeklyRawData);
 
   // Transform DSPR data to CardDataProps format
   const data = useMemo((): CardDataProps[] => {
     if (externalData) return externalData;
-    
-    if (!hasValidData() || !dailyRawData) {
+    if (!hasData || !dailyRawData) {
       return [];
     }
 
     // Format currency values
-    const formatCurrency = (value: number) => 
-      new Intl.NumberFormat('en-US', { 
-        style: 'currency', 
-        currency: 'USD' 
+    const formatCurrency = (value: number) =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
       }).format(value);
 
     // Format percentage values
-    const formatPercentage = (value: number) => 
-      `${(value * 100).toFixed(1)}%`;
+    const formatPercentage = (value: number) => `${(value * 100).toFixed(1)}%`;
 
     return [
       {
         title: 'Total Sales',
         bgColor: 'bg-blue-500',
         daily: formatCurrency(dailyRawData.Total_Sales || 0),
-        weekly: formatCurrency(weeklyRawData?.Total_Sales || 0),
+        weekly: formatCurrency(weeklyRawData?.TotalSales || 0),
         icon: 'currency',
         id: 'sales-1',
       },
@@ -73,7 +70,7 @@ export const InfoCards: React.FC<InfoCardsProps> = ({
         title: 'Total Tips',
         bgColor: 'bg-blue-400',
         daily: formatCurrency(dailyRawData.Total_TIPS || 0),
-        weekly: formatCurrency(weeklyRawData?.Total_TIPS || 0),
+        weekly: formatCurrency(weeklyRawData?.TotalTIPS || 0),
         icon: 'currency',
         id: 'tips-1',
       },
@@ -89,7 +86,7 @@ export const InfoCards: React.FC<InfoCardsProps> = ({
         title: 'Refunded Order Qty',
         bgColor: 'bg-green-200',
         daily: formatCurrency(dailyRawData.Refunded_order_Qty || 0),
-        weekly: formatCurrency(weeklyRawData?.Refunded_order_Qty || 0),
+        weekly: formatCurrency(weeklyRawData?.RefundedorderQty || 0),
         icon: 'trending',
         id: 'refunded-1',
       },
@@ -97,20 +94,22 @@ export const InfoCards: React.FC<InfoCardsProps> = ({
         title: 'Average Ticket',
         bgColor: 'bg-green-200',
         daily: formatCurrency(dailyRawData.Avrage_ticket || 0),
-        weekly: formatCurrency(weeklyRawData?.Avrage_ticket || 0),
+        weekly: formatCurrency(weeklyRawData?.Avrageticket || 0),
         icon: 'trending',
         id: 'avrage-ticket-1',
       },
     ];
-  }, [externalData, dailyRawData, weeklyRawData, hasValidData]);
+  }, [externalData, dailyRawData, weeklyRawData, hasData]);
 
   // Error state component
   const ErrorState = () => (
-    <div className={cn(
-      'w-full bg-card rounded-lg border border-destructive/20 p-6 shadow-realistic',
-      'flex flex-col items-center justify-center text-center space-y-4',
-      isMobile ? 'min-h-48' : 'min-h-64'
-    )}>
+    <div
+      className={cn(
+        'w-full bg-card rounded-lg border border-destructive/20 p-6 shadow-realistic',
+        'flex flex-col items-center justify-center text-center space-y-4',
+        isMobile ? 'min-h-48' : 'min-h-64',
+      )}
+    >
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
         <ExclamationTriangleIcon className="w-6 h-6 text-destructive" />
       </div>
@@ -119,20 +118,23 @@ export const InfoCards: React.FC<InfoCardsProps> = ({
           Unable to Load Data
         </h3>
         <p className="text-sm text-muted-foreground max-w-md">
-          We're experiencing difficulties loading your business metrics. This could be due to a temporary connection issue or data processing error.
-          <p className='font-bold mt-1'>Try changing the Date filter.</p>
+          We're experiencing difficulties loading your business metrics. This
+          could be due to a temporary connection issue or data processing error.
         </p>
+        <p className="font-bold mt-1">Try changing the Date filter.</p>
       </div>
     </div>
   );
 
   // No data state component
   const NoDataState = () => (
-    <div className={cn(
-      'w-full bg-card rounded-lg border border-border p-6 shadow-realistic',
-      'flex flex-col items-center justify-center text-center space-y-4',
-      isMobile ? 'min-h-48' : 'min-h-64'
-    )}>
+    <div
+      className={cn(
+        'w-full bg-card rounded-lg border border-border p-6 shadow-realistic',
+        'flex flex-col items-center justify-center text-center space-y-4',
+        isMobile ? 'min-h-48' : 'min-h-64',
+      )}
+    >
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
         <ExclamationTriangleIcon className="w-6 h-6 text-muted-foreground" />
       </div>
@@ -141,9 +143,10 @@ export const InfoCards: React.FC<InfoCardsProps> = ({
           No Data Available
         </h3>
         <p className="text-sm text-muted-foreground max-w-md">
-          There's currently no business data available to display. Please check back later or contact support if this issue persists.
-          <p className='font-bold mt-1'>Try changing the Date filter.</p>
+          There's currently no business data available to display. Please check
+          back later or contact support if this issue persists.
         </p>
+        <p className="font-bold mt-1">Try changing the Date filter.</p>
       </div>
     </div>
   );
@@ -152,7 +155,7 @@ export const InfoCards: React.FC<InfoCardsProps> = ({
   const transformedData: PerformanceItemProps[] = data.map((card) => {
     // Map card icons to performance iconMap keys
     let performanceIcon: keyof typeof import('@/features/dashboard/types/performance').iconMap;
-    
+
     switch (card.icon) {
       case 'chart':
         performanceIcon = 'FlowbiteChartLineDownOutline';
@@ -176,7 +179,10 @@ export const InfoCards: React.FC<InfoCardsProps> = ({
           performanceIcon = 'users';
         } else if (card.title.toLowerCase().includes('refunded')) {
           performanceIcon = 'IconParkOutlineRecycling';
-        } else if (card.title.toLowerCase().includes('average') || card.title.toLowerCase().includes('ticket')) {
+        } else if (
+          card.title.toLowerCase().includes('average') ||
+          card.title.toLowerCase().includes('ticket')
+        ) {
           performanceIcon = 'trending';
         } else {
           performanceIcon = 'FlowbiteChartLineDownOutline';
@@ -212,17 +218,14 @@ export const InfoCards: React.FC<InfoCardsProps> = ({
         className,
       )}
     >
-      <SectionHeader
-        title={title}
-        subtitle={subtitle}
-      />
+      <SectionHeader title={title} subtitle={subtitle} />
 
       {/* Main content area with cards on top and chart below */}
       <div className="flex flex-col gap-6">
         {/* Handle error states */}
         {error ? (
           <ErrorState />
-        ) : !hasValidData() || data.length === 0 ? (
+        ) : !hasData || data.length === 0 ? (
           <NoDataState />
         ) : (
           <>

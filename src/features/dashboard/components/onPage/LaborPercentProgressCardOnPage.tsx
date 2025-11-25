@@ -2,8 +2,11 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
-import type { ApiDate } from '@/features/DSPR/types/common';
+import { useDailyDspr } from '@/features/DSPR/hooks/useDailyDspr';
+import { useWeeklyDspr } from '@/features/DSPR/hooks/useWeeklyDspr';
+import { useDailyDsprByDate } from '@/features/DSPR/hooks/useDailyDsprByDate';
+import { useDsprApi } from '@/features/DSPR/hooks/useDsprApi';
+import type { ApiDate } from '@/features/DSPR/types/dspr.common';
 import { UsersIcon } from '@heroicons/react/24/outline';
 
 export interface LaborPercentProgressCardOnPageProps {
@@ -44,20 +47,16 @@ export const LaborPercentProgressCardOnPage: React.FC<
   className,
   hover = true,
 }) => {
-  const {
-    financialMetrics,
-    processedData,
-    isLoading,
-    error,
-    getPrevWeekComparisonForDate,
-  } = useDSPRMetrics();
+  const { financial } = useDailyDspr();
+  const { operational: weeklyOperational } = useWeeklyDspr();
+  const { getEntryForDate } = useDailyDsprByDate();
+  const { currentDate, isLoading, error } = useDsprApi();
 
-  const weeklyLabor =
-    processedData?.weekly?.financial?.laborCostPercentage ?? null;
-  const dailyLabor = financialMetrics?.laborCostPercentage ?? null;
-  const selectedDate = processedData?.date as ApiDate | undefined;
+  const weeklyLabor = weeklyOperational?.laborPercent ?? null;
+  const dailyLabor = financial?.laborCostPercentage ?? null;
+  const selectedDate = currentDate as ApiDate | undefined;
   const prevWeekLabor = selectedDate
-    ? (getPrevWeekComparisonForDate(selectedDate)?.prevWeek?.labor ?? null)
+    ? (getEntryForDate(selectedDate)?.prevWeek?.labor ?? null)
     : null;
 
   return (
@@ -104,7 +103,7 @@ export const LaborPercentProgressCardOnPage: React.FC<
             <div className="h-6 w-56 bg-primary-50 rounded" />
           </div>
         ) : error ? (
-          <div className="text-sm text-red-600">{error}</div>
+          <div className="text-sm text-red-600">{error?.message}</div>
         ) : (
           <div className="flex flex-col gap-3 mt-6">
             <div className="w-full">

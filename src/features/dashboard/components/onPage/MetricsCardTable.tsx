@@ -2,10 +2,12 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
+import { useWeeklyDspr } from '@/features/DSPR/hooks/useWeeklyDspr';
+import { useDailyDsprByDate } from '@/features/DSPR/hooks/useDailyDsprByDate';
+import { useDsprApi } from '@/features/DSPR/hooks/useDsprApi';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
-import { Skeleton } from '@/components/ui/skeleton';
+// import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 
 export interface MetricRowData {
@@ -43,39 +45,77 @@ const MetricsCardTable: React.FC<MetricsCardTableProps> = ({
   rows,
   className,
 }) => {
-  const { dailyRawData, weeklyRawData, getAvailableDailyDates, buildMetricSeriesFromDailyMap, isLoading, error } = useDSPRMetrics();
+  const roundDisplay = (value: string | number): string => {
+    const n = typeof value === 'number' ? value : Number(value);
+    if (!Number.isFinite(n)) return typeof value === 'string' ? value : String(value);
+    return n.toFixed(0);
+  };
+  const { raw: weeklyRawData } = useWeeklyDspr();
+  const { allDates, filter, getEntryForDate } = useDailyDsprByDate();
+  const { currentDate } = useDsprApi();
   const isMobile = useIsMobile();
-  const hasData = !!(dailyRawData || weeklyRawData);
-
+  
   const latestDate = useMemo(() => {
-    const dates = getAvailableDailyDates();
+    const dates = allDates;
     if (!dates || dates.length === 0) return null;
     const sorted = [...dates].sort();
     return sorted[sorted.length - 1] || null;
-  }, [getAvailableDailyDates]);
+  }, [allDates]);
+
+  const selectedDate = useMemo(() => {
+    return (currentDate ?? filter?.startDate ?? filter?.endDate ?? latestDate) || null;
+  }, [currentDate, filter?.startDate, filter?.endDate, latestDate]);
+
+  const entryForSelectedDate = useMemo(() => {
+    if (!selectedDate) return null;
+    return getEntryForDate(selectedDate);
+  }, [selectedDate, getEntryForDate]);
+
+  const hasData = !!(entryForSelectedDate || weeklyRawData);
 
   const autoRows: MetricRowData[] = useMemo(() => {
     const resolveMetric = (key: string): number => {
-      if (!dailyRawData) return 0;
-      const k = key as keyof typeof dailyRawData;
-      const fallbackAvg = (dailyRawData as any).Avrage_ticket ?? (dailyRawData as any).Average_ticket ?? 0;
-      if (key === 'Average_ticket') return fallbackAvg || 0;
-      return (dailyRawData as any)[k] ?? 0;
+      const current = entryForSelectedDate?.current;
+      if (!current) return 0;
+      switch (key) {
+        case 'Total_TIPS':
+          return current.TotalTIPS ?? 0;
+        case 'Average_ticket':
+          return current.Avrageticket ?? 0;
+        case 'Total_Cash_Sales':
+          return current.TotalCashSales ?? 0;
+        default:
+          return 0;
+      }
     };
 
     const resolveWeekly = (key: string): number => {
       if (!weeklyRawData) return 0;
-      const k = key as keyof typeof weeklyRawData;
-      const fallbackAvg = (weeklyRawData as any).Avrage_ticket ?? (weeklyRawData as any).Average_ticket ?? 0;
-      if (key === 'Average_ticket') return fallbackAvg || 0;
-      return (weeklyRawData as any)[k] ?? 0;
+      switch (key) {
+        case 'Total_TIPS':
+          return (weeklyRawData as any).TotalTIPS ?? 0;
+        case 'Average_ticket':
+          return (weeklyRawData as any).Avrageticket ?? 0;
+        case 'Total_Cash_Sales':
+          return (weeklyRawData as any).TotalCashSales ?? 0;
+        default:
+          return 0;
+      }
     };
 
     const resolvePrev = (key: string): number => {
-      if (!latestDate) return 0;
-      const series = buildMetricSeriesFromDailyMap(key as any);
-      const point = series.find((p) => p.date === latestDate);
-      return (point?.prevWeekValue as number) ?? 0;
+      const prev = entryForSelectedDate?.prevWeek;
+      if (!prev) return 0;
+      switch (key) {
+        case 'Total_TIPS':
+          return prev.TotalTIPS ?? 0;
+        case 'Average_ticket':
+          return prev.Avrageticket ?? 0;
+        case 'Total_Cash_Sales':
+          return prev.TotalCashSales ?? 0;
+        default:
+          return 0;
+      }
     };
 
     const items: MetricRowData[] = [
@@ -102,32 +142,11 @@ const MetricsCardTable: React.FC<MetricsCardTableProps> = ({
       },
     ];
     return items;
-  }, [dailyRawData, weeklyRawData, latestDate, buildMetricSeriesFromDailyMap]);
+  }, [entryForSelectedDate, weeklyRawData]);
 
   const displayRows = rows && rows.length > 0 ? rows : autoRows;
   const titleId = React.useId();
   const descId = React.useId();
-
-  const ErrorState = () => (
-    <div
-      className={cn(
-        'w-full bg-card rounded-lg border border-destructive/20 p-6 shadow-realistic',
-        'flex flex-col items-center justify-center text-center space-y-4',
-        isMobile ? 'min-h-48' : 'min-h-64'
-      )}
-    >
-      <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
-        <ExclamationTriangleIcon className="w-6 h-6 text-destructive" />
-      </div>
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-card-foreground">Unable to Load Data</h3>
-        <p className="text-sm text-muted-foreground max-w-md">
-          We're experiencing difficulties loading your customer service metrics. This could be due to a temporary connection issue or data processing error.
-          <p className="font-bold mt-1">Try changing the Date filter.</p>
-        </p>
-      </div>
-    </div>
-  );
 
   const NoDataState = () => (
     <div
@@ -144,48 +163,10 @@ const MetricsCardTable: React.FC<MetricsCardTableProps> = ({
         <h3 className="text-lg font-semibold text-card-foreground">No Data Available</h3>
         <p className="text-sm text-muted-foreground max-w-md">
           There's currently no customer service data available to display. Please check back later or contact support if this issue persists.
-          <p className="font-bold mt-1">Try changing the Date filter.</p>
         </p>
+        <p className="font-bold mt-1">Try changing the Date filter.</p>
       </div>
     </div>
-  );
-
-  const LoadingState = () => (
-    <Table
-      aria-label={title ?? 'Metrics'}
-      aria-labelledby={title ? titleId : undefined}
-      aria-describedby={description ? descId : undefined}
-      className="text-xs sm:text-sm"
-    >
-      <TableHeader>
-        <TableRow>
-          <TableHead>
-            <span className="sr-only">Metric</span>
-          </TableHead>
-          <TableHead>Weekly</TableHead>
-          <TableHead className="text-lg font-semibold text-foreground">Daily</TableHead>
-          <TableHead>Prev</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {[0, 1, 2].map((i) => (
-          <TableRow key={i}>
-            <TableCell className="font-medium">
-              <Skeleton className="h-4 w-24" />
-            </TableCell>
-            <TableCell className="text-muted-foreground">
-              <Skeleton className="h-4 w-16" />
-            </TableCell>
-            <TableCell className="text-lg font-semibold">
-              <Skeleton className="h-5 w-24" />
-            </TableCell>
-            <TableCell className="text-muted-foreground">
-              <Skeleton className="h-4 w-16" />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
   );
 
   return (
@@ -198,12 +179,8 @@ const MetricsCardTable: React.FC<MetricsCardTableProps> = ({
         ) : null}
         {description ? <CardDescription id={descId}>{description}</CardDescription> : null}
       </CardHeader>
-      <CardContent aria-busy={isLoading ? true : undefined}>
-        {error ? (
-          <ErrorState />
-        ) : isLoading ? (
-          <LoadingState />
-        ) : !hasData || !displayRows || displayRows.length === 0 ? (
+      <CardContent>
+        {!hasData || !displayRows || displayRows.length === 0 ? (
           <NoDataState />
         ) : (
           <Table
@@ -235,16 +212,16 @@ const MetricsCardTable: React.FC<MetricsCardTableProps> = ({
                     >
                       {r.label}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{r.weekly}</TableCell>
+                    <TableCell className="text-muted-foreground">{roundDisplay(r.weekly)}</TableCell>
                     <TableCell
                       className="text-lg font-semibold"
                       style={colorVar ? { color: colorVar } : undefined}
                     >
-                      {r.daily}
+                      {roundDisplay(r.daily)}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       <Badge variant="outline" className={cn(badgeClass)}>
-                        {r.prev}
+                        {roundDisplay(r.prev)}
                       </Badge>
                     </TableCell>
                   </TableRow>

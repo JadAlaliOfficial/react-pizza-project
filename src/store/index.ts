@@ -20,10 +20,14 @@ import weeklySchedulesReducer from '../features/dailySchedules/store/slices/week
 
 
 // Import the new DSPR slices
-import dsprApiReducer from '../features/DSPR/store/coordinatorSlice';
-import hourlySalesReducer from '../features/DSPR/store/hourlySalesSlice';
-import dsqrReducer from '../features/DSPR/store/dSQRSlice';
-import dsprMetricsReducer from '../features/DSPR/store/dSPRSlice';
+import dsprApiReducer from '../features/DSPR/store/dsprApiSlice';
+import dsprHourlySalesSlice from '../features/DSPR/store/dsprHourlySalesSlice';
+import dsprDsqrSlice   from '../features/DSPR/store/dsprDsqrSlice';
+import dsprDailySlice from '../features/DSPR/store/dsprDailySlice';
+import dsprWeeklySlice from '../features/DSPR/store/dsprWeeklySlice';
+import dsprWeeklyPrevSlice from '../features/DSPR/store/dsprWeeklyPrevSlice';
+import dsprDailyByDateSlice from '../features/DSPR/store/dsprDailyByDateSlice';
+
 
 export const store = configureStore({
   reducer: {
@@ -48,9 +52,12 @@ export const store = configureStore({
     
     // Add the new DSPR-related slices
     dsprApi: dsprApiReducer,           // Main API coordinator slice
-    hourlySales: hourlySalesReducer,   // Hourly sales domain slice
-    dsqr: dsqrReducer,                 // DSQR domain slice
-    dsprMetrics: dsprMetricsReducer,   // DSPR metrics domain slice
+    dsprHourlySales: dsprHourlySalesSlice,   // Hourly sales domain slice
+    dsprDsqr: dsprDsqrSlice,                 // DSQR domain slice
+    dsprDaily: dsprDailySlice,   // DSPR metrics domain slice
+    dsprWeekly: dsprWeeklySlice,   // DSPR metrics domain slice
+    dsprWeeklyPrev: dsprWeeklyPrevSlice,   // DSPR metrics domain slice
+    dsprDailyByDate: dsprDailyByDateSlice,   // DSPR metrics domain slice
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

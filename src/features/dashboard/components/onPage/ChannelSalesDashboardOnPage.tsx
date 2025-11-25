@@ -2,7 +2,9 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ChannelList } from '@/features/dashboard/components/channelSales/ChannelList';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
+import { useDailyDspr } from '@/features/DSPR/hooks/useDailyDspr';
+import { useWeeklyDspr } from '@/features/DSPR/hooks/useWeeklyDspr';
+import { useDsprApi } from '@/features/DSPR/hooks/useDsprApi';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { ChannelDataProps } from '@/features/dashboard/types/channelSales';
 import {
@@ -44,7 +46,9 @@ export const ChannelSalesDashboard: React.FC<ChannelSalesDashboardProps> = ({
   channels: externalChannels,
   className,
 }) => {
-  const { dailyRawData, weeklyRawData, isLoading, error } = useDSPRMetrics();
+  const { raw: dailyRawData } = useDailyDspr();
+  const { raw: weeklyRawData } = useWeeklyDspr();
+  const { isLoading, error } = useDsprApi();
   const isMobile = useIsMobile();
 
   // Transform DSPR data into ChannelDataProps format
@@ -58,7 +62,7 @@ export const ChannelSalesDashboard: React.FC<ChannelSalesDashboardProps> = ({
     // DoorDash
     if (dailyRawData.DoorDash_Sales !== undefined) {
       const dailyValue = dailyRawData.DoorDash_Sales || 0;
-      const weeklyValue = weeklyRawData?.DoorDash_Sales || 0;
+      const weeklyValue = weeklyRawData?.DoorDashSales || 0;
       channels.push({
         id: 'doordash',
         name: 'DoorDash',
@@ -70,7 +74,7 @@ export const ChannelSalesDashboard: React.FC<ChannelSalesDashboardProps> = ({
     // UberEats
     if (dailyRawData.UberEats_Sales !== undefined) {
       const dailyValue = dailyRawData.UberEats_Sales || 0;
-      const weeklyValue = weeklyRawData?.UberEats_Sales || 0;
+      const weeklyValue = weeklyRawData?.UberEatsSales || 0;
       channels.push({
         id: 'ubereats',
         name: 'UberEats',
@@ -82,7 +86,7 @@ export const ChannelSalesDashboard: React.FC<ChannelSalesDashboardProps> = ({
     // GrubHub
     if (dailyRawData.GrubHub_Sales !== undefined) {
       const dailyValue = dailyRawData.GrubHub_Sales || 0;
-      const weeklyValue = weeklyRawData?.GrubHub_Sales || 0;
+      const weeklyValue = weeklyRawData?.GrubHubSales || 0;
       channels.push({
         id: 'grubhub',
         name: 'GrubHub',
@@ -106,7 +110,7 @@ export const ChannelSalesDashboard: React.FC<ChannelSalesDashboardProps> = ({
     // Call Center
     if (dailyRawData.Call_Center_Agent !== undefined) {
       const dailyValue = dailyRawData.Call_Center_Agent || 0;
-      const weeklyValue = weeklyRawData?.Call_Center_Agent || 0;
+      const weeklyValue = weeklyRawData?.CallCenterAgent || 0;
       channels.push({
         id: 'call_center',
         name: 'Call Center',
@@ -143,7 +147,7 @@ export const ChannelSalesDashboard: React.FC<ChannelSalesDashboardProps> = ({
     // Drive Thru
     if (dailyRawData.Drive_Thru_Sales !== undefined) {
       const dailyValue = dailyRawData.Drive_Thru_Sales || 0;
-      const weeklyValue = weeklyRawData?.Drive_Thru_Sales || 0;
+      const weeklyValue = weeklyRawData?.DriveThruSales || 0;
       channels.push({
         id: 'drive_thru',
         name: 'Drive Thru',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useCurrentStore } from '@/components/layouts/mainLayout/CurrentStoreContext';
-import { useDsprApi } from '../../DSPR/hooks/useCoordinator';
+import { useDsprApi } from '../../DSPR/hooks/useDsprApi';
 import { SingleDatePicker } from '@/components/ui/singleDatePicker';
 
 interface StoreDatesFilterProps {
@@ -17,11 +17,7 @@ export const StoreDatesFilter: React.FC<StoreDatesFilterProps> = ({
 }) => {
   const { currentStore } = useCurrentStore();
 
-  // Initialize DSPR API hook
-  const { fetchData: fetchDsprData } = useDsprApi({
-    enableLogging: true,
-    autoClearErrors: true,
-  });
+  const { fetchData: fetchDsprData, clearError } = useDsprApi();
 
   // Error state management
   const [, setError] = useState<string | null>(null);
@@ -96,8 +92,8 @@ export const StoreDatesFilter: React.FC<StoreDatesFilterProps> = ({
             store: storeId,
             date: dateString,
           });
-          // Clear error on successful API call
           handleError(null);
+          clearError();
         }
       } catch (error) {
         const errorMessage = 'Date Error: No data available for the selected date at this store. Please select another date.';
@@ -105,7 +101,7 @@ export const StoreDatesFilter: React.FC<StoreDatesFilterProps> = ({
         handleError(errorMessage);
       }
     },
-    [fetchDsprData, handleError],
+    [fetchDsprData, handleError, clearError],
   );
 
   // Keep latest function without re-render loops

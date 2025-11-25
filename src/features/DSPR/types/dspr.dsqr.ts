@@ -9,7 +9,7 @@
  * - Performance tracking and optimization scores
  */
 
-import type { StoreId, ApiDate } from './common';
+import type { StoreId, ApiDate } from './dspr.common';
 
 // =============================================================================
 // CORE DSQR TYPES

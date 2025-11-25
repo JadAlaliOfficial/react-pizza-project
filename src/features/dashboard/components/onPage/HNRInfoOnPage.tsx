@@ -1,12 +1,14 @@
 import React from 'react';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
+import { useDailyDspr } from '@/features/DSPR/hooks/useDailyDspr';
+import { useDsprApi } from '@/features/DSPR/hooks/useDsprApi';
 
 const HNRInfoOnPage: React.FC = () => {
-  const { hnrMetrics, isLoading, error } = useDSPRMetrics();
+  const { raw: dailyRawData } = useDailyDspr();
+  const { isLoading, error } = useDsprApi();
 
-  const totalTransactions = hnrMetrics?.totalTransactions ?? null;
-  const promiseMetTransactions = hnrMetrics?.promiseMetTransactions ?? null;
-  const promiseMetPercent = hnrMetrics?.promiseMetPercent ?? null;
+  const totalTransactions = dailyRawData?.HNR_Transactions ?? null;
+  const promiseMetTransactions = dailyRawData?.HNR_Promise_Met_Transactions ?? null;
+  const promiseMetPercent = dailyRawData?.HNR_Promise_Met_Percent ?? null;
 
   if (isLoading) {
     return (
@@ -19,12 +21,12 @@ const HNRInfoOnPage: React.FC = () => {
   if (error) {
     return (
       <div className="rounded-lg border bg-card p-4">
-        <div className="text-sm text-destructive">{error}</div>
+        <div className="text-sm text-destructive">{error?.message}</div>
       </div>
     );
   }
 
-  if (!hnrMetrics) {
+  if (!dailyRawData) {
     return (
       <div className="rounded-lg border bg-card p-4">
         <div className="text-sm text-muted-foreground">No HNR data available.</div>

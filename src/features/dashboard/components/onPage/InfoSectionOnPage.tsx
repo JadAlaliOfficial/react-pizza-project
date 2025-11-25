@@ -2,7 +2,9 @@ import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { PerformanceGridFive } from '@/features/dashboard/components/performance/PerformanceGridFive';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
+import { useDailyDspr } from '@/features/DSPR/hooks/useDailyDspr';
+import { useWeeklyDspr } from '@/features/DSPR/hooks/useWeeklyDspr';
+import { useDsprApi } from '@/features/DSPR/hooks/useDsprApi';
 import { useIsMobile } from '@/hooks/use-mobile';
 import type { PerformanceItemProps } from '@/features/dashboard/types/performance';
 
@@ -22,12 +24,9 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
   data: externalData,
   className,
 }) => {
-  const { 
-    dailyRawData, 
-    weeklyRawData, 
-    isLoading, 
-    error,
-  } = useDSPRMetrics();
+  const { raw: dailyRawData } = useDailyDspr();
+  const { raw: weeklyRawData } = useWeeklyDspr();
+  const { isLoading, error } = useDsprApi();
   const isMobile = useIsMobile();
 
   // Transform DSPR data into performance metrics format
@@ -37,15 +36,15 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
       if (value === null || value === undefined || isNaN(value)) {
         return '$0';
       }
-      
+
       // Handle negative values for over/short
       const absValue = Math.abs(value);
       const sign = value < 0 ? '-' : '';
-      
+
       if (absValue >= 1000) {
         return `${sign}$${(absValue / 1000).toFixed(2)}k`;
       }
-      
+
       return `${sign}$${absValue.toFixed(2)}`;
     };
 
@@ -54,7 +53,7 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
       if (value === null || value === undefined || isNaN(value)) {
         return '0';
       }
-      
+
       return Math.round(value).toString();
     };
 
@@ -63,14 +62,16 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
     const dailyWasteGateway = dailyRawData?.waste_gateway ?? 0;
     const dailyOverShort = dailyRawData?.over_short ?? 0;
     const dailyModifiedOrders = dailyRawData?.Modified_Order_Qty ?? 0;
-    const dailyCashVsDeposite = dailyRawData?.Cash_Sales_Vs_Deposite_Difference ?? 0;
+    const dailyCashVsDeposite =
+      dailyRawData?.Cash_Sales_Vs_Deposite_Difference ?? 0;
 
     // Extract weekly values with fallbacks
-    const weeklyWasteAlta = weeklyRawData?.Waste_Alta ?? 0;
-    const weeklyWasteGateway = weeklyRawData?.waste_gateway ?? 0;
-    const weeklyOverShort = weeklyRawData?.over_short ?? 0;
-    const weeklyModifiedOrders = weeklyRawData?.Modified_Order_Qty ?? 0;
-    const weeklyCashVsDeposite = weeklyRawData?.Cash_Sales_Vs_Deposite_Difference ?? 0;
+    const weeklyWasteAlta = weeklyRawData?.WasteAlta ?? 0;
+    const weeklyWasteGateway = weeklyRawData?.wastegateway ?? 0;
+    const weeklyOverShort = weeklyRawData?.overshort ?? 0;
+    const weeklyModifiedOrders = weeklyRawData?.ModifiedOrderQty ?? 0;
+    const weeklyCashVsDeposite =
+      weeklyRawData?.CashSalesVsDepositeDifference ?? 0;
 
     return [
       {
@@ -106,7 +107,7 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
         bgColor: 'bg-green-200',
         icon: 'Fa6SolidPencil',
         daily: formatCurrency(dailyCashVsDeposite),
-        weekly: formatCurrency(weeklyCashVsDeposite), 
+        weekly: formatCurrency(weeklyCashVsDeposite),
       },
     ];
   }, [dailyRawData, weeklyRawData]);
@@ -116,11 +117,13 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
 
   // Error state component
   const ErrorState = () => (
-    <div className={cn(
-      'w-full bg-card rounded-lg border border-destructive/20 p-6 shadow-realistic',
-      'flex flex-col items-center justify-center text-center space-y-4',
-      isMobile ? 'min-h-48' : 'min-h-64'
-    )}>
+    <div
+      className={cn(
+        'w-full bg-card rounded-lg border border-destructive/20 p-6 shadow-realistic',
+        'flex flex-col items-center justify-center text-center space-y-4',
+        isMobile ? 'min-h-48' : 'min-h-64',
+      )}
+    >
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10">
         <ExclamationTriangleIcon className="w-6 h-6 text-destructive" />
       </div>
@@ -129,20 +132,23 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
           Unable to Load Data
         </h3>
         <p className="text-sm text-muted-foreground max-w-md">
-          We're experiencing difficulties loading your performance metrics. This could be due to a temporary connection issue or data processing error.
-          <p className='font-bold mt-1'>Try changing the Date filter.</p>
+          We're experiencing difficulties loading your performance metrics. This
+          could be due to a temporary connection issue or data processing error.
         </p>
+        <p className="font-bold mt-1">Try changing the Date filter.</p>
       </div>
     </div>
   );
 
   // No data state component
   const NoDataState = () => (
-    <div className={cn(
-      'w-full bg-card rounded-lg border border-border p-6 shadow-realistic',
-      'flex flex-col items-center justify-center text-center space-y-4',
-      isMobile ? 'min-h-48' : 'min-h-64'
-    )}>
+    <div
+      className={cn(
+        'w-full bg-card rounded-lg border border-border p-6 shadow-realistic',
+        'flex flex-col items-center justify-center text-center space-y-4',
+        isMobile ? 'min-h-48' : 'min-h-64',
+      )}
+    >
       <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
         <ExclamationTriangleIcon className="w-6 h-6 text-muted-foreground" />
       </div>
@@ -151,9 +157,10 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
           No Data Available
         </h3>
         <p className="text-sm text-muted-foreground max-w-md">
-          There's currently no performance data available to display. Please check back later or contact support if this issue persists.
-          <p className='font-bold mt-1'>Try changing the Date filter.</p>
+          There's currently no performance data available to display. Please
+          check back later or contact support if this issue persists.
         </p>
+        <p className="font-bold mt-1">Try changing the Date filter.</p>
       </div>
     </div>
   );
@@ -167,10 +174,7 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
         className,
       )}
     >
-      <SectionHeader
-        title={title}
-        subtitle={subtitle}
-      />
+      <SectionHeader title={title} subtitle={subtitle} />
 
       {/* Handle error states */}
       {error ? (

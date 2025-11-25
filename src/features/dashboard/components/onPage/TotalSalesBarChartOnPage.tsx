@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
+import { useDailyDsprByDate } from '@/features/DSPR/hooks/useDailyDsprByDate';
+import { useDsprApi } from '@/features/DSPR/hooks/useDsprApi';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { format, parseISO } from 'date-fns';
 
 // Displays daily total sales as a responsive bar chart.
 // Utilizes DSPR data hooks for metrics and adjusts width via ResizeObserver.
@@ -14,7 +16,8 @@ interface TotalSalesBarChartOnPageProps {
 
 const TotalSalesBarChartOnPage: React.FC<TotalSalesBarChartOnPageProps> = ({ title = 'Total Sales by Date', className }) => {
   // Source of DSPR metrics and loading/error state
-  const { isLoading, error, buildMetricSeriesFromDailyMap } = useDSPRMetrics();
+  const { timeline } = useDailyDsprByDate();
+  const { isLoading, error, filteringValues, currentDate } = useDsprApi();
 //   console.log(buildMetricSeriesFromDailyMap);
   const isMobile = useIsMobile();
   // Track chart container width to render an appropriately sized chart
@@ -39,27 +42,52 @@ const TotalSalesBarChartOnPage: React.FC<TotalSalesBarChartOnPageProps> = ({ tit
   useEffect(() => {
   }, [isLoading, error]);
 
-  // Build chart series from DSPR daily map, preserving label order by date
+  // Build chart series from timeline metrics
   const seriesData = useMemo(() => {
-    const points = buildMetricSeriesFromDailyMap('Total_Sales');
-    const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
-    const labels = sorted.map(p => p.date);
-    // Keep nulls to detect absence of values, convert to numbers for chart
-    const currentValues = sorted.map(p => (p.value == null ? null : Number(p.value)));
-    const prevValues = sorted.map(p => (p.prevWeekValue == null ? null : Number(p.prevWeekValue)));
-    const currentValuesNum = currentValues.map(v => v ?? 0);
-    const prevValuesNum = prevValues.map(v => v ?? 0);
-    const hasPrev = prevValues.some(v => v !== null);
-    return { labels, currentValuesNum, prevValuesNum, hasPrev, hasCurrent: currentValues.some(v => v !== null) };
-  }, [buildMetricSeriesFromDailyMap]);
+    if (!timeline) {
+      return { labels: [], currentValuesNum: [], prevValuesNum: [], hasPrev: false, hasCurrent: false };
+    }
+    const labels = timeline.dates;
+    const currentValuesNum = (timeline.sales || []).map(v => Number(v || 0));
+    const prevValuesNum = (timeline.prevWeekSales || []).map(v => Number(v || 0));
+    const hasPrev = prevValuesNum.some(v => v !== 0);
+    const hasCurrent = currentValuesNum.some(v => v !== 0);
+    return { labels, currentValuesNum, prevValuesNum, hasPrev, hasCurrent };
+  }, [timeline]);
 
   // True when neither current nor previous week values exist
   const empty = useMemo(() => !seriesData.hasCurrent && !seriesData.hasPrev, [seriesData]);
 
+  const parseDateString = (value: string) => {
+    try {
+      const d = parseISO(value);
+      if (!isNaN(d.getTime())) return d;
+    } catch {}
+    const parts = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (parts) {
+      const [, y, m, d] = parts;
+      return new Date(Number(y), Number(m) - 1, Number(d));
+    }
+    const fallback = new Date(value);
+    return isNaN(fallback.getTime()) ? new Date() : fallback;
+  };
+
+  const formatTickLabel = (value: string) => {
+    const d = parseDateString(value);
+    const top = format(d, 'EEE');
+    const bottom = format(d, 'd MMM');
+    return `${top}\n${bottom}`;
+  };
+
   return (
     <Card className={className}>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-base sm:text-lg">{title}</CardTitle>
+        {(filteringValues?.date || currentDate) && (
+          <span className="text-xs sm:text-sm text-muted-foreground">
+            {filteringValues?.date || currentDate}
+          </span>
+        )}
       </CardHeader>
       <CardContent>
         <div ref={containerRef} className="w-full">
@@ -71,7 +99,7 @@ const TotalSalesBarChartOnPage: React.FC<TotalSalesBarChartOnPageProps> = ({ tit
           ) : error ? (
             // Error message from data hook
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center text-red-700">
-              {error}
+              {error?.message}
             </div>
           ) : empty ? (
             // No data state
@@ -81,13 +109,13 @@ const TotalSalesBarChartOnPage: React.FC<TotalSalesBarChartOnPageProps> = ({ tit
             <BarChart
               width={width}
               height={isMobile ? 260 : 360}
-              xAxis={[{ data: seriesData.labels, scaleType: 'band' }]}
+              xAxis={[{ data: seriesData.labels, scaleType: 'band', valueFormatter: (v: string) => formatTickLabel(v) }]}
               series={[
                 { data: seriesData.currentValuesNum, label: 'Current', color: 'var(--chart-1)' },
                 ...(seriesData.hasPrev ? [{ data: seriesData.prevValuesNum, label: 'Prev Week', color: 'var(--chart-2)' }] : [])
               ]}
               // Add generous margins for axis labels and legend spacing
-              margin={{ top: 20, right: 20, bottom: 40, left: 50 }}
+              margin={{ top: 20, right: 20, bottom: 50, left: 50 }}
             />
           )}
         </div>

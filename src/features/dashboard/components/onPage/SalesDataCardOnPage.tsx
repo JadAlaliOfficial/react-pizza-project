@@ -1,9 +1,11 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { useDSPRMetrics } from '@/features/DSPR/hooks/useDSPRDailyWeekly';
-import type { ApiDate } from '@/features/DSPR/types/common';
+import { useWeeklyDspr } from '@/features/DSPR/hooks/useWeeklyDspr';
+import { useDailyDsprByDate } from '@/features/DSPR/hooks/useDailyDsprByDate';
+import type { ApiDate } from '@/features/DSPR/types/dspr.common';
 import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { useDsprApi } from '@/features/DSPR/hooks/useDsprApi';
 
 /**
  * Props for SalesDataCardOnPage component
@@ -40,20 +42,16 @@ export const SalesDataCardOnPage: React.FC<SalesDataCardOnPageProps> = ({
   className,
   hover = true,
 }) => {
-  const {
-    financialMetrics,
-    processedData,
-    isLoading,
-    error,
-    getPrevWeekComparisonForDate,
-  } = useDSPRMetrics();
-
-  const weeklyTotal = processedData?.weekly?.financial?.totalSales ?? null;
-  const dailyTotal = financialMetrics?.totalSales ?? null;
-  const selectedDate = processedData?.date as ApiDate | undefined;
-  const prevWeekTotal = selectedDate
-    ? getPrevWeekComparisonForDate(selectedDate)?.prevWeek?.Total_Sales ?? null
-    : null;
+  const { totalSales: weeklyTotal, projectedWeekTotal, hasData: hasWeeklyData } = useWeeklyDspr();
+  const { filter, getEntryForDate, hasData: hasDailyByDateData, allDates } = useDailyDsprByDate();
+  const { currentDate } = useDsprApi();
+  const selectedDate: ApiDate | null = (currentDate ?? filter.startDate ?? filter.endDate ?? (allDates.length ? allDates[allDates.length - 1] : null)) as ApiDate | null;
+  const dailyEntry = selectedDate ? getEntryForDate(selectedDate) : null;
+  const dailyTotal = dailyEntry?.current?.TotalSales ?? null;
+  const prevWeekTotal = dailyEntry?.prevWeek?.TotalSales ?? null;
+  const isLoading = !hasWeeklyData && !hasDailyByDateData;
+  const error: string | undefined = undefined;
+  const weeklyDisplayTotal = projectedWeekTotal ?? weeklyTotal ?? null;
 
   return (
     <Card
@@ -99,7 +97,7 @@ export const SalesDataCardOnPage: React.FC<SalesDataCardOnPageProps> = ({
             <div className="w-full overflow-x-auto">
               <div className="grid grid-cols-3 gap-x-6 sm:gap-x-8 md:gap-x-10 w-full">
                 <span className="text-muted-foreground text-base font-medium text-start">
-                  {formatCurrency(weeklyTotal)}
+                  {formatCurrency(weeklyDisplayTotal)}
                 </span>
                 <span className="text-card-foreground text-lg md:text-xl font-semibold text-center">
                   {formatCurrency(dailyTotal)}

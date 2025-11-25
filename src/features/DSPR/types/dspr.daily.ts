@@ -10,7 +10,7 @@
  * - Both daily and weekly aggregated data
  */
 
-import type { StoreId, ApiDate } from './common';
+import type { StoreId, ApiDate } from './dspr.common';
 
 // =============================================================================
 // CORE DSPR TYPES
