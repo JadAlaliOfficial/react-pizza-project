@@ -65,6 +65,7 @@ function generateBreadcrumbs(pathname: string): BreadcrumbItemType[] {
     '/weekly-schedules/create': 'Create Weekly Schedule',
     '/weekly-schedules/edit': 'Edit Weekly Schedule',
     '/weekly-schedules/view': 'View Weekly Schedule',
+    '/field-types': 'Field Types',
   };
 
   const breadcrumbs: BreadcrumbItemType[] = [];

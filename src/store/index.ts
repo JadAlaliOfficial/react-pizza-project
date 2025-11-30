@@ -28,6 +28,17 @@ import dsprWeeklySlice from '../features/DSPR/store/dsprWeeklySlice';
 import dsprWeeklyPrevSlice from '../features/DSPR/store/dsprWeeklyPrevSlice';
 import dsprDailyByDateSlice from '../features/DSPR/store/dsprDailyByDateSlice';
 
+import fieldTypesReducer from '../features/formBuilder/fieldTypes/store/fieldTypesSlice';
+import inputRulesReducer from '../features/formBuilder/inputRules/store/inputRulesSlice';
+import actionsReducer from '../features/formBuilder/actions/store/actionsSlice';
+import fieldTypeFiltersReducer from '../features/formBuilder/fieldTypeFilters/store/fieldTypeFiltersSlice';
+import languagesReducer from '../features/formBuilder/languages/store/languagesSlice';
+import formsReducer from '../features/formBuilder/forms/store/formsSlice';
+import catagoriesReducer from '../features/formBuilder/catagories/store/catagoriesSlice';
+import translationsReducer from '../features/formBuilder/translations/store/translationsSlice';
+import languagesPreferencesReducer from '../features/formBuilder/languagesPreferences/store/languagesPreferencesSlice';
+
+
 
 export const store = configureStore({
   reducer: {
@@ -58,6 +69,16 @@ export const store = configureStore({
     dsprWeekly: dsprWeeklySlice,   // DSPR metrics domain slice
     dsprWeeklyPrev: dsprWeeklyPrevSlice,   // DSPR metrics domain slice
     dsprDailyByDate: dsprDailyByDateSlice,   // DSPR metrics domain slice
+    
+    fieldTypes: fieldTypesReducer,
+    inputRules: inputRulesReducer,
+    actions: actionsReducer,
+    fieldTypeFilters: fieldTypeFiltersReducer,
+    languages: languagesReducer,
+    forms: formsReducer,
+    catagories: catagoriesReducer,
+    translations: translationsReducer,
+    languagesPreferences: languagesPreferencesReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

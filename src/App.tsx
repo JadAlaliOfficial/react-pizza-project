@@ -8,6 +8,7 @@ import {
 import { ThemeProvider } from '@/hooks/useTheme';
 import AuthInitializer from '@/components/AuthInitializer';
 import CustomLoadingScreen from '@/components/CustomLoadingScreen';
+import { Toaster } from '@/components/ui/sonner';
 
 // Import all route modules
 import {
@@ -26,6 +27,15 @@ import {
   employmentInformationRoutes,
   schedulePreferencesRoutes,
   dailySchedulesRoutes,
+  fieldTypesRoutes,
+  inputRulesRoutes,
+  actionsRoutes,
+  fieldTypeFiltersRoutes,
+  languagesRoutes,
+  languagesPreferencesRoutes,
+  catagoriesRoutes,
+  formsRoutes,
+  translationsRoutes,
 } from '@/routes';
 
 
@@ -82,10 +92,38 @@ function App() {
               {/* Daily Schedules Management Routes */}
               {dailySchedulesRoutes}
 
+              {/* Field Types Management Routes */}
+              {fieldTypesRoutes}
+
+              {/* Field Type Filters Management Routes */}
+              {fieldTypeFiltersRoutes}
+
+              {/* Languages Management Routes */}
+              {languagesRoutes}
+
+              {/* Languages Preferences Routes */}
+              {languagesPreferencesRoutes}
+
+              {/* Categories Management Routes */}
+              {catagoriesRoutes}
+
+              {/* Input Rules Management Routes */}
+              {inputRulesRoutes}
+
+              {/* Actions Management Routes */}
+              {actionsRoutes}
+
+              {/* Forms Management Routes */}
+              {formsRoutes}
+
+              {/* Translations Management Routes */}
+              {translationsRoutes}
+
               {/* Default and catch-all routes */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
+            <Toaster richColors closeButton position="top-right" />
           </div>
         </Router>
       </AuthInitializer>

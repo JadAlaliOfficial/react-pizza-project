@@ -122,6 +122,7 @@ const AppSidebar: React.FC = () => {
       url: '/schedule-preferences',
       icon: Calendar,
     },
+    { title: 'Field Types', url: '/field-types', icon: FileText },
   ];
 
   return (

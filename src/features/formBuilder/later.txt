@@ -1,0 +1,199 @@
+In my react project using Redux for state management , Axios for API calls , typeScript , shadcn , tailwind 
+I have this :
+
+I have the following API endpoints :
+1- List Forms GET http://dforms.pnepizza.com/api/forms?page=1&per_page=10&name=&status=&category_id=&sort_by=creation_time&sort_order=desc the body should be empty , the header should contain the bearer token and the content type application/json and the accept application/json , if everything is ok then this is the response :"
+{
+    "success": true,
+    "data": [
+        {
+            "id": 1,
+            "name": "Sample Form",
+            "category_id": null,
+            "is_archived": false,
+            "created_at": "2025-11-26T16:50:49.000000Z",
+            "updated_at": "2025-11-26T17:20:47.000000Z",
+            "category": null,
+            "form_versions": [
+                {
+                    "id": 1,
+                    "form_id": 1,
+                    "version_number": 0,
+                    "status": "published",
+                    "published_at": "2025-11-26T16:50:49.000000Z",
+                    "created_at": "2025-11-26T16:50:49.000000Z",
+                    "updated_at": "2025-11-26T16:50:49.000000Z"
+                }
+            ]
+        }
+    ],
+    "pagination": {
+        "current_page": 1,
+        "last_page": 1,
+        "per_page": 10,
+        "total": 1
+    }
+}"
+
+2- Create Form POST http://dforms.pnepizza.com/api/forms the body should be something like:"{
+  "name": "Expense Reimbursement Form",
+  "category_id": 1
+}"
+the header should contain the bearer token and the content type application/json and the accept application/json , if everything is ok then this is the response :"
+{
+    "success": true,
+    "message": "Form created successfully with version 0, initial stage, and first section.",
+    "data": {
+        "name": "Expense Reimbursement Form",
+        "category_id": 1,
+        "is_archived": false,
+        "updated_at": "2025-11-30T11:35:59.000000Z",
+        "created_at": "2025-11-30T11:35:59.000000Z",
+        "id": 2,
+        "category": {
+            "id": 1,
+            "name": "Sample Category",
+            "created_at": "2025-11-26T16:50:49.000000Z",
+            "updated_at": "2025-11-26T16:50:49.000000Z"
+        },
+        "form_versions": [
+            {
+                "id": 2,
+                "form_id": 2,
+                "version_number": 0,
+                "status": "draft",
+                "published_at": null,
+                "created_at": "2025-11-30T11:35:59.000000Z",
+                "updated_at": "2025-11-30T11:35:59.000000Z",
+                "stages": [
+                    {
+                        "id": 2,
+                        "form_version_id": 2,
+                        "name": "initial stage",
+                        "is_initial": true,
+                        "visibility_condition": null,
+                        "created_at": "2025-11-30T11:35:59.000000Z",
+                        "updated_at": "2025-11-30T11:35:59.000000Z",
+                        "sections": [
+                            {
+                                "id": 2,
+                                "stage_id": 2,
+                                "name": "Section 1",
+                                "visibility_condition": null,
+                                "order": 0,
+                                "created_at": "2025-11-30T11:35:59.000000Z",
+                                "updated_at": "2025-11-30T11:35:59.000000Z"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}"
+
+3- Get Form GET http://dforms.pnepizza.com/api/forms/{id} the body should be empty,
+the header should contain the bearer token and the content type application/json and the accept application/json , if everything is ok then this is the response :"
+{
+    "success": true,
+    "data": {
+        "id": 2,
+        "name": "Expense Reimbursement Form",
+        "category_id": 1,
+        "is_archived": false,
+        "created_at": "2025-11-30T11:35:59.000000Z",
+        "updated_at": "2025-11-30T11:35:59.000000Z",
+        "category": {
+            "id": 1,
+            "name": "Sample Category",
+            "created_at": "2025-11-26T16:50:49.000000Z",
+            "updated_at": "2025-11-26T16:50:49.000000Z"
+        },
+        "form_versions": [
+            {
+                "id": 2,
+                "form_id": 2,
+                "version_number": 0,
+                "status": "draft",
+                "published_at": null,
+                "created_at": "2025-11-30T11:35:59.000000Z",
+                "updated_at": "2025-11-30T11:35:59.000000Z"
+            }
+        ]
+    }
+}"
+
+4- Update Category PUT http://dforms.pnepizza.com/api/categories/{id} the body should be something like:"
+{
+  "name": "Employee Annual Leave Request",
+  "category_id": 1
+}"
+
+the header should contain the bearer token and the content type application/json and the accept application/json , if everything is ok then this is the response :"
+{
+    "success": true,
+    "message": "Form updated successfully.",
+    "data": {
+        "id": 1,
+        "name": "Employee Annual Leave Request",
+        "category_id": 1,
+        "is_archived": false,
+        "created_at": "2025-11-26T16:50:49.000000Z",
+        "updated_at": "2025-11-30T11:39:06.000000Z",
+        "category": {
+            "id": 1,
+            "name": "Sample Category",
+            "created_at": "2025-11-26T16:50:49.000000Z",
+            "updated_at": "2025-11-26T16:50:49.000000Z"
+        },
+        "form_versions": [
+            {
+                "id": 1,
+                "form_id": 1,
+                "version_number": 0,
+                "status": "published",
+                "published_at": "2025-11-26T16:50:49.000000Z",
+                "created_at": "2025-11-26T16:50:49.000000Z",
+                "updated_at": "2025-11-26T16:50:49.000000Z"
+            }
+        ]
+    }
+}"
+
+5- Archive Form POST http://dforms.pnepizza.com/api/forms/{id}/archive the body should be empty,
+the header should contain the bearer token and the content type application/json and the accept application/json , if everything is ok then this is the response :"
+{
+    "success": true,
+    "message": "Form and all its versions archived successfully."
+}"
+
+6- Unassign Forms from Category POST http://dforms.pnepizza.com/api/forms/{id}/restore the body should be empty,
+the header should contain the bearer token and the content type application/json and the accept application/json , if everything is ok then this is the response :"
+{
+    "success": true,
+    "message": "Form restored successfully. Latest version set as published."
+}"
+
+
+for the auth token handling I already have the file "tokenStorage.ts" that can be used like :"
+import { loadToken } from '../../auth/utils/tokenStorage';
+
+// Helper function to get authentication token with fallback
+const getAuthToken = (): string | null => {
+  try {
+    const state = store.getState();
+    const reduxToken = state.auth?.token;
+    if (reduxToken) {
+      return reduxToken;
+    }
+    // Fallback to decrypt token from localStorage
+    return loadToken();
+  } catch (error) {
+    console.error('Error retrieving auth token:', error);
+    return null;
+  }
+};
+"
+
+give me the best prompt to the AI in order to give me the types , service , slice , hook 
+files in a way that follows best practices , and are production ready , and are scalable , the files should handle the errors in a correct way and should also add comments and logs , they should be made according to what the apis offer
