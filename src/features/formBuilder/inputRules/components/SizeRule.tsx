@@ -2,23 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface SizeRuleProps {
-  enabled: boolean;
-  size?: number;
-  onEnabledChange: (enabled: boolean) => void;
-  onSizeChange: (size: number | undefined) => void;
-}
-
-export function SizeRule({
-  enabled,
-  size,
-  onEnabledChange,
-  onSizeChange,
-}: SizeRuleProps) {
-  const handleSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export function SizeRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [size, setSize] = useState<number | undefined>(undefined);
+  const handleSizeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onSizeChange(value === "" ? undefined : Number(value));
+    setSize(value === "" ? undefined : Number(value));
   };
 
   return (
@@ -27,7 +18,7 @@ export function SizeRule({
         <Checkbox
           id="rule-size"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

@@ -2,23 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface MaxRule {
-  enabled: boolean;
-  value?: number;
-  onEnabledChange: (enabled: boolean) => void;
-  onValueChange: (value: number | undefined) => void;
-}
-
-export function MaxRule({
-  enabled,
-  value,
-  onEnabledChange,
-  onValueChange,
-}: MaxRule) {
-  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export function MaxRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [value, setValue] = useState<number | undefined>(undefined);
+  const handleValueChange = (e: ChangeEvent<HTMLInputElement>) => {
     const numValue = e.target.value === "" ? undefined : Number(e.target.value);
-    onValueChange(numValue);
+    setValue(numValue);
   };
 
   return (
@@ -27,7 +18,7 @@ export function MaxRule({
         <Checkbox
           id="rule-max"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

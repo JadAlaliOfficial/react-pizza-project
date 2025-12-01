@@ -2,23 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface DateFormatRuleProps {
-  enabled: boolean;
-  format?: string;
-  onEnabledChange: (enabled: boolean) => void;
-  onFormatChange: (format: string | undefined) => void;
-}
-
-export function DateFormatRule({
-  enabled,
-  format,
-  onEnabledChange,
-  onFormatChange,
-}: DateFormatRuleProps) {
-  const handleFormatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export function DateFormatRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [format, setFormat] = useState<string | undefined>(undefined);
+  const handleFormatChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
-    onFormatChange(value === "" ? undefined : value);
+    setFormat(value === "" ? undefined : value);
   };
 
   return (
@@ -27,7 +18,7 @@ export function DateFormatRule({
         <Checkbox
           id="rule-date-format"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

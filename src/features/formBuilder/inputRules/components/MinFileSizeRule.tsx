@@ -2,23 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface MinFileSizeRuleProps {
-  enabled: boolean;
-  minsize?: number;
-  onEnabledChange: (enabled: boolean) => void;
-  onMinSizeChange: (minsize: number | undefined) => void;
-}
-
-export function MinFileSizeRule({
-  enabled,
-  minsize,
-  onEnabledChange,
-  onMinSizeChange,
-}: MinFileSizeRuleProps) {
-  const handleMinSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export function MinFileSizeRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [minsize, setMinsize] = useState<number | undefined>(undefined);
+  const handleMinSizeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onMinSizeChange(value === "" ? undefined : Number(value));
+    setMinsize(value === "" ? undefined : Number(value));
   };
 
   return (
@@ -27,7 +18,7 @@ export function MinFileSizeRule({
         <Checkbox
           id="rule-min-file-size"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

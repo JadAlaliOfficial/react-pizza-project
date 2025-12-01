@@ -1,53 +1,53 @@
-// components/field-rules/DifferentRule.tsx
+// components/field-rules/EndsWithRule.tsx
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 
-export function DifferentRule() {
+export function EndsWithRule() {
   const [enabled, setEnabled] = useState(false);
-  const [field, setField] = useState<string | undefined>(undefined);
-  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [values, setValues] = useState<string | undefined>(undefined);
+  const handleValuesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setField(value === "" ? undefined : value);
+    setValues(value === "" ? undefined : value);
   };
 
   return (
     <div className="space-y-3 p-3 border rounded-md hover:bg-accent/50 transition-colors">
       <div className="flex items-center space-x-2">
         <Checkbox
-          id="rule-different"
+          id="rule-ends-with"
           checked={enabled}
           onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label
-            htmlFor="rule-different"
+            htmlFor="rule-ends-with"
             className="text-sm font-medium cursor-pointer"
           >
-            Different
+            Ends With
           </Label>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Field must be different from another field
+            String must end with specified values
           </p>
         </div>
       </div>
 
       {enabled && (
         <div className="ml-6 space-y-2">
-          <Label htmlFor="different-field" className="text-sm">
-            Field to Differ From <span className="text-destructive">*</span>
+          <Label htmlFor="ends-with-values" className="text-sm">
+            Suffix Values <span className="text-destructive">*</span>
           </Label>
           <Input
-            id="different-field"
+            id="ends-with-values"
             type="text"
-            placeholder="e.g., username, old_password"
-            value={field ?? ""}
-            onChange={handleFieldChange}
+            placeholder="e.g., .com, .org (comma-separated)"
+            value={values ?? ""}
+            onChange={handleValuesChange}
             required={enabled}
           />
           <p className="text-xs text-muted-foreground">
-            Enter the name or identifier of the field that must be different
+            Enter one or more values separated by commas
           </p>
         </div>
       )}

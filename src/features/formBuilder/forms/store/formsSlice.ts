@@ -9,7 +9,7 @@
  * - Strongly typed with comprehensive TypeScript support
  */
 
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createSelector, type PayloadAction } from '@reduxjs/toolkit';
 import { FormsService } from '../services/api';
 import type {
   Form,
@@ -495,11 +495,15 @@ export default formsSlice.reducer;
  */
 
 /**
- * Select all forms as an array (in correct order)
+ * Select all forms as an array (in correct order) — memoized
  */
-export const selectAllForms = (state: { forms: FormsState }): Form[] => {
-  return state.forms.formIds.map((id) => state.forms.formsById[id]);
-};
+const selectFormIds = (state: { forms: FormsState }) => state.forms.formIds;
+const selectFormsById = (state: { forms: FormsState }) => state.forms.formsById;
+
+export const selectAllForms = createSelector(
+  [selectFormIds, selectFormsById],
+  (ids, byId): Form[] => ids.map((id) => byId[id])
+);
 
 /**
  * Select a form by ID

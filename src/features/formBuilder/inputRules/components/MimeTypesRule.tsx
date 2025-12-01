@@ -2,23 +2,15 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface MimeTypesRuleProps {
-  enabled: boolean;
-  types?: string[];
-  onEnabledChange: (enabled: boolean) => void;
-  onTypesChange: (types: string[] | undefined) => void;
-}
-
-export function MimeTypesRule({
-  enabled,
-  types,
-  onEnabledChange,
-  onTypesChange,
-}: MimeTypesRuleProps) {
-  const handleTypesChange = (value: string) => {
+export function MimeTypesRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [types, setTypes] = useState<string[] | undefined>(undefined);
+  const handleTypesChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     const typesArray = value === "" ? undefined : value.split(",").map((t) => t.trim());
-    onTypesChange(typesArray);
+    setTypes(typesArray);
   };
 
   return (
@@ -27,7 +19,7 @@ export function MimeTypesRule({
         <Checkbox
           id="rule-mime-types"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label
@@ -52,7 +44,7 @@ export function MimeTypesRule({
             type="text"
             placeholder="e.g., image/jpeg, application/pdf, video/*"
             value={types?.join(", ") ?? ""}
-            onChange={(e) => handleTypesChange(e.target.value)}
+            onChange={handleTypesChange}
             required={enabled}
             className="font-mono text-sm"
           />

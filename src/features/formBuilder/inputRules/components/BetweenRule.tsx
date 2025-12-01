@@ -2,32 +2,20 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface BetweenRule {
-  enabled: boolean;
-  min?: number;
-  max?: number;
-  onEnabledChange: (enabled: boolean) => void;
-  onMinChange: (min: number | undefined) => void;
-  onMaxChange: (max: number | undefined) => void;
-}
-
-export function BetweenRule({
-  enabled,
-  min,
-  max,
-  onEnabledChange,
-  onMinChange,
-  onMaxChange,
-}: BetweenRule) {
-  const handleMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export function BetweenRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [min, setMin] = useState<number | undefined>(undefined);
+  const [max, setMax] = useState<number | undefined>(undefined);
+  const handleMinChange = (e: ChangeEvent<HTMLInputElement>) => {
     const numValue = e.target.value === "" ? undefined : Number(e.target.value);
-    onMinChange(numValue);
+    setMin(numValue);
   };
 
-  const handleMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMaxChange = (e: ChangeEvent<HTMLInputElement>) => {
     const numValue = e.target.value === "" ? undefined : Number(e.target.value);
-    onMaxChange(numValue);
+    setMax(numValue);
   };
 
   return (
@@ -36,7 +24,7 @@ export function BetweenRule({
         <Checkbox
           id="rule-between"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

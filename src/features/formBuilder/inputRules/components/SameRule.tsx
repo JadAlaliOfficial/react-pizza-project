@@ -2,23 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
-interface SameRuleProps {
-  enabled: boolean;
-  field?: string;
-  onEnabledChange: (enabled: boolean) => void;
-  onFieldChange: (field: string | undefined) => void;
-}
-
-export function SameRule({
-  enabled,
-  field,
-  onEnabledChange,
-  onFieldChange,
-}: SameRuleProps) {
+export function SameRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [field, setField] = useState<string | undefined>(undefined);
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onFieldChange(value === "" ? undefined : value);
+    setField(value === "" ? undefined : value);
   };
 
   return (
@@ -27,7 +18,7 @@ export function SameRule({
         <Checkbox
           id="rule-same"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

@@ -2,23 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
-interface StartsWithRuleProps {
-  enabled: boolean;
-  values?: string;
-  onEnabledChange: (enabled: boolean) => void;
-  onValuesChange: (values: string | undefined) => void;
-}
-
-export function StartsWithRule({
-  enabled,
-  values,
-  onEnabledChange,
-  onValuesChange,
-}: StartsWithRuleProps) {
+export function StartsWithRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [values, setValues] = useState<string | undefined>(undefined);
   const handleValuesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onValuesChange(value === "" ? undefined : value);
+    setValues(value === "" ? undefined : value);
   };
 
   return (
@@ -27,7 +18,7 @@ export function StartsWithRule({
         <Checkbox
           id="rule-starts-with"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

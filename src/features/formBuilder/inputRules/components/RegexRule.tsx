@@ -2,23 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface RegexRule {
-  enabled: boolean;
-  pattern?: string;
-  onEnabledChange: (enabled: boolean) => void;
-  onPatternChange: (pattern: string | undefined) => void;
-}
-
-export function RegexRule({
-  enabled,
-  pattern,
-  onEnabledChange,
-  onPatternChange,
-}: RegexRule) {
-  const handlePatternChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export function RegexRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [pattern, setPattern] = useState<string | undefined>(undefined);
+  const handlePatternChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
-    onPatternChange(value === "" ? undefined : value);
+    setPattern(value === "" ? undefined : value);
   };
 
   return (
@@ -27,7 +18,7 @@ export function RegexRule({
         <Checkbox
           id="rule-regex"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

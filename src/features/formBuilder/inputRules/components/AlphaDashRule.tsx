@@ -1,19 +1,16 @@
 // components/field-rules/AlphaDashRule.tsx
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
-interface AlphaDashRuleProps {
-  enabled: boolean;
-  onEnabledChange: (enabled: boolean) => void;
-}
-
-export function AlphaDashRule({ enabled, onEnabledChange }: AlphaDashRuleProps) {
+export function AlphaDashRule() {
+  const [enabled, setEnabled] = useState(false);
   return (
     <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-accent/50 transition-colors">
       <Checkbox
         id="rule-alpha-dash"
         checked={enabled}
-        onCheckedChange={onEnabledChange}
+        onCheckedChange={(val) => setEnabled(!!val)}
       />
       <div className="flex-1">
         <Label

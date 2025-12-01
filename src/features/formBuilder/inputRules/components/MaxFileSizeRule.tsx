@@ -2,23 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface MaxFileSizeRuleProps {
-  enabled: boolean;
-  maxsize?: number;
-  onEnabledChange: (enabled: boolean) => void;
-  onMaxSizeChange: (maxsize: number | undefined) => void;
-}
-
-export function MaxFileSizeRule({
-  enabled,
-  maxsize,
-  onEnabledChange,
-  onMaxSizeChange,
-}: MaxFileSizeRuleProps) {
-  const handleMaxSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export function MaxFileSizeRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [maxsize, setMaxsize] = useState<number | undefined>(undefined);
+  const handleMaxSizeChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onMaxSizeChange(value === "" ? undefined : Number(value));
+    setMaxsize(value === "" ? undefined : Number(value));
   };
 
   return (
@@ -27,7 +18,7 @@ export function MaxFileSizeRule({
         <Checkbox
           id="rule-max-file-size"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

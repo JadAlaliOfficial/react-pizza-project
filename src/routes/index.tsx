@@ -23,3 +23,4 @@ export { languagesPreferencesRoutes } from '@/routes/languagesPreferencesRoutes'
 export { catagoriesRoutes } from '@/routes/catagoriesRoutes';
 export { formsRoutes } from '@/routes/formsRoutes';
 export { translationsRoutes } from '@/routes/translationsRoutes';
+export { formBuilderRoutes } from '@/routes/formBuilderRoutes';

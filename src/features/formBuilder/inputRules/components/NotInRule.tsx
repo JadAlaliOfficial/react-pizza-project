@@ -2,23 +2,15 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface NotInRuleProps {
-  enabled: boolean;
-  values?: string[];
-  onEnabledChange: (enabled: boolean) => void;
-  onValuesChange: (values: string[] | undefined) => void;
-}
-
-export function NotInRule({
-  enabled,
-  values,
-  onEnabledChange,
-  onValuesChange,
-}: NotInRuleProps) {
-  const handleValuesChange = (value: string) => {
+export function NotInRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [values, setValues] = useState<string[] | undefined>(undefined);
+  const handleValuesChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     const valuesArray = value === "" ? undefined : value.split(",").map((v) => v.trim());
-    onValuesChange(valuesArray);
+    setValues(valuesArray);
   };
 
   return (
@@ -27,7 +19,7 @@ export function NotInRule({
         <Checkbox
           id="rule-not-in"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label
@@ -52,7 +44,7 @@ export function NotInRule({
             type="text"
             placeholder="e.g., banned1, banned2, banned3"
             value={values?.join(", ") ?? ""}
-            onChange={(e) => handleValuesChange(e.target.value)}
+            onChange={handleValuesChange}
             required={enabled}
           />
           <p className="text-xs text-muted-foreground">

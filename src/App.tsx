@@ -36,6 +36,7 @@ import {
   catagoriesRoutes,
   formsRoutes,
   translationsRoutes,
+  formBuilderRoutes,
 } from '@/routes';
 
 
@@ -115,6 +116,9 @@ function App() {
 
               {/* Forms Management Routes */}
               {formsRoutes}
+
+              {/* Form Builder Workspace Routes */}
+              {formBuilderRoutes}
 
               {/* Translations Management Routes */}
               {translationsRoutes}

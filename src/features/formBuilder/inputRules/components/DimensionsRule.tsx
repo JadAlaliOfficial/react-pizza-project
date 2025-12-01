@@ -2,48 +2,39 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
-interface DimensionsRuleProps {
-  enabled: boolean;
-  width?: number;
-  height?: number;
-  minwidth?: number;
-  maxwidth?: number;
-  minheight?: number;
-  maxheight?: number;
-  onEnabledChange: (enabled: boolean) => void;
-  onDimensionsChange: (dimensions: {
-    width?: number;
-    height?: number;
-    minwidth?: number;
-    maxwidth?: number;
-    minheight?: number;
-    maxheight?: number;
-  }) => void;
-}
+export function DimensionsRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [width, setWidth] = useState<number | undefined>(undefined);
+  const [height, setHeight] = useState<number | undefined>(undefined);
+  const [minwidth, setMinwidth] = useState<number | undefined>(undefined);
+  const [maxwidth, setMaxwidth] = useState<number | undefined>(undefined);
+  const [minheight, setMinheight] = useState<number | undefined>(undefined);
+  const [maxheight, setMaxheight] = useState<number | undefined>(undefined);
 
-export function DimensionsRule({
-  enabled,
-  width,
-  height,
-  minwidth,
-  maxwidth,
-  minheight,
-  maxheight,
-  onEnabledChange,
-  onDimensionsChange,
-}: DimensionsRuleProps) {
   const handleChange = (field: string, value: string) => {
     const numValue = value === "" ? undefined : Number(value);
-    onDimensionsChange({
-      width,
-      height,
-      minwidth,
-      maxwidth,
-      minheight,
-      maxheight,
-      [field]: numValue,
-    });
+    switch (field) {
+      case "width":
+        setWidth(numValue);
+        break;
+      case "height":
+        setHeight(numValue);
+        break;
+      case "minwidth":
+        setMinwidth(numValue);
+        break;
+      case "maxwidth":
+        setMaxwidth(numValue);
+        break;
+      case "minheight":
+        setMinheight(numValue);
+        break;
+      case "maxheight":
+        setMaxheight(numValue);
+        break;
+    }
   };
 
   return (
@@ -52,7 +43,7 @@ export function DimensionsRule({
         <Checkbox
           id="rule-dimensions"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

@@ -1,23 +1,17 @@
 // components/field-rules/UniqueRule.tsx
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
-interface UniqueRuleProps {
-  enabled: boolean;
-  onEnabledChange: (enabled: boolean) => void;
-}
-
-export function UniqueRule({
-  enabled,
-  onEnabledChange,
-}: UniqueRuleProps) {
+export function UniqueRule() {
+  const [enabled, setEnabled] = useState(false);
   return (
     <div className="space-y-3 p-3 border rounded-md hover:bg-accent/50 transition-colors">
       <div className="flex items-center space-x-2">
         <Checkbox
           id="rule-unique"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label

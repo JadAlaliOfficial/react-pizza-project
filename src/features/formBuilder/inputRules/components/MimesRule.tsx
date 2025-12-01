@@ -2,23 +2,15 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface MimesRule {
-  enabled: boolean;
-  types?: string[];
-  onEnabledChange: (enabled: boolean) => void;
-  onTypesChange: (types: string[] | undefined) => void;
-}
-
-export function MimesRule({
-  enabled,
-  types,
-  onEnabledChange,
-  onTypesChange,
-}: MimesRule) {
-  const handleTypesChange = (value: string) => {
+export function MimesRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [types, setTypes] = useState<string[] | undefined>(undefined);
+  const handleTypesChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
     const typesArray = value === "" ? undefined : value.split(",").map((t) => t.trim());
-    onTypesChange(typesArray);
+    setTypes(typesArray);
   };
 
   return (
@@ -27,7 +19,7 @@ export function MimesRule({
         <Checkbox
           id="rule-mimes"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label
@@ -52,7 +44,7 @@ export function MimesRule({
             type="text"
             placeholder="e.g., jpg, png, pdf, docx"
             value={types?.join(", ") ?? ""}
-            onChange={(e) => handleTypesChange(e.target.value)}
+            onChange={handleTypesChange}
             required={enabled}
           />
           <p className="text-xs text-muted-foreground">

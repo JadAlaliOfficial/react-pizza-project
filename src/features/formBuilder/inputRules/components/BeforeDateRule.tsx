@@ -2,23 +2,14 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useState, type ChangeEvent } from "react";
 
-interface BeforeDateRule {
-  enabled: boolean;
-  date?: string;
-  onEnabledChange: (enabled: boolean) => void;
-  onDateChange: (date: string | undefined) => void;
-}
-
-export function BeforeDateRule({
-  enabled,
-  date,
-  onEnabledChange,
-  onDateChange,
-}: BeforeDateRule) {
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export function BeforeDateRule() {
+  const [enabled, setEnabled] = useState(false);
+  const [date, setDate] = useState<string | undefined>(undefined);
+  const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    onDateChange(value === "" ? undefined : value);
+    setDate(value === "" ? undefined : value);
   };
 
   return (
@@ -27,7 +18,7 @@ export function BeforeDateRule({
         <Checkbox
           id="rule-before-date"
           checked={enabled}
-          onCheckedChange={onEnabledChange}
+          onCheckedChange={(val) => setEnabled(!!val)}
         />
         <div className="flex-1">
           <Label
