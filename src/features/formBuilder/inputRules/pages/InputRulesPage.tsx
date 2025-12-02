@@ -13,41 +13,41 @@ import { RefreshCw, ListChecks } from 'lucide-react';
 import { ManageLayout } from '@/components/layouts/ManageLayout';
 import { useInputRules } from '@/features/formBuilder/inputRules/hooks/useInputRules';
 import type { InputRule } from '@/features/formBuilder/inputRules/types';
-import { RequiredRule } from '@/features/formBuilder/inputRules/components/RequiredRule';
-import { MinRule } from '@/features/formBuilder/inputRules/components/MinRule';
-import { MaxRule } from '@/features/formBuilder/inputRules/components/MaxRule';
-import { BetweenRule } from '@/features/formBuilder/inputRules/components/BetweenRule';
-import { EmailRule } from '@/features/formBuilder/inputRules/components/EmailRule';
-import { UrlRule } from '@/features/formBuilder/inputRules/components/UrlRule';
-import { RegexRule } from '@/features/formBuilder/inputRules/components/RegexRule';
-import { NumericRule } from '@/features/formBuilder/inputRules/components/NumericRule';
-import { AlphaRule } from '@/features/formBuilder/inputRules/components/AlphaRule';
-import { AlphaNumericRule } from '@/features/formBuilder/inputRules/components/AlphaNumericRule';
-import { DateRule } from '@/features/formBuilder/inputRules/components/DateRule';
-import { AfterDateRule } from '@/features/formBuilder/inputRules/components/AfterDateRule';
-import { BeforeDateRule } from '@/features/formBuilder/inputRules/components/BeforeDateRule';
-import { MimesRule } from '@/features/formBuilder/inputRules/components/MimesRule';
-import { InRule } from '@/features/formBuilder/inputRules/components/InRule';
-import { IntegerRule } from '@/features/formBuilder/inputRules/components/IntegerRule';
-import { AlphaDashRule } from '@/features/formBuilder/inputRules/components/AlphaDashRule';
-import { NotInRule } from '@/features/formBuilder/inputRules/components/NotInRule';
-import { DateFormatRule } from '@/features/formBuilder/inputRules/components/DateFormatRule';
-import { BeforeOrEqualRule } from '@/features/formBuilder/inputRules/components/BeforeOrEqualRule';
-import { AfterOrEqualRule } from '@/features/formBuilder/inputRules/components/AfterOrEqualRule';
-import { MimeTypesRule } from '@/features/formBuilder/inputRules/components/MimeTypesRule';
-import { SizeRule } from '@/features/formBuilder/inputRules/components/SizeRule';
-import { MaxFileSizeRule } from '@/features/formBuilder/inputRules/components/MaxFileSizeRule';
-import { MinFileSizeRule } from '@/features/formBuilder/inputRules/components/MinFileSizeRule';
-import { DimensionsRule } from '@/features/formBuilder/inputRules/components/DimensionsRule';
-import { ConfirmedRule } from '@/features/formBuilder/inputRules/components/ConfirmedRule';
-import { SameRule } from '@/features/formBuilder/inputRules/components/SameRule';
-import { DifferentRule } from '@/features/formBuilder/inputRules/components/DifferentRule';
-import { UniqueRule } from '@/features/formBuilder/inputRules/components/UniqueRule';
-import { StartsWithRule } from '@/features/formBuilder/inputRules/components/StartsWithRule';
-import { JSONRule } from '@/features/formBuilder/inputRules/components/JSONRule';
-import { EndsWithRule } from '@/features/formBuilder/inputRules/components/EndsWithRule';
-import { LatitudeRule } from '@/features/formBuilder/inputRules/components/LatitudeRule';
-import { LongitudeRule } from '@/features/formBuilder/inputRules/components/LongitudeRule';
+// import { RequiredRule } from '@/features/formBuilder/inputRules/components/RequiredRuleNew';
+// import { MinRuleNew } from '@/features/formBuilder/inputRules/components/MinRuleNew';
+// import { MaxRuleNew } from '@/features/formBuilder/inputRules/components/MaxRuleNew';
+// import { BetweenRuleNew } from '@/features/formBuilder/inputRules/components/BetweenRuleNew';
+// import { EmailRule } from '@/features/formBuilder/inputRules/components/EmailRuleNew';
+// import { UrlRule } from '@/features/formBuilder/inputRules/components/UrlRuleNew';
+// import { RegexRule } from '@/features/formBuilder/inputRules/components/RegexRuleNew';
+// import { NumericRuleNew } from '@/features/formBuilder/inputRules/components/NumericRuleNew';
+// import { AlphaRule } from '@/features/formBuilder/inputRules/components/AlphaRuleNew';
+// import { AlphaNumericRule } from '@/features/formBuilder/inputRules/components/AlphaNumericRuleNew';
+// import { DateRuleNew } from '@/features/formBuilder/inputRules/components/DateRuleNew';
+// import { AfterDateRule } from '@/features/formBuilder/inputRules/components/AfterDateRuleNew';
+// import { BeforeDateRuleNew } from '@/features/formBuilder/inputRules/components/BeforeDateRuleNew';
+// import { MimesRuleNew } from '@/features/formBuilder/inputRules/components/MimesRuleNew';
+// import { InRule } from '@/features/formBuilder/inputRules/components/InRuleNew';
+// import { IntegerRuleNew } from '@/features/formBuilder/inputRules/components/IntegerRuleNew';
+// import { AlphaDashRule } from '@/features/formBuilder/inputRules/components/AlphaDashRuleNew';
+// import { NotInRule } from '@/features/formBuilder/inputRules/components/NotInRuleNew';
+// import { DateFormatRuleNew } from '@/features/formBuilder/inputRules/components/DateFormatRuleNew';
+// import { BeforeOrEqualRuleNew } from '@/features/formBuilder/inputRules/components/BeforeOrEqualRuleNew';
+// import { AfterOrEqualRule } from '@/features/formBuilder/inputRules/components/AfterOrEqualRuleNew';
+// import { MimeTypesRuleNew } from '@/features/formBuilder/inputRules/components/MimetypesRuleNew';
+// import { SizeRuleNew } from '@/features/formBuilder/inputRules/components/SizeRuleNew';
+// import { MaxFileSizeRuleNew } from '@/features/formBuilder/inputRules/components/MaxFileSizeRuleNew';
+// import { MinFileSizeRuleNew } from '@/features/formBuilder/inputRules/components/MinFileSizeRuleNew';
+// import { DimensionsRuleNew } from '@/features/formBuilder/inputRules/components/DimensionsRuleNew';
+// import { ConfirmedRule } from '@/features/formBuilder/inputRules/components/ConfirmedRuleNew';
+// import { SameRule } from '@/features/formBuilder/inputRules/components/SameRuleNew';
+// import { DifferentRule } from '@/features/formBuilder/inputRules/components/DifferentRuleNew';
+// import { UniqueRule } from '@/features/formBuilder/inputRules/components/UniqueRuleNew';
+// import { StartsWithRule } from '@/features/formBuilder/inputRules/components/StartsWithRuleNew';
+// import { JSONRule } from '@/features/formBuilder/inputRules/components/JSONRuleNew';
+// import { EndsWithRule } from '@/features/formBuilder/inputRules/components/EndsWithRuleNew';
+// import { LatitudeRule } from '@/features/formBuilder/inputRules/components/LatitudeRuleNew';
+// import { LongitudeRule } from '@/features/formBuilder/inputRules/components/LongitudeRuleNew';
 
 const InputRulesPage: React.FC = () => {
   const { items, loading, error, refetch } = useInputRules();
@@ -164,8 +164,8 @@ const InputRulesPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
-      <div>
-        <RequiredRule />
+      {/* <div>
+        <RequiredRuleNew id={id} />
       </div>
       <div>
         <MinRule />
@@ -268,7 +268,7 @@ const InputRulesPage: React.FC = () => {
       </div>
       <div>
         <LongitudeRule />
-      </div>
+      </div> */}
     </ManageLayout>
   );
 };

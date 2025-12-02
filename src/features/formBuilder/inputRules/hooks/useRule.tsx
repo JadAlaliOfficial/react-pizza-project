@@ -1,16 +1,16 @@
+// features/formBuilder/inputRules/hooks/useRule.ts
+
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectRuleById } from "@/features/formBuilder/inputRules/store/rulesSelectors";
 import {
   updateRule,
   removeRule,
 } from "@/features/formBuilder/inputRules/store/rulesSlice";
-import type {
-  RuleData,
-} from "@/features/formBuilder/inputRules/types/rule-types";
+import type { RuleData } from "@/features/formBuilder/inputRules/types/rule-data";
 
 // Generic hook for working with a single rule instance
 // ----------------------------------------------------
-// - `T` is a specific RuleData type (e.g. AfterRuleData).
+// - `T` is a specific RuleData type (e.g. AfterRuleData, AlphaDashRuleData).
 // - `patch` lets you update ANY part of the rule (enabled, props, etc.).
 // - `setEnabled` is a convenience for toggling enable/disable.
 // - `deleteRule` removes the rule instance from Redux.

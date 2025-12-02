@@ -1,65 +1,20 @@
-// Base & strongly-typed rule models for the form builder
-// ------------------------------------------------------
+// features/formBuilder/inputRules/types/rule-types.ts
+// ------------------------------------------------------------------
+// Barrel file to keep legacy imports working and point everything
+// to the new modular type system.
+//
+// Any old code importing from "types/rule-types" will now receive:
+// - RuleType, RuleBase, BackendRuleDefinition from rule-base.ts
+// - RuleData from rule-data.ts (the full union of all rule groups)
+// - RulesState from rules-state.ts
+// ------------------------------------------------------------------
 
-export type BackendRuleDefinition = {
-  id: number;
-  name: string; // backend rule name, e.g. "after", "after_or_equal"
-  description: string;
-  is_public: boolean;
-  field_types: {
-    id: number;
-    name: string;
-    created_at: string;
-    updated_at: string;
-    pivot?: unknown;
-  }[];
-  created_at: string;
-  updated_at: string;
-};
+export type {
+  BackendRuleDefinition,
+  RuleType,
+  RuleBase,
+} from "./rule-base";
 
-// 1) All rule type names (MUST MATCH backend "name")
-// --------------------------------------------------
-export type RuleType =
-  | "after" // e.g. id 17
-  | "after_or_equal"; // e.g. id 19
-  // add more here: | "required" | "min" | ...
+export type { RuleData } from "./rule-data";
 
-// 2) Generic base for any rule instance stored in Redux
-// -----------------------------------------------------
-export type RuleBase<TType extends RuleType, TProps> = {
-  id: string;          // local instance id
-  enabled: boolean;
-  type: TType;         // backend rule name
-  inputRuleId: number; // backend rule id (input_rule_id in payload)
-  props: TProps;       // rule-specific props (rule_props in payload)
-};
-
-// 3) Rule-specific props & types
-// ------------------------------
-
-// AFTER ("after")
-export type AfterRuleProps = {
-  date?: string; // yyyy-mm-dd
-};
-
-export type AfterRuleData = RuleBase<"after", AfterRuleProps>;
-
-// AFTER_OR_EQUAL ("after_or_equal")
-export type AfterOrEqualRuleProps = {
-  date?: string; // yyyy-mm-dd
-};
-
-export type AfterOrEqualRuleData = RuleBase<"after_or_equal", AfterOrEqualRuleProps>;
-
-// 4) Union of all rule data types used in Redux
-// ---------------------------------------------
-export type RuleData =
-  | AfterRuleData
-  | AfterOrEqualRuleData;
-// add more here as you define them
-
-// 5) Redux slice state
-// --------------------
-export type RulesState = {
-  rules: RuleData[];
-};
+export type { RulesState } from "./rules-state";
