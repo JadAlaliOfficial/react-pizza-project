@@ -3,19 +3,47 @@
 /**
  * Live Preview Component
  *
- * Displays a visual representation of the form structure:
- * - Shows stages as expandable cards
- * - Sections are displayed as containers
- * - Fields are acknowledged but not rendered in detail yet
+ * Displays a visual representation of the form structure with field previews
+ * Supports all 27 field types with dedicated preview components
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Loader2, Eye } from "lucide-react";
 import type { Stage } from "@/features/formBuilder/formVersions/types";
+import { useFieldTypes } from "@/features/formBuilder/fieldTypes/hooks/useFieldTypes";
+
+// Import all preview components
+import { TextInputPreview } from "./TextInputPreview";
+import { TextAreaPreview } from "./TextAreaPreview";
+import { NumberInputPreview } from "./NumberInputPreview";
+import { EmailInputPreview } from "./EmailInputPreview";
+import { PhoneInputPreview } from "./PhoneInputPreview";
+import { UrlInputPreview } from "./UrlInputPreview";
+import { PasswordInputPreview } from "./PasswordInputPreview";
+import { SingleSelectDropdownPreview } from "./SingleSelectDropdownPreview";
+import { MultiSelectDropdownPreview } from "./MultiSelectDropdownPreview";
+import { RadioButtonGroupPreview } from "./RadioButtonGroupPreview";
+import { CheckboxGroupPreview } from "./CheckboxGroupPreview";
+import { SingleCheckboxPreview } from "./SingleCheckboxPreview";
+import { DatePickerPreview } from "./DatePickerPreview";
+import { TimePickerPreview } from "./TimePickerPreview";
+import { DateTimePickerPreview } from "./DateTimePickerPreview";
+import { DateRangePickerPreview } from "./DateRangePickerPreview";
+import { FileUploadPreview } from "./FileUploadPreview";
+import { ImageUploadPreview } from "./ImageUploadPreview";
+import { RichTextEditorPreview } from "./RichTextEditorPreview";
+import { SliderPreview } from "./SliderPreview";
+import { RatingPreview } from "./RatingPreview";
+import { ColorPickerPreview } from "./ColorPickerPreview";
+import { CurrencyInputPreview } from "./CurrencyInputPreview";
+import { PercentageInputPreview } from "./PercentageInputPreview";
+import { SignaturePadPreview } from "./SignaturePadPreview";
+import { LocationPickerPreview } from "./LocationPickerPreview";
+import { AddressInputPreview } from "./AddressInputPreview";
 
 type LivePreviewProps = {
   stages: Stage[];
@@ -27,6 +55,12 @@ export function LivePreview({ stages, isLoading }: LivePreviewProps) {
     new Set([0])
   );
 
+  const { fieldTypes, ensureLoaded } = useFieldTypes();
+
+  useEffect(() => {
+    ensureLoaded();
+  }, [ensureLoaded]);
+
   const toggleStage = (index: number) => {
     const next = new Set(expandedStages);
     if (next.has(index)) {
@@ -37,6 +71,113 @@ export function LivePreview({ stages, isLoading }: LivePreviewProps) {
     setExpandedStages(next);
   };
 
+  const getFieldTypeName = (fieldTypeId: number): string => {
+    return fieldTypes.find((ft) => ft.id === fieldTypeId)?.name ?? "Unknown";
+  };
+
+  // Render field preview based on field type
+  const renderFieldPreview = (field: any, fieldIndex: number) => {
+    const fieldTypeName = getFieldTypeName(field.field_type_id);
+    const key = field.id ?? `field-${fieldIndex}`;
+
+    switch (fieldTypeName) {
+      case "Text Input":
+        return <TextInputPreview key={key} field={field} />;
+      
+      case "Text Area":
+        return <TextAreaPreview key={key} field={field} />;
+      
+      case "Number Input":
+        return <NumberInputPreview key={key} field={field} />;
+      
+      case "Email Input":
+        return <EmailInputPreview key={key} field={field} />;
+      
+      case "Phone Number Input":
+        return <PhoneInputPreview key={key} field={field} />;
+      
+      case "URL Input":
+        return <UrlInputPreview key={key} field={field} />;
+      
+      case "Password Input":
+        return <PasswordInputPreview key={key} field={field} />;
+      
+      case "Single Select Dropdown":
+        return <SingleSelectDropdownPreview key={key} field={field} />;
+      
+      case "Multi-Select Dropdown":
+        return <MultiSelectDropdownPreview key={key} field={field} />;
+      
+      case "Radio Button Group":
+        return <RadioButtonGroupPreview key={key} field={field} />;
+      
+      case "Checkbox Group":
+        return <CheckboxGroupPreview key={key} field={field} />;
+      
+      case "Single Checkbox":
+        return <SingleCheckboxPreview key={key} field={field} />;
+      
+      case "Date Picker":
+        return <DatePickerPreview key={key} field={field} />;
+      
+      case "Time Picker":
+        return <TimePickerPreview key={key} field={field} />;
+      
+      case "Date-Time Picker":
+        return <DateTimePickerPreview key={key} field={field} />;
+      
+      case "Date Range Picker":
+        return <DateRangePickerPreview key={key} field={field} />;
+      
+      case "File Upload":
+        return <FileUploadPreview key={key} field={field} />;
+      
+      case "Image Upload":
+        return <ImageUploadPreview key={key} field={field} />;
+      
+      case "Rich Text Editor":
+        return <RichTextEditorPreview key={key} field={field} />;
+      
+      case "Slider":
+        return <SliderPreview key={key} field={field} />;
+      
+      case "Rating":
+        return <RatingPreview key={key} field={field} />;
+      
+      case "Color Picker":
+        return <ColorPickerPreview key={key} field={field} />;
+      
+      case "Currency Input":
+        return <CurrencyInputPreview key={key} field={field} />;
+      
+      case "Percentage Input":
+        return <PercentageInputPreview key={key} field={field} />;
+      
+      case "Signature Pad":
+        return <SignaturePadPreview key={key} field={field} />;
+      
+      case "Location Picker":
+        return <LocationPickerPreview key={key} field={field} />;
+      
+      case "Address Input":
+        return <AddressInputPreview key={key} field={field} />;
+      
+      default:
+        // Fallback for any unknown field types
+        return (
+          <div key={key} className="p-3 bg-background border rounded">
+            <Badge variant="secondary" className="text-xs mb-2">
+              {fieldTypeName}
+            </Badge>
+            <p className="text-sm font-medium">{field.label}</p>
+            <p className="text-xs text-muted-foreground">
+              Preview not yet implemented for this field type
+            </p>
+          </div>
+        );
+    }
+  };
+
   return (
     <Card className="flex flex-col h-[calc(100vh-220px)]">
       <div className="p-4 border-b">
@@ -45,7 +186,7 @@ export function LivePreview({ stages, isLoading }: LivePreviewProps) {
           <h2 className="text-sm font-medium">Live Preview</h2>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Visual representation of your form structure
+          Visual representation of your form structure (27 field types supported)
         </p>
       </div>
 
@@ -113,13 +254,11 @@ export function LivePreview({ stages, isLoading }: LivePreviewProps) {
                         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
                         .map((section, sectionIndex) => (
                           <Card
-                            key={
-                              section.id ?? `preview-section-${sectionIndex}`
-                            }
+                            key={section.id ?? `preview-section-${sectionIndex}`}
                             className="border-dashed"
                           >
-                            <div className="p-3">
-                              <div className="flex items-start justify-between mb-2">
+                            <div className="p-4">
+                              <div className="flex items-start justify-between mb-3">
                                 <div>
                                   <h4 className="text-sm font-medium">
                                     {section.name}
@@ -134,42 +273,25 @@ export function LivePreview({ stages, isLoading }: LivePreviewProps) {
                               </div>
 
                               {section.visibility_conditions && (
-                                <div className="mt-2 p-2 bg-muted/50 rounded text-xs">
+                                <div className="mb-3 p-2 bg-muted/50 rounded text-xs">
                                   <span className="font-medium text-muted-foreground">
                                     Visibility:
                                   </span>{" "}
-                                  <code className="text-[10px]">
+                                  de className="text-[10px]">
                                     {section.visibility_conditions}
                                   </code>
                                 </div>
                               )}
 
-                              {/* Placeholder for fields - future enhancement */}
+                              {/* Field Previews */}
                               {section.fields && section.fields.length > 0 && (
-                                <div className="mt-3 pt-3 border-t space-y-2">
+                                <div className="space-y-4 pt-3 border-t">
                                   <p className="text-xs font-medium text-muted-foreground">
-                                    Fields (preserved, not editable yet):
+                                    Fields:
                                   </p>
-                                  <div className="space-y-1.5">
-                                    {section.fields.map((field, fieldIndex) => (
-                                      <div
-                                        key={
-                                          (field as any).id ??
-                                          `field-${fieldIndex}`
-                                        }
-                                        className="p-2 bg-background border rounded text-xs"
-                                      >
-                                        <span className="font-medium">
-                                          {(field as any).label ||
-                                            (field as any).name ||
-                                            "Unnamed Field"}
-                                        </span>
-                                        <span className="text-muted-foreground ml-2">
-                                          ({(field as any).type || "unknown"})
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
+                                  {section.fields.map((field, fieldIndex) =>
+                                    renderFieldPreview(field, fieldIndex)
+                                  )}
                                 </div>
                               )}
                             </div>

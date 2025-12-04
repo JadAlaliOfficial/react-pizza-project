@@ -1,0 +1,324 @@
+// src/features/formVersion/components/fields/SliderFieldConfig.tsx
+
+/**
+ * Slider Field Configuration Component
+ *
+ * Provides UI for configuring a Slider field:
+ * - Label (main question)
+ * - Min value
+ * - Max value
+ * - Step increment
+ * - Default value
+ * - Helper text
+ * - Visibility conditions
+ */
+
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Slider } from "@/components/ui/slider";
+import { Trash2, SlidersHorizontal, Info } from "lucide-react";
+import type { Field } from "@/features/formBuilder/formVersions/types";
+
+type SliderFieldConfigProps = {
+  field: Field;
+  fieldIndex: number;
+  onFieldChange: (updatedField: Partial<Field>) => void;
+  onDelete: () => void;
+};
+
+export function SliderFieldConfig({
+  field,
+  fieldIndex,
+  onFieldChange,
+  onDelete,
+}: SliderFieldConfigProps) {
+  const [minValue, setMinValue] = useState("0");
+  const [maxValue, setMaxValue] = useState("100");
+  const [stepValue, setStepValue] = useState("1");
+  const [defaultValue, setDefaultValue] = useState(field.default_value || "50");
+
+  return (
+    <Card className="p-4 border-l-4 border-l-indigo-500">
+      <div className="space-y-3">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-indigo-500" />
+            <Badge variant="outline" className="text-xs">
+              Slider
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              Field {fieldIndex + 1}
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            onClick={onDelete}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Info Alert */}
+        <Alert className="bg-indigo-50 border-indigo-200">
+          <Info className="h-4 w-4 text-indigo-600" />
+          <AlertDescription className="text-xs text-indigo-900">
+            Range slider for numeric value selection. Draggable interface with
+            min/max bounds and step increments. Values stored as numeric
+            strings.
+          </AlertDescription>
+        </Alert>
+
+        {/* Label */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Label <span className="text-destructive">*</span>
+          </label>
+          <Input
+            value={field.label}
+            onChange={(e) => onFieldChange({ label: e.target.value })}
+            placeholder="e.g., Select your budget range"
+            className="h-9"
+            maxLength={255}
+          />
+        </div>
+
+        {/* Min/Max/Step Configuration */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Min Value
+            </label>
+            <Input
+              type="number"
+              value={minValue}
+              onChange={(e) => setMinValue(e.target.value)}
+              placeholder="0"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Max Value
+            </label>
+            <Input
+              type="number"
+              value={maxValue}
+              onChange={(e) => setMaxValue(e.target.value)}
+              placeholder="100"
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Step
+            </label>
+            <Input
+              type="number"
+              value={stepValue}
+              onChange={(e) => setStepValue(e.target.value)}
+              placeholder="1"
+              className="h-9"
+              min="0.01"
+            />
+          </div>
+        </div>
+        <p className="text-[10px] text-muted-foreground">
+          💡 Configure range using "min" and "max" validation rules. Step
+          controls increment size.
+        </p>
+
+        {/* Default Value with Preview */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Default Value
+          </label>
+          <div className="space-y-3">
+            <Input
+              type="number"
+              value={defaultValue}
+              onChange={(e) => {
+                setDefaultValue(e.target.value);
+                onFieldChange({ default_value: e.target.value || null });
+              }}
+              placeholder="50"
+              className="h-9"
+              min={minValue}
+              max={maxValue}
+              step={stepValue}
+            />
+            {/* Visual Slider Preview */}
+            <div className="p-3 border rounded-md bg-muted/30">
+              <Slider
+                value={[parseInt(defaultValue) || 50]}
+                onValueChange={(value) => {
+                  setDefaultValue(String(value[0]));
+                  onFieldChange({ default_value: String(value[0]) });
+                }}
+                min={parseInt(minValue) || 0}
+                max={parseInt(maxValue) || 100}
+                step={parseInt(stepValue) || 1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
+                <span>{minValue}</span>
+                <span className="font-medium text-indigo-600">
+                  {defaultValue}
+                </span>
+                <span>{maxValue}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Placeholder */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Placeholder Text
+          </label>
+          <Input
+            value={field.placeholder ?? ""}
+            onChange={(e) =>
+              onFieldChange({ placeholder: e.target.value || null })
+            }
+            placeholder="e.g., Slide to select"
+            className="h-9"
+            maxLength={255}
+          />
+        </div>
+
+        {/* Helper Text */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Helper Text
+          </label>
+          <Textarea
+            value={field.helper_text ?? ""}
+            onChange={(e) =>
+              onFieldChange({ helper_text: e.target.value || null })
+            }
+            placeholder="Additional information (e.g., 'Select your preferred price range')"
+            className="min-h-[60px] text-xs"
+          />
+        </div>
+
+        {/* Slider Details */}
+        <div className="p-3 border rounded-md bg-muted/30">
+          <p className="text-[10px] font-medium text-muted-foreground mb-2">
+            🎚️ Slider Configuration:
+          </p>
+          <div className="space-y-1 text-[10px] text-muted-foreground">
+            <div>
+              • <strong>Storage:</strong> Numeric string value
+            </div>
+            <div>
+              • <strong>Range:</strong> Configurable min/max via validation
+            </div>
+            <div>
+              • <strong>Increments:</strong> Step size for value changes
+            </div>
+            <div>
+              • <strong>Interface:</strong> Draggable thumb on visual track
+            </div>
+          </div>
+        </div>
+
+        {/* Common Use Cases */}
+        <div className="p-3 border rounded-md bg-muted/30">
+          <p className="text-[10px] font-medium text-muted-foreground mb-2">
+            🎚️ Common Use Cases:
+          </p>
+          <div className="space-y-1 text-[10px] text-muted-foreground">
+            <div>
+              • <strong>Price Range:</strong> Budget or pricing selection
+            </div>
+            <div>
+              • <strong>Age Range:</strong> Age group selection
+            </div>
+            <div>
+              • <strong>Quantity:</strong> Amount or volume selection
+            </div>
+            <div>
+              • <strong>Rating Scale:</strong> Quality or satisfaction level
+            </div>
+            <div>
+              • <strong>Settings:</strong> Volume, brightness, duration
+            </div>
+          </div>
+        </div>
+
+        {/* Visibility Conditions */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Visibility Conditions (JSON)
+          </label>
+          <Textarea
+            value={
+              field.visibility_conditions ?? field.visibility_condition ?? ""
+            }
+            onChange={(e) =>
+              onFieldChange({
+                visibility_conditions: e.target.value || null,
+              })
+            }
+            placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
+            className="min-h-[60px] text-xs font-mono"
+          />
+        </div>
+
+        {/* Available Validation Rules Info */}
+        <div className="pt-2 border-t">
+          <p className="text-[10px] font-medium text-muted-foreground mb-1">
+            📋 Available Validation Rules:
+          </p>
+          <div className="grid grid-cols-2 gap-1">
+            <span className="text-[10px] text-muted-foreground">
+              • required
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              • min (value)
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              • max (value)
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              • between
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              • numeric
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              • integer
+            </span>
+          </div>
+          <p className="text-[10px] text-indigo-700 mt-2 font-medium">
+            💡 Use "min" and "max" rules to set slider range. Use "integer" to
+            prevent decimals.
+          </p>
+        </div>
+
+        {/* Example Validation Configuration */}
+        <Alert className="bg-amber-50 border-amber-200">
+          <Info className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-xs text-amber-900">
+            <strong>Example Validation:</strong> Add "min" rule with props:{" "}
+            <code className="bg-amber-100 px-1 rounded">{`{ "value": 0 }`}</code>
+            , "max" rule with props:{" "}
+            <code className="bg-amber-100 px-1 rounded">
+              {`{ "value": 100 }`}
+            </code>
+            , and "integer" rule for whole numbers only.
+          </AlertDescription>
+        </Alert>
+      </div>
+    </Card>
+  );
+}
