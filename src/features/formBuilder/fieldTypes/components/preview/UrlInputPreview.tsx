@@ -9,7 +9,6 @@
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link, ExternalLink, CheckCircle } from "lucide-react";
 import type { Field } from "@/features/formBuilder/formVersions/types";
@@ -27,9 +26,6 @@ export function UrlInputPreview({ field }: UrlInputPreviewProps) {
           {field.label}
           {/* You can add a required indicator based on field rules */}
         </Label>
-        <Badge variant="secondary" className="text-[10px]">
-          URL Input
-        </Badge>
       </div>
 
       {/* URL Input with Link Icon */}
@@ -62,11 +58,6 @@ export function UrlInputPreview({ field }: UrlInputPreviewProps) {
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-cyan-600 italic">
-        ✓ URL input with format validation. Stored as lowercase. Clickable link
-        with preview. Filter by domain, protocol, or exact match.
-      </p>
     </div>
   );
 }

@@ -7,11 +7,10 @@
  * Shows number-specific features like type="number" and step attribute
  */
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Hash } from "lucide-react";
-import type { Field } from "@/features/formBuilder/formVersions/types";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Hash } from 'lucide-react';
+import type { Field } from '@/features/formBuilder/formVersions/types';
 
 type NumberInputPreviewProps = {
   field: Field;
@@ -31,15 +30,12 @@ export function NumberInputPreview({ field }: NumberInputPreviewProps) {
           {field.label}
           {/* You can add a required indicator based on field rules */}
         </Label>
-        <Badge variant="secondary" className="text-[10px]">
-          Number
-        </Badge>
       </div>
 
       <Input
         type="number"
         step="any"
-        placeholder={field.placeholder ?? "0"}
+        placeholder={field.placeholder ?? '0'}
         defaultValue={defaultValue}
         disabled
         className="bg-muted/30"
@@ -48,10 +44,6 @@ export function NumberInputPreview({ field }: NumberInputPreviewProps) {
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-green-600 italic">
-        ✓ Accepts integers and decimals. Non-numeric characters removed automatically.
-      </p>
     </div>
   );
 }

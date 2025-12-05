@@ -37,9 +37,6 @@ export function SliderFieldConfig({
   onFieldChange,
   onDelete,
 }: SliderFieldConfigProps) {
-  const [minValue, setMinValue] = useState("0");
-  const [maxValue, setMaxValue] = useState("100");
-  const [stepValue, setStepValue] = useState("1");
   const [defaultValue, setDefaultValue] = useState(field.default_value || "50");
 
   return (
@@ -67,16 +64,6 @@ export function SliderFieldConfig({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-indigo-50 border-indigo-200">
-          <Info className="h-4 w-4 text-indigo-600" />
-          <AlertDescription className="text-xs text-indigo-900">
-            Range slider for numeric value selection. Draggable interface with
-            min/max bounds and step increments. Values stored as numeric
-            strings.
-          </AlertDescription>
-        </Alert>
-
         {/* Label */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -90,51 +77,6 @@ export function SliderFieldConfig({
             maxLength={255}
           />
         </div>
-
-        {/* Min/Max/Step Configuration */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Min Value
-            </label>
-            <Input
-              type="number"
-              value={minValue}
-              onChange={(e) => setMinValue(e.target.value)}
-              placeholder="0"
-              className="h-9"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Max Value
-            </label>
-            <Input
-              type="number"
-              value={maxValue}
-              onChange={(e) => setMaxValue(e.target.value)}
-              placeholder="100"
-              className="h-9"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Step
-            </label>
-            <Input
-              type="number"
-              value={stepValue}
-              onChange={(e) => setStepValue(e.target.value)}
-              placeholder="1"
-              className="h-9"
-              min="0.01"
-            />
-          </div>
-        </div>
-        <p className="text-[10px] text-muted-foreground">
-          💡 Configure range using "min" and "max" validation rules. Step
-          controls increment size.
-        </p>
 
         {/* Default Value with Preview */}
         <div className="space-y-1.5">
@@ -151,9 +93,9 @@ export function SliderFieldConfig({
               }}
               placeholder="50"
               className="h-9"
-              min={minValue}
-              max={maxValue}
-              step={stepValue}
+              min={0}
+              max={100}
+              step={1}
             />
             {/* Visual Slider Preview */}
             <div className="p-3 border rounded-md bg-muted/30">
@@ -163,36 +105,20 @@ export function SliderFieldConfig({
                   setDefaultValue(String(value[0]));
                   onFieldChange({ default_value: String(value[0]) });
                 }}
-                min={parseInt(minValue) || 0}
-                max={parseInt(maxValue) || 100}
-                step={parseInt(stepValue) || 1}
+                min={0}
+                max={100}
+                step={1}
                 className="w-full"
               />
               <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
-                <span>{minValue}</span>
+                <span>0</span>
                 <span className="font-medium text-indigo-600">
                   {defaultValue}
                 </span>
-                <span>{maxValue}</span>
+                <span>100</span>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Placeholder */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Placeholder Text
-          </label>
-          <Input
-            value={field.placeholder ?? ""}
-            onChange={(e) =>
-              onFieldChange({ placeholder: e.target.value || null })
-            }
-            placeholder="e.g., Slide to select"
-            className="h-9"
-            maxLength={255}
-          />
         </div>
 
         {/* Helper Text */}
@@ -208,51 +134,6 @@ export function SliderFieldConfig({
             placeholder="Additional information (e.g., 'Select your preferred price range')"
             className="min-h-[60px] text-xs"
           />
-        </div>
-
-        {/* Slider Details */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🎚️ Slider Configuration:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>
-              • <strong>Storage:</strong> Numeric string value
-            </div>
-            <div>
-              • <strong>Range:</strong> Configurable min/max via validation
-            </div>
-            <div>
-              • <strong>Increments:</strong> Step size for value changes
-            </div>
-            <div>
-              • <strong>Interface:</strong> Draggable thumb on visual track
-            </div>
-          </div>
-        </div>
-
-        {/* Common Use Cases */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🎚️ Common Use Cases:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>
-              • <strong>Price Range:</strong> Budget or pricing selection
-            </div>
-            <div>
-              • <strong>Age Range:</strong> Age group selection
-            </div>
-            <div>
-              • <strong>Quantity:</strong> Amount or volume selection
-            </div>
-            <div>
-              • <strong>Rating Scale:</strong> Quality or satisfaction level
-            </div>
-            <div>
-              • <strong>Settings:</strong> Volume, brightness, duration
-            </div>
-          </div>
         </div>
 
         {/* Visibility Conditions */}

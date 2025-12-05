@@ -10,14 +10,14 @@
  * - Email-specific notes (lowercase conversion, validation)
  */
 
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Trash2, Mail, Info } from "lucide-react";
-import type { Field } from "@/features/formBuilder/formVersions/types";
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Trash2, Mail, Info } from 'lucide-react';
+import type { Field } from '@/features/formBuilder/formVersions/types';
 
 type EmailInputFieldConfigProps = {
   field: Field;
@@ -39,7 +39,7 @@ export function EmailInputFieldConfig({
     return emailRegex.test(email);
   };
 
-  const defaultValueValid = isValidEmail(field.default_value || "");
+  const defaultValueValid = isValidEmail(field.default_value || '');
 
   return (
     <Card className="p-4 border-l-4 border-l-purple-500">
@@ -95,7 +95,7 @@ export function EmailInputFieldConfig({
             Placeholder
           </label>
           <Input
-            value={field.placeholder ?? ""}
+            value={field.placeholder ?? ''}
             onChange={(e) =>
               onFieldChange({ placeholder: e.target.value || null })
             }
@@ -103,9 +103,6 @@ export function EmailInputFieldConfig({
             className="h-9"
             maxLength={255}
           />
-          <p className="text-[10px] text-muted-foreground">
-            💡 Suggested: "your@email.com" or "user@example.com"
-          </p>
         </div>
 
         {/* Helper Text */}
@@ -114,7 +111,7 @@ export function EmailInputFieldConfig({
             Helper Text
           </label>
           <Textarea
-            value={field.helper_text ?? ""}
+            value={field.helper_text ?? ''}
             onChange={(e) =>
               onFieldChange({ helper_text: e.target.value || null })
             }
@@ -130,21 +127,18 @@ export function EmailInputFieldConfig({
           </label>
           <Input
             type="email"
-            value={field.default_value ?? ""}
+            value={field.default_value ?? ''}
             onChange={(e) =>
               onFieldChange({ default_value: e.target.value || null })
             }
             placeholder="default@example.com"
-            className={`h-9 ${!defaultValueValid ? "border-destructive" : ""}`}
+            className={`h-9 ${!defaultValueValid ? 'border-destructive' : ''}`}
           />
           {!defaultValueValid && (
             <p className="text-[10px] text-destructive">
               ⚠️ Please enter a valid email format
             </p>
           )}
-          <p className="text-[10px] text-muted-foreground">
-            💡 Will be converted to lowercase automatically
-          </p>
         </div>
 
         {/* Visibility Conditions */}
@@ -154,7 +148,7 @@ export function EmailInputFieldConfig({
           </label>
           <Textarea
             value={
-              field.visibility_conditions ?? field.visibility_condition ?? ""
+              field.visibility_conditions ?? field.visibility_condition ?? ''
             }
             onChange={(e) =>
               onFieldChange({
@@ -172,17 +166,26 @@ export function EmailInputFieldConfig({
             📋 Available Validation Rules:
           </p>
           <div className="grid grid-cols-2 gap-1">
-            <span className="text-[10px] text-muted-foreground">• required</span>
+            <span className="text-[10px] text-muted-foreground">
+              • required
+            </span>
             <span className="text-[10px] text-muted-foreground">• email</span>
             <span className="text-[10px] text-muted-foreground">• min/max</span>
             <span className="text-[10px] text-muted-foreground">• unique</span>
-            <span className="text-[10px] text-muted-foreground">• confirmed</span>
+            <span className="text-[10px] text-muted-foreground">
+              • confirmed
+            </span>
             <span className="text-[10px] text-muted-foreground">• regex</span>
-            <span className="text-[10px] text-muted-foreground">• startswith</span>
-            <span className="text-[10px] text-muted-foreground">• endswith</span>
+            <span className="text-[10px] text-muted-foreground">
+              • startswith
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              • endswith
+            </span>
           </div>
           <p className="text-[10px] text-muted-foreground mt-2">
-            💡 Validation rules can be added after saving this field configuration.
+            💡 Validation rules can be added after saving this field
+            configuration.
           </p>
         </div>
       </div>

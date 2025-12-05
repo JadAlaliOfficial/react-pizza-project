@@ -58,16 +58,6 @@ export function UrlInputFieldConfig({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-cyan-50 border-cyan-200">
-          <Info className="h-4 w-4 text-cyan-600" />
-          <AlertDescription className="text-xs text-cyan-900">
-            URL input field for website links and resources. Validates URL
-            format (protocol, domain, path). Stored as lowercase. Clickable
-            preview available.
-          </AlertDescription>
-        </Alert>
-
         {/* Label */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -96,9 +86,6 @@ export function UrlInputFieldConfig({
             className="h-9"
             maxLength={255}
           />
-          <p className="text-[10px] text-muted-foreground">
-            💡 Example URL to guide users (e.g., https://example.com)
-          </p>
         </div>
 
         {/* Default Value */}
@@ -114,9 +101,6 @@ export function UrlInputFieldConfig({
             placeholder="e.g., https://yourcompany.com"
             className="h-9"
           />
-          <p className="text-[10px] text-muted-foreground">
-            💡 Pre-filled URL value (must be valid URL format)
-          </p>
         </div>
 
         {/* Helper Text */}
@@ -132,73 +116,6 @@ export function UrlInputFieldConfig({
             placeholder="Additional information (e.g., 'Please enter your portfolio website URL')"
             className="min-h-[60px] text-xs"
           />
-        </div>
-
-        {/* URL Validation Information */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🔗 URL Validation Details:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>
-              • <strong>Format:</strong> Must include protocol (http://, https://,
-              ftp://)
-            </div>
-            <div>
-              • <strong>Storage:</strong> Stored as lowercase, trimmed string
-            </div>
-            <div>
-              • <strong>Validation:</strong> PHP FILTER_VALIDATE_URL
-            </div>
-            <div>
-              • <strong>Preview:</strong> Clickable link with "Open" button
-            </div>
-          </div>
-        </div>
-
-        {/* URL Filtering Options */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🔍 Filter Options:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <div>
-              • <strong>Domain:</strong> Filter by domain name
-            </div>
-            <div>
-              • <strong>Protocol:</strong> Filter by http/https/ftp
-            </div>
-            <div>
-              • <strong>Exact:</strong> Exact URL match
-            </div>
-            <div>
-              • <strong>Contains:</strong> Partial URL match
-            </div>
-          </div>
-        </div>
-
-        {/* Common Use Cases */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🌐 Common Use Cases:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>
-              • <strong>Personal Websites:</strong> Portfolio, blog, homepage
-            </div>
-            <div>
-              • <strong>Social Media:</strong> LinkedIn, Twitter, GitHub profiles
-            </div>
-            <div>
-              • <strong>Business Links:</strong> Company website, landing pages
-            </div>
-            <div>
-              • <strong>Resources:</strong> Documentation, references, articles
-            </div>
-            <div>
-              • <strong>Projects:</strong> Demo links, live applications
-            </div>
-          </div>
         </div>
 
         {/* Visibility Conditions */}

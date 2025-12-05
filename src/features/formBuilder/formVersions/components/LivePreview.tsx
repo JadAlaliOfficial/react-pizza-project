@@ -18,29 +18,25 @@ import { useFieldTypes } from "@/features/formBuilder/fieldTypes/hooks/useFieldT
 
 // Import all preview components
 import { TextInputPreview } from "./TextInputPreview";
-import { TextAreaPreview } from "./TextAreaPreview";
-import { NumberInputPreview } from "./NumberInputPreview";
-import { EmailInputPreview } from "./EmailInputPreview";
+import { TextAreaPreview } from "../../fieldTypes/components/preview/TextAreaPreview";
+import { NumberInputPreview } from "../../fieldTypes/components/preview/NumberInputPreview";
+import { EmailInputPreview } from "../../fieldTypes/components/preview/EmailInputPreview";
 import { PhoneInputPreview } from "./PhoneInputPreview";
-import { UrlInputPreview } from "./UrlInputPreview";
-import { PasswordInputPreview } from "./PasswordInputPreview";
-import { SingleSelectDropdownPreview } from "./SingleSelectDropdownPreview";
-import { MultiSelectDropdownPreview } from "./MultiSelectDropdownPreview";
-import { RadioButtonGroupPreview } from "./RadioButtonGroupPreview";
-import { CheckboxGroupPreview } from "./CheckboxGroupPreview";
-import { SingleCheckboxPreview } from "./SingleCheckboxPreview";
-import { DatePickerPreview } from "./DatePickerPreview";
-import { TimePickerPreview } from "./TimePickerPreview";
-import { DateTimePickerPreview } from "./DateTimePickerPreview";
-import { DateRangePickerPreview } from "./DateRangePickerPreview";
+import { UrlInputPreview } from "../../fieldTypes/components/preview/UrlInputPreview";
+import { PasswordInputPreview } from "../../fieldTypes/components/preview/PasswordInputPreview";
+import { DropdownSelectPreview } from "./DropdownSelectPreview";
+import { RadioButtonPreview } from "./RadioButtonPreview";
+import { CheckboxPreview } from "./CheckboxPreview";
+import { DateInputPreview } from "./DateInputPreview";
+import { TimeInputPreview } from "./TimeInputPreview";
+import { DateTimeInputPreview } from "./DateTimeInputPreview";
 import { FileUploadPreview } from "./FileUploadPreview";
 import { ImageUploadPreview } from "./ImageUploadPreview";
-import { RichTextEditorPreview } from "./RichTextEditorPreview";
-import { SliderPreview } from "./SliderPreview";
-import { RatingPreview } from "./RatingPreview";
+import { SliderPreview } from "../../fieldTypes/components/preview/SliderPreview";
+import { RatingPreview } from "../../fieldTypes/components/preview/RatingPreview";
 import { ColorPickerPreview } from "./ColorPickerPreview";
-import { CurrencyInputPreview } from "./CurrencyInputPreview";
-import { PercentageInputPreview } from "./PercentageInputPreview";
+import { CurrencyInputPreview } from "../../fieldTypes/components/preview/CurrencyInputPreview";
+import { PercentageInputPreview } from "../../fieldTypes/components/preview/PercentageInputPreview";
 import { SignaturePadPreview } from "./SignaturePadPreview";
 import { LocationPickerPreview } from "./LocationPickerPreview";
 import { AddressInputPreview } from "./AddressInputPreview";
@@ -103,31 +99,25 @@ export function LivePreview({ stages, isLoading }: LivePreviewProps) {
         return <PasswordInputPreview key={key} field={field} />;
       
       case "Single Select Dropdown":
-        return <SingleSelectDropdownPreview key={key} field={field} />;
+        return <DropdownSelectPreview key={key} field={field} />;
       
-      case "Multi-Select Dropdown":
-        return <MultiSelectDropdownPreview key={key} field={field} />;
       
       case "Radio Button Group":
-        return <RadioButtonGroupPreview key={key} field={field} />;
+        return <RadioButtonPreview key={key} field={field} />;
       
       case "Checkbox Group":
-        return <CheckboxGroupPreview key={key} field={field} />;
+        return <CheckboxPreview key={key} field={field} />;
       
-      case "Single Checkbox":
-        return <SingleCheckboxPreview key={key} field={field} />;
       
       case "Date Picker":
-        return <DatePickerPreview key={key} field={field} />;
+        return <DateInputPreview key={key} field={field} />;
       
       case "Time Picker":
-        return <TimePickerPreview key={key} field={field} />;
+        return <TimeInputPreview key={key} field={field} />;
       
       case "Date-Time Picker":
-        return <DateTimePickerPreview key={key} field={field} />;
+        return <DateTimeInputPreview key={key} field={field} />;
       
-      case "Date Range Picker":
-        return <DateRangePickerPreview key={key} field={field} />;
       
       case "File Upload":
         return <FileUploadPreview key={key} field={field} />;
@@ -135,8 +125,6 @@ export function LivePreview({ stages, isLoading }: LivePreviewProps) {
       case "Image Upload":
         return <ImageUploadPreview key={key} field={field} />;
       
-      case "Rich Text Editor":
-        return <RichTextEditorPreview key={key} field={field} />;
       
       case "Slider":
         return <SliderPreview key={key} field={field} />;
@@ -277,9 +265,9 @@ export function LivePreview({ stages, isLoading }: LivePreviewProps) {
                                   <span className="font-medium text-muted-foreground">
                                     Visibility:
                                   </span>{" "}
-                                  de className="text-[10px]">
+                                  de className="text-[10px]"
                                     {section.visibility_conditions}
-                                  </code>
+                                  
                                 </div>
                               )}
 

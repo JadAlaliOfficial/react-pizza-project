@@ -9,7 +9,6 @@
 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Lock, Eye  } from "lucide-react";
 import type { Field } from "@/features/formBuilder/formVersions/types";
@@ -27,9 +26,6 @@ export function PasswordInputPreview({ field }: PasswordInputPreviewProps) {
           {field.label}
           {/* You can add a required indicator based on field rules */}
         </Label>
-        <Badge variant="secondary" className="text-[10px]">
-          Password Input
-        </Badge>
       </div>
 
       {/* Password Input with Toggle Visibility */}
@@ -39,7 +35,7 @@ export function PasswordInputPreview({ field }: PasswordInputPreviewProps) {
         </div>
         <Input
           type="password"
-          placeholder={field.placeholder || "Enter password"}
+          placeholder={field.placeholder || ""}
           disabled
           className="pl-9 pr-10 h-10 bg-white"
         />
@@ -71,13 +67,7 @@ export function PasswordInputPreview({ field }: PasswordInputPreviewProps) {
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
 
-      <div className="p-2 bg-red-50 border border-red-200 rounded-md">
-        <p className="text-[10px] text-red-900">
-          <strong>🔒 Security:</strong> Password is hashed (bcrypt) before
-          storage. Never stored as plain text. Not searchable or visible in
-          entries.
-        </p>
-      </div>
+      
     </div>
   );
 }

@@ -10,7 +10,6 @@
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { DollarSign } from "lucide-react";
 import type { Field } from "@/features/formBuilder/formVersions/types";
 
@@ -45,9 +44,6 @@ export function CurrencyInputPreview({ field }: CurrencyInputPreviewProps) {
           {field.label}
           {/* You can add a required indicator based on field rules */}
         </Label>
-        <Badge variant="secondary" className="text-[10px]">
-          Currency
-        </Badge>
       </div>
 
       {/* Currency Input */}
@@ -81,11 +77,6 @@ export function CurrencyInputPreview({ field }: CurrencyInputPreviewProps) {
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-emerald-600 italic">
-        💵 Currency input with auto-formatting. Stored as numeric string with 2
-        decimals. Filter by amount ranges.
-      </p>
     </div>
   );
 }

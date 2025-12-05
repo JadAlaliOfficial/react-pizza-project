@@ -9,7 +9,6 @@
 
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { AlignLeft } from "lucide-react";
 import type { Field } from "@/features/formBuilder/formVersions/types";
 
@@ -26,9 +25,6 @@ export function TextAreaPreview({ field }: TextAreaPreviewProps) {
           {field.label}
           {/* You can add a required indicator based on field rules */}
         </Label>
-        <Badge variant="secondary" className="text-[10px]">
-          Text Area
-        </Badge>
       </div>
 
       <Textarea
@@ -43,9 +39,6 @@ export function TextAreaPreview({ field }: TextAreaPreviewProps) {
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
 
-      <p className="text-[10px] text-orange-600 italic">
-        ✓ Multi-line text with preserved formatting and line breaks
-      </p>
     </div>
   );
 }

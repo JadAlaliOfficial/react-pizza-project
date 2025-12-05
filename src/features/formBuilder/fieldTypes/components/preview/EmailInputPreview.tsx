@@ -7,11 +7,10 @@
  * Shows email-specific features like type="email" and lowercase hint
  */
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Mail } from "lucide-react";
-import type { Field } from "@/features/formBuilder/formVersions/types";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Mail } from 'lucide-react';
+import type { Field } from '@/features/formBuilder/formVersions/types';
 
 type EmailInputPreviewProps = {
   field: Field;
@@ -26,26 +25,19 @@ export function EmailInputPreview({ field }: EmailInputPreviewProps) {
           {field.label}
           {/* You can add a required indicator based on field rules */}
         </Label>
-        <Badge variant="secondary" className="text-[10px]">
-          Email
-        </Badge>
       </div>
-      
+
       <Input
         type="email"
-        placeholder={field.placeholder ?? "your@email.com"}
+        placeholder={field.placeholder ?? ''}
         defaultValue={field.default_value ?? undefined}
         disabled
         className="bg-muted/30"
       />
-      
+
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-      
-      <p className="text-[10px] text-purple-600 italic">
-        ✓ Automatically validated and converted to lowercase
-      </p>
     </div>
   );
 }

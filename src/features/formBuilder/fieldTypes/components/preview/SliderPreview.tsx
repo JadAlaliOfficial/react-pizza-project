@@ -9,7 +9,6 @@
 
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { SlidersHorizontal } from "lucide-react";
 import type { Field } from "@/features/formBuilder/formVersions/types";
@@ -33,9 +32,6 @@ export function SliderPreview({ field }: SliderPreviewProps) {
           {field.label}
           {/* You can add a required indicator based on field rules */}
         </Label>
-        <Badge variant="secondary" className="text-[10px]">
-          Slider
-        </Badge>
       </div>
 
       {/* Slider Component */}
@@ -88,11 +84,6 @@ export function SliderPreview({ field }: SliderPreviewProps) {
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-indigo-600 italic">
-        🎚️ Draggable range slider. Values stored as numeric strings. Filter by
-        equals, greater/less than, or between range.
-      </p>
     </div>
   );
 }

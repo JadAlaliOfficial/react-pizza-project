@@ -4,12 +4,11 @@
  * Rating Preview Component
  *
  * Displays a preview of how the Rating field will appear in the form
- * Shows interactive star rating with hover effects
+ * Shows interactive star rating with hover effects (5-star fixed scale)
  */
 
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 import type { Field } from "@/features/formBuilder/formVersions/types";
 
@@ -18,9 +17,12 @@ type RatingPreviewProps = {
 };
 
 export function RatingPreview({ field }: RatingPreviewProps) {
-  const defaultRating = parseInt(field.default_value || "0");
+  const defaultRating = Math.max(
+    0,
+    Math.min(5, parseInt(field.default_value || "0"))
+  ); // Clamp to 0-5 like backend
   const [hoveredStar, setHoveredStar] = useState<number | null>(null);
-  const maxStars = 5; // Default, can be configured via validation rules
+  const maxStars = 5; // Fixed in backend
 
   return (
     <div className="space-y-2">
@@ -30,9 +32,6 @@ export function RatingPreview({ field }: RatingPreviewProps) {
           {field.label}
           {/* You can add a required indicator based on field rules */}
         </Label>
-        <Badge variant="secondary" className="text-[10px]">
-          Rating
-        </Badge>
       </div>
 
       {/* Star Rating Display */}
@@ -68,31 +67,11 @@ export function RatingPreview({ field }: RatingPreviewProps) {
             {hoveredStar || defaultRating || 0} / {maxStars}
           </span>
         </div>
-
-        {/* Rating Labels */}
-        <div className="flex justify-between text-[10px] text-muted-foreground">
-          <span>Poor</span>
-          <span>Fair</span>
-          <span>Good</span>
-          <span>Very Good</span>
-          <span>Excellent</span>
-        </div>
       </div>
-
-      {field.placeholder && (
-        <p className="text-xs text-muted-foreground italic">
-          {field.placeholder}
-        </p>
-      )}
 
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-amber-600 italic">
-        ⭐ Interactive star rating. Values stored as integers (0-5). Filter by
-        equals, greater than, less than, or range.
-      </p>
     </div>
   );
 }
