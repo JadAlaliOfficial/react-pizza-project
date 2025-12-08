@@ -7,6 +7,7 @@
  * - Stages configuration
  * - Sections configuration
  * - Fields configuration (supports all 27 field types)
+ * - Transitions configuration (stage-to-stage workflow)
  */
 
 import { useState } from "react";
@@ -14,21 +15,29 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
-import type { Stage } from "@/features/formBuilder/formVersions/types";
+import type {
+  Stage,
+  StageTransition,
+} from "@/features/formBuilder/formVersions/types";
 
 import { StagesTab } from "./StagesTab";
 import { SectionsTab } from "./SectionsTab";
 import { FieldsTab } from "./FieldsTab";
+import { TransitionsTab } from "./TransitionsTab";
 
 type ConfigDrawerProps = {
   stages: Stage[];
   onStagesChange: (stages: Stage[]) => void;
+  transitions: StageTransition[];
+  onTransitionsChange: (transitions: StageTransition[]) => void;
   isLoading: boolean;
 };
 
 export function ConfigDrawer({
   stages,
   onStagesChange,
+  transitions,
+  onTransitionsChange,
   isLoading,
 }: ConfigDrawerProps) {
   const [activeTab, setActiveTab] = useState<string>("stages");
@@ -50,6 +59,7 @@ export function ConfigDrawer({
       ) || 0),
     0
   );
+  const totalTransitions = transitions.length;
 
   return (
     <Card className="flex flex-col h-[calc(100vh-220px)]">
@@ -59,7 +69,7 @@ export function ConfigDrawer({
         className="flex flex-col h-full"
       >
         <div className="border-b px-4 pt-4">
-          <TabsList className="w-full grid grid-cols-3">
+          <TabsList className="w-full grid grid-cols-4">
             <TabsTrigger value="stages" className="relative">
               Stages
               {totalStages > 0 && (
@@ -84,13 +94,28 @@ export function ConfigDrawer({
                 </span>
               )}
             </TabsTrigger>
+            <TabsTrigger value="transitions" className="relative">
+              Transitions
+              {totalTransitions > 0 && (
+                <span className="ml-1.5 text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-full">
+                  {totalTransitions}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
-          
-          {/* Info bar showing 27 supported field types */}
+
+          {/* Info bar */}
           {activeTab === "fields" && (
             <div className="py-2 text-center">
               <p className="text-[10px] text-muted-foreground">
                 ✨ 27 field types supported with full preview
+              </p>
+            </div>
+          )}
+          {activeTab === "transitions" && (
+            <div className="py-2 text-center">
+              <p className="text-[10px] text-muted-foreground">
+                ⚙️ Configure how submissions move between stages
               </p>
             </div>
           )}
@@ -132,6 +157,14 @@ export function ConfigDrawer({
                   selectedSectionIndex={selectedSectionIndex}
                   onSectionSelect={setSelectedSectionIndex}
                   onStagesChange={onStagesChange}
+                />
+              </TabsContent>
+
+              <TabsContent value="transitions" className="m-0 p-4">
+                <TransitionsTab
+                  stages={stages}
+                  transitions={transitions}
+                  onTransitionsChange={onTransitionsChange}
                 />
               </TabsContent>
             </>

@@ -5,7 +5,7 @@
  *
  * Main orchestrator component that:
  * - Loads form version data
- * - Manages state for stages & sections
+ * - Manages state for stages, sections, and transitions
  * - Renders a split view: Config Drawer (left) + Live Preview (right)
  */
 
@@ -18,6 +18,7 @@ import {
 } from "@/features/formBuilder/formVersions/hooks/useFormVersions";
 import type {
   Stage,
+  StageTransition,
   UpdateFormVersionRequest,
 } from "@/features/formBuilder/formVersions/types";
 
@@ -68,7 +69,12 @@ export function FormVersionBuilderPage({
   // Local editable copy of stages
   const [editableStages, setEditableStages] = useState<Stage[]>([]);
 
-  // Reset local state when remote stages change
+  // Local editable copy of transitions
+  const [editableTransitions, setEditableTransitions] = useState<
+    StageTransition[]
+  >([]);
+
+  // Reset local stages when remote stages change
   useEffect(() => {
     if (stages && stages.length >= 0) {
       const cloned = stages.map((s) => ({
@@ -82,6 +88,17 @@ export function FormVersionBuilderPage({
     }
   }, [stages]);
 
+  // Reset local transitions when remote transitions change
+  useEffect(() => {
+    if (stageTransitions && stageTransitions.length >= 0) {
+      const cloned = stageTransitions.map((t) => ({
+        ...t,
+        actions: t.actions ? [...t.actions] : [],
+      }));
+      setEditableTransitions(cloned);
+    }
+  }, [stageTransitions]);
+
   // Derived flags
   const isLoading = fetchLoading || updateLoading;
   const hasError = Boolean(fetchError || updateError);
@@ -89,15 +106,23 @@ export function FormVersionBuilderPage({
 
   // Reset to server state
   const handleResetToServer = useCallback(() => {
-    const cloned = (stages || []).map((s) => ({
+    // Reset stages
+    const clonedStages = (stages || []).map((s) => ({
       ...s,
       sections: (s.sections || []).map((sec) => ({
         ...sec,
         fields: [...(sec.fields || [])],
       })),
     }));
-    setEditableStages(cloned);
-  }, [stages]);
+    setEditableStages(clonedStages);
+
+    // Reset transitions
+    const clonedTransitions = (stageTransitions || []).map((t) => ({
+      ...t,
+      actions: t.actions ? [...t.actions] : [],
+    }));
+    setEditableTransitions(clonedTransitions);
+  }, [stages, stageTransitions]);
 
   // Save changes
   const handleSave = useCallback(async () => {
@@ -105,7 +130,7 @@ export function FormVersionBuilderPage({
 
     const normalizedStages = normalizeStagesForUpdate(editableStages);
     const normalizedTransitions = normalizeStageTransitionsForUpdate(
-      stageTransitions || []
+      editableTransitions || []
     );
 
     const payload: UpdateFormVersionRequest = {
@@ -122,7 +147,7 @@ export function FormVersionBuilderPage({
   }, [
     formVersion,
     editableStages,
-    stageTransitions,
+    editableTransitions,
     updateFormVersionMutation,
     refetch,
   ]);
@@ -221,6 +246,8 @@ export function FormVersionBuilderPage({
         <ConfigDrawer
           stages={editableStages}
           onStagesChange={setEditableStages}
+          transitions={editableTransitions}
+          onTransitionsChange={setEditableTransitions}
           isLoading={isLoading}
         />
 

@@ -89,13 +89,89 @@ export interface Stage {
   access_rule: AccessRule | null;
 }
 
+// ============================================================================
+// Action Types
+// ============================================================================
+
 /**
- * Action entity - side-effects executed on stage transitions
+ * Send Email Action Props
  */
-export interface TransitionAction {
+export interface SendEmailActionProps {
+  emailSubject?: string;
+  emailContent?: string;
+  emailAttachments?: string[];
+  receiversUsers?: number[];
+  receiversRoles?: number[];
+  receiversPermissions?: number[];
+  receiversEmails?: string[];
+  ccUsers?: number[];
+  ccEmails?: string[];
+  bccUsers?: number[];
+  bccEmails?: string[];
+}
+
+/**
+ * Send Notification Action Props
+ */
+export interface SendNotificationActionProps {
+  notificationTitle?: string;
+  notificationBody?: string;
+  notificationType?: 'info' | 'success' | 'warning' | 'error';
+  notificationIcon?: string;
+  notificationLink?: string;
+  receiversUsers?: number[];
+  receiversRoles?: number[];
+  receiversPermissions?: number[];
+}
+
+/**
+ * Call Webhook Action Props
+ */
+export interface CallWebhookActionProps {
+  webhookUrl?: string;
+  webhookMethod?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  webhookHeaders?: Record<string, string>;
+  webhookPayload?: Record<string, any>;
+  webhookTimeout?: number;
+}
+
+/**
+ * Union type for all action props
+ */
+export type ActionProps =
+  | SendEmailActionProps
+  | SendNotificationActionProps
+  | CallWebhookActionProps;
+
+/**
+ * Action type discriminator
+ */
+export type ActionType = 'Send Email' | 'Send Notification' | 'Call Webhook';
+
+/**
+ * Transition Action entity - side-effects executed on stage transitions
+ * Generic version for UI state management
+ */
+export interface TransitionAction<T extends ActionProps = ActionProps> {
+  id?: number; // Optional, present after save
+  stage_transition_id?: number; // Present in GET response
+  action_id?: number; // Backend action ID (optional for static actions)
+  actionType: ActionType; // UI-friendly action type
+  actionProps: T; // Typed action configuration
+}
+
+/**
+ * Backend API format for Transition Action
+ * Used for serialization to/from API
+ */
+export interface TransitionActionAPI {
   action_id: number;
   action_props: string; // JSON string containing action configuration
 }
+
+// ============================================================================
+// Stage Transition Types
+// ============================================================================
 
 /**
  * Stage Transition entity - defines transitions between stages
@@ -112,6 +188,27 @@ export interface StageTransition {
   updated_at?: string;
   actions: TransitionAction[];
 }
+
+/**
+ * Backend API format for Stage Transition
+ * Used for serialization to/from API
+ */
+export interface StageTransitionAPI {
+  id?: number;
+  form_version_id?: number;
+  from_stage_id: number;
+  to_stage_id: number;
+  to_complete: boolean;
+  label: string;
+  condition: string | null;
+  created_at?: string;
+  updated_at?: string;
+  actions: TransitionActionAPI[];
+}
+
+// ============================================================================
+// Form Types
+// ============================================================================
 
 /**
  * Form entity - top-level form metadata
@@ -251,17 +348,17 @@ export interface FormVersionErrorState {
 export interface FormVersionState {
   // Current form version being worked on
   current: FormVersion | null;
-  
+
   // Normalized data for quick access
   stages: Stage[];
   stageTransitions: StageTransition[];
-  
+
   // Loading flags per operation
   loading: FormVersionLoadingState;
-  
+
   // Error state per operation
   errors: FormVersionErrorState;
-  
+
   // Last fetch timestamp for cache invalidation
   lastFetched: number | null;
 }
@@ -298,4 +395,97 @@ export interface UsePublishFormVersionReturn {
   publishFormVersion: (id: number) => Promise<void>;
   loading: boolean;
   error: ServiceError | null;
+}
+
+// ============================================================================
+// Utility Type Guards
+// ============================================================================
+
+/**
+ * Type guard to check if action is Send Email
+ */
+export function isSendEmailAction(
+  action: TransitionAction
+): action is TransitionAction<SendEmailActionProps> {
+  return action.actionType === 'Send Email';
+}
+
+/**
+ * Type guard to check if action is Send Notification
+ */
+export function isSendNotificationAction(
+  action: TransitionAction
+): action is TransitionAction<SendNotificationActionProps> {
+  return action.actionType === 'Send Notification';
+}
+
+/**
+ * Type guard to check if action is Call Webhook
+ */
+export function isCallWebhookAction(
+  action: TransitionAction
+): action is TransitionAction<CallWebhookActionProps> {
+  return action.actionType === 'Call Webhook';
+}
+
+// ============================================================================
+// Serialization Helpers
+// ============================================================================
+
+/**
+ * Convert UI TransitionAction to API format
+ */
+export function serializeTransitionAction(
+  action: TransitionAction,
+  actionIdMap: Record<ActionType, number>
+): TransitionActionAPI {
+  return {
+    action_id: actionIdMap[action.actionType],
+    action_props: JSON.stringify(action.actionProps),
+  };
+}
+
+/**
+ * Convert API TransitionAction to UI format
+ */
+export function deserializeTransitionAction(
+  apiAction: TransitionActionAPI,
+  actionTypeMap: Record<number, ActionType>
+): TransitionAction {
+  const actionType = actionTypeMap[apiAction.action_id];
+  return {
+    action_id: apiAction.action_id,
+    actionType,
+    actionProps: JSON.parse(apiAction.action_props),
+  };
+}
+
+/**
+ * Convert UI StageTransition to API format
+ */
+export function serializeStageTransition(
+  transition: StageTransition,
+  actionIdMap: Record<ActionType, number>
+): StageTransitionAPI {
+  return {
+    ...transition,
+    actions: transition.actions.map((action) =>
+      serializeTransitionAction(action, actionIdMap)
+    ),
+  };
+}
+
+/**
+ * Convert API StageTransition to UI format
+ */
+export function deserializeStageTransition(
+  apiTransition: StageTransitionAPI,
+  actionTypeMap: Record<number, ActionType>
+): StageTransition {
+  return {
+    ...apiTransition,
+    actions: apiTransition.actions.map((action) =>
+      deserializeTransitionAction(action, actionTypeMap)
+    ),
+  };
 }

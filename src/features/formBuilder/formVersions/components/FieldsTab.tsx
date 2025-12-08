@@ -31,28 +31,28 @@ import type { Stage, Field } from "@/features/formBuilder/formVersions/types";
 import { useFieldTypes } from "@/features/formBuilder/fieldTypes/hooks/useFieldTypes";
 
 // Import all field config components
-import { TextInputFieldConfig } from "./TextInputFieldConfig";
+import { TextInputFieldConfig } from "./later/TextInputFieldConfig";
 import { TextAreaFieldConfig } from "../../fieldTypes/components/config/TextAreaFieldConfig";
 import { NumberInputFieldConfig } from "../../fieldTypes/components/config/NumberInputFieldConfig";
 import { EmailInputFieldConfig } from "../../fieldTypes/components/config/EmailInputFieldConfig";
 import { UrlInputFieldConfig } from "../../fieldTypes/components/config/UrlInputFieldConfig";
 import { PasswordInputFieldConfig } from "../../fieldTypes/components/config/PasswordInputFieldConfig";
-import { DropdownSelectFieldConfig } from "./DropdownSelectFieldConfig";
-import { RadioButtonFieldConfig } from "./RadioButtonFieldConfig";
-import { CheckboxFieldConfig } from "./CheckboxFieldConfig";
-import { DateInputFieldConfig } from "./DateInputFieldConfig";
-import { TimeInputFieldConfig } from "./TimeInputFieldConfig";
-import { DateTimeInputFieldConfig } from "./DateTimeInputFieldConfig";
-import { FileUploadFieldConfig } from "./FileUploadFieldConfig";
-import { ImageUploadFieldConfig } from "./ImageUploadFieldConfig";
+import { DropdownSelectFieldConfig } from "./later/DropdownSelectFieldConfig";
+import { RadioButtonFieldConfig } from "./later/RadioButtonFieldConfig";
+import { CheckboxFieldConfig } from "./later/CheckboxFieldConfig";
+import { DateInputFieldConfig } from "./later/DateInputFieldConfig";
+import { TimeInputFieldConfig } from "./later/TimeInputFieldConfig";
+import { DateTimeInputFieldConfig } from "./later/DateTimeInputFieldConfig";
+import { FileUploadFieldConfig } from "./later/FileUploadFieldConfig";
+import { ImageUploadFieldConfig } from "./later/ImageUploadFieldConfig";
 import { SliderFieldConfig } from "../../fieldTypes/components/config/SliderFieldConfig";
 import { RatingFieldConfig } from "../../fieldTypes/components/config/RatingFieldConfig";
-import { ColorPickerFieldConfig } from "./ColorPickerFieldConfig";
+import { ColorPickerFieldConfig } from "./later/ColorPickerFieldConfig";
 import { CurrencyInputFieldConfig } from "../../fieldTypes/components/config/CurrencyInputFieldConfig";
 import { PercentageInputFieldConfig } from "../../fieldTypes/components/config/PercentageInputFieldConfig";
-import { SignaturePadFieldConfig } from "./SignaturePadFieldConfig";
-import { LocationPickerFieldConfig } from "./LocationPickerFieldConfig";
-import { AddressInputFieldConfig } from "./AddressInputFieldConfig";
+import { SignaturePadFieldConfig } from "./later/SignaturePadFieldConfig";
+import { LocationPickerFieldConfig } from "./later/LocationPickerFieldConfig";
+import { AddressInputFieldConfig } from "./later/AddressInputFieldConfig";
 
 type FieldsTabProps = {
   stages: Stage[];
@@ -71,7 +71,11 @@ export function FieldsTab({
   onSectionSelect,
   onStagesChange,
 }: FieldsTabProps) {
-  const { fieldTypes, isLoading: fieldTypesLoading, ensureLoaded } = useFieldTypes();
+  const {
+    fieldTypes,
+    isLoading: fieldTypesLoading,
+    ensureLoaded,
+  } = useFieldTypes();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Load field types on mount
@@ -123,13 +127,16 @@ export function FieldsTab({
     onStagesChange(next);
   };
 
-  const handleFieldChange = (fieldIndex: number, updatedField: Partial<Field>) => {
+  const handleFieldChange = (
+    fieldIndex: number,
+    updatedField: Partial<Field>
+  ) => {
     if (!currentStage || !currentSection) return;
 
     const next = [...stages];
     const sections = [...(currentStage.sections || [])];
     const fields = [...(currentSection.fields || [])];
-    
+
     fields[fieldIndex] = {
       ...fields[fieldIndex],
       ...updatedField,
@@ -148,80 +155,83 @@ export function FieldsTab({
       key,
       field,
       fieldIndex,
-      onFieldChange: (updated: Partial<Field>) => handleFieldChange(fieldIndex, updated),
+      onFieldChange: (updated: Partial<Field>) =>
+        handleFieldChange(fieldIndex, updated),
       onDelete: () => handleDeleteField(fieldIndex),
     };
 
     switch (fieldType?.name) {
       case "Text Input":
         return <TextInputFieldConfig {...commonProps} />;
-      
+
       case "Text Area":
         return <TextAreaFieldConfig {...commonProps} />;
-      
+
       case "Number Input":
         return <NumberInputFieldConfig {...commonProps} />;
-      
+
       case "Email Input":
         return <EmailInputFieldConfig {...commonProps} />;
-      
-      case "Phone Number Input":
+
+      case "Phone Input":
         return <NumberInputFieldConfig {...commonProps} />;
-      
+
       case "URL Input":
         return <UrlInputFieldConfig {...commonProps} />;
-      
+
       case "Password Input":
         return <PasswordInputFieldConfig {...commonProps} />;
-      
-      case "Single Select Dropdown":
+
+      case "Dropdown Select":
         return <DropdownSelectFieldConfig {...commonProps} />;
-      
-      case "Radio Button Group":
+
+      case "Radio Button":
         return <RadioButtonFieldConfig {...commonProps} />;
-      
-      case "Checkbox Group":
+
+      case "Checkbox":
         return <CheckboxFieldConfig {...commonProps} />;
-      
-      case "Date Picker":
+
+      case "Date Input":
         return <DateInputFieldConfig {...commonProps} />;
-      
-      case "Time Picker":
+
+      case "Time Input":
         return <TimeInputFieldConfig {...commonProps} />;
-      
-      case "Date-Time Picker":
+
+      case "DateTime Input":
         return <DateTimeInputFieldConfig {...commonProps} />;
-      
+
+      case "Document Upload":
       case "File Upload":
         return <FileUploadFieldConfig {...commonProps} />;
-      
+
       case "Image Upload":
+      case "Video Upload":
         return <ImageUploadFieldConfig {...commonProps} />;
-      
+
       case "Slider":
         return <SliderFieldConfig {...commonProps} />;
-      
+
       case "Rating":
         return <RatingFieldConfig {...commonProps} />;
-      
+
       case "Color Picker":
         return <ColorPickerFieldConfig {...commonProps} />;
-      
+
       case "Currency Input":
         return <CurrencyInputFieldConfig {...commonProps} />;
-      
+
       case "Percentage Input":
         return <PercentageInputFieldConfig {...commonProps} />;
-      
+
       case "Signature Pad":
         return <SignaturePadFieldConfig {...commonProps} />;
-      
+
       case "Location Picker":
         return <LocationPickerFieldConfig {...commonProps} />;
-      
+
       case "Address Input":
         return <AddressInputFieldConfig {...commonProps} />;
-      
+
       default:
         // Fallback for unknown field types
         return (
@@ -251,23 +261,33 @@ export function FieldsTab({
 
   // Group field types by category for better UX
   const groupedFieldTypes = {
-    "Text Inputs": fieldTypes.filter(ft => 
-      ["Text Input", "Text Area", "Email Input", "Phone Number Input", "URL Input", "Password Input"].includes(ft.name)
+    "Text Inputs": fieldTypes.filter((ft) =>
+      ["Text Input", "Text Area", "Email Input", "Phone Input", "URL Input", "Password Input"].includes(
+        ft.name
+      )
     ),
-    "Number Inputs": fieldTypes.filter(ft => 
-      ["Number Input", "Currency Input", "Percentage Input", "Slider", "Rating"].includes(ft.name)
+    "Number Inputs": fieldTypes.filter((ft) =>
+      ["Number Input", "Currency Input", "Percentage Input", "Slider", "Rating"].includes(
+        ft.name
+      )
     ),
-    "Selection": fieldTypes.filter(ft => 
-      ["Single Select Dropdown", "Multi-Select Dropdown", "Radio Button Group", "Checkbox Group", "Single Checkbox"].includes(ft.name)
+    Selection: fieldTypes.filter((ft) =>
+      ["Dropdown Select", "Multi_Select", "Radio Button", "Checkbox", "Toggle Switch"].includes(
+        ft.name
+      )
     ),
-    "Date & Time": fieldTypes.filter(ft => 
-      ["Date Picker", "Time Picker", "Date-Time Picker", "Date Range Picker"].includes(ft.name)
+    "Date & Time": fieldTypes.filter((ft) =>
+      ["Date Input", "Time Input", "DateTime Input"].includes(ft.name)
     ),
-    "File & Media": fieldTypes.filter(ft => 
-      ["File Upload", "Image Upload", "Rich Text Editor"].includes(ft.name)
+    "File & Media": fieldTypes.filter((ft) =>
+      ["Document Upload", "File Upload", "Image Upload", "Video Upload"].includes(
+        ft.name
+      )
     ),
-    "Advanced": fieldTypes.filter(ft => 
-      ["Color Picker", "Signature Pad", "Location Picker", "Address Input"].includes(ft.name)
+    Advanced: fieldTypes.filter((ft) =>
+      ["Color Picker", "Signature Pad", "Location Picker", "Address Input"].includes(
+        ft.name
+      )
     ),
   };
 
@@ -357,7 +377,7 @@ export function FieldsTab({
               Configure fields for {currentSection?.name || "this section"}
             </p>
           </div>
-          
+
           {/* Add Field Dropdown */}
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
             <DropdownMenuTrigger asChild>
@@ -367,14 +387,17 @@ export function FieldsTab({
                 <ChevronDown className="ml-1.5 h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 max-h-[400px] overflow-y-auto">
+            <DropdownMenuContent
+              align="end"
+              className="w-56 max-h-[400px] overflow-y-auto"
+            >
               <DropdownMenuLabel className="text-xs">
                 Select Field Type ({fieldTypes.length} available)
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              
-              {Object.entries(groupedFieldTypes).map(([category, types]) => (
-                types.length > 0 && (
+
+              {Object.entries(groupedFieldTypes).map(([category, types]) =>
+                types.length > 0 ? (
                   <div key={category}>
                     <DropdownMenuLabel className="text-[10px] text-muted-foreground px-2 py-1">
                       {category}
@@ -390,8 +413,8 @@ export function FieldsTab({
                     ))}
                     <DropdownMenuSeparator />
                   </div>
-                )
-              ))}
+                ) : null
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -17,29 +17,29 @@ import type { Stage } from "@/features/formBuilder/formVersions/types";
 import { useFieldTypes } from "@/features/formBuilder/fieldTypes/hooks/useFieldTypes";
 
 // Import all preview components
-import { TextInputPreview } from "./TextInputPreview";
+import { TextInputPreview } from "./later/TextInputPreview";
 import { TextAreaPreview } from "../../fieldTypes/components/preview/TextAreaPreview";
 import { NumberInputPreview } from "../../fieldTypes/components/preview/NumberInputPreview";
 import { EmailInputPreview } from "../../fieldTypes/components/preview/EmailInputPreview";
-import { PhoneInputPreview } from "./PhoneInputPreview";
+import { PhoneInputPreview } from "./later/PhoneInputPreview";
 import { UrlInputPreview } from "../../fieldTypes/components/preview/UrlInputPreview";
 import { PasswordInputPreview } from "../../fieldTypes/components/preview/PasswordInputPreview";
-import { DropdownSelectPreview } from "./DropdownSelectPreview";
-import { RadioButtonPreview } from "./RadioButtonPreview";
-import { CheckboxPreview } from "./CheckboxPreview";
-import { DateInputPreview } from "./DateInputPreview";
-import { TimeInputPreview } from "./TimeInputPreview";
-import { DateTimeInputPreview } from "./DateTimeInputPreview";
-import { FileUploadPreview } from "./FileUploadPreview";
-import { ImageUploadPreview } from "./ImageUploadPreview";
+import { DropdownSelectPreview } from "./later/DropdownSelectPreview";
+import { RadioButtonPreview } from "./later/RadioButtonPreview";
+import { CheckboxPreview } from "./later/CheckboxPreview";
+import { DateInputPreview } from "./later/DateInputPreview";
+import { TimeInputPreview } from "./later/TimeInputPreview";
+import { DateTimeInputPreview } from "./later/DateTimeInputPreview";
+import { FileUploadPreview } from "./later/FileUploadPreview";
+import { ImageUploadPreview } from "./later/ImageUploadPreview";
 import { SliderPreview } from "../../fieldTypes/components/preview/SliderPreview";
 import { RatingPreview } from "../../fieldTypes/components/preview/RatingPreview";
-import { ColorPickerPreview } from "./ColorPickerPreview";
+import { ColorPickerPreview } from "./later/ColorPickerPreview";
 import { CurrencyInputPreview } from "../../fieldTypes/components/preview/CurrencyInputPreview";
 import { PercentageInputPreview } from "../../fieldTypes/components/preview/PercentageInputPreview";
-import { SignaturePadPreview } from "./SignaturePadPreview";
-import { LocationPickerPreview } from "./LocationPickerPreview";
-import { AddressInputPreview } from "./AddressInputPreview";
+import { SignaturePadPreview } from "./later/SignaturePadPreview";
+import { LocationPickerPreview } from "./later/LocationPickerPreview";
+import { AddressInputPreview } from "./later/AddressInputPreview";
 
 type LivePreviewProps = {
   stages: Stage[];
