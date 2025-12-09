@@ -16,6 +16,7 @@ import type {
 import type {
   UiStage,
   UiSection,
+  UiField,
   UiStageTransition,
   StageIdLike,
   SectionIdLike,
@@ -288,7 +289,7 @@ const formVersionBuilderSlice = createSlice({
     // Import stage reducers
     ...stageReducers,
 
-    // Import section reducers
+    // Import section reducers (includes field reducers)
     ...sectionReducers,
   },
 
@@ -353,6 +354,11 @@ export const {
   updateSection,
   removeSection,
   reorderSections,
+  // Field actions (from section reducers)
+  addField,
+  updateField,
+  removeField,
+  reorderFields,
 } = formVersionBuilderSlice.actions;
 
 // ============================================================================
@@ -404,6 +410,32 @@ export const selectSectionById = (stageId: StageIdLike | null, sectionId: Sectio
 };
 
 /**
+ * Selects all fields from a specific section
+ */
+export const selectFieldsBySectionId = (stageId: StageIdLike | null, sectionId: SectionIdLike | null) => (
+  state: RootState
+): UiField[] => {
+  if (!stageId || !sectionId) return [];
+  const stage = state.formVersionBuilder.stages.find((s) => s.id === stageId);
+  const section = stage?.sections.find((sec) => sec.id === sectionId);
+  return section?.fields || [];
+};
+
+/**
+ * Selects a specific field by IDs
+ */
+export const selectFieldById = (
+  stageId: StageIdLike | null,
+  sectionId: SectionIdLike | null,
+  fieldId: FieldIdLike | null
+) => (state: RootState): UiField | undefined => {
+  if (!stageId || !sectionId || !fieldId) return undefined;
+  const stage = state.formVersionBuilder.stages.find((s) => s.id === stageId);
+  const section = stage?.sections.find((sec) => sec.id === sectionId);
+  return section?.fields.find((f) => f.id === fieldId);
+};
+
+/**
  * Selects the currently selected stage ID
  */
 export const selectSelectedStageId = (state: RootState): StageIdLike | null =>
@@ -440,6 +472,20 @@ export const selectSelectedSection = (state: RootState): UiSection | undefined =
   
   const stage = state.formVersionBuilder.stages.find((s) => s.id === selectedStageId);
   return stage?.sections.find((sec) => sec.id === selectedSectionId);
+};
+
+/**
+ * Selects the currently selected field object
+ */
+export const selectSelectedField = (state: RootState): UiField | undefined => {
+  const selectedStageId = state.formVersionBuilder.selectedStageId;
+  const selectedSectionId = state.formVersionBuilder.selectedSectionId;
+  const selectedFieldId = state.formVersionBuilder.selectedFieldId;
+  if (!selectedStageId || !selectedSectionId || !selectedFieldId) return undefined;
+  
+  const stage = state.formVersionBuilder.stages.find((s) => s.id === selectedStageId);
+  const section = stage?.sections.find((sec) => sec.id === selectedSectionId);
+  return section?.fields.find((f) => f.id === selectedFieldId);
 };
 
 /**

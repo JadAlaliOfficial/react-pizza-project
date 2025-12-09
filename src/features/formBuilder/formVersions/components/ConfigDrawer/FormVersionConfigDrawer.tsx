@@ -3,13 +3,14 @@
 /**
  * Main configuration drawer for Form Version Builder
  * Provides tabbed interface for editing stages, sections, fields, and transitions
- * Now includes Sections tab for section management
+ * Extended with Fields tab for field management
  */
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StageConfigTab } from '../stages/StageConfigTab';
 import { SectionConfigTab } from '../sections/SectionConfigTab';
+import { FieldConfigTab } from '../fields/FieldConfigTab';
 import { useFormVersionBuilder } from '../../hooks/useFormVersionBuilder';
 
 // ============================================================================
@@ -20,7 +21,11 @@ import { useFormVersionBuilder } from '../../hooks/useFormVersionBuilder';
  * FormVersionConfigDrawer Component
  * 
  * Renders a tabbed configuration panel for form version editing.
- * Supports Stages and Sections tabs with easy expansion for more tabs.
+ * Tabs:
+ * - Stages: Manage workflow stages
+ * - Sections: Manage sections within stages
+ * - Fields: Manage fields within sections (NEW)
+ * - Transitions: Manage stage transitions (future)
  */
 export const FormVersionConfigDrawer: React.FC = () => {
   const builder = useFormVersionBuilder();
@@ -43,15 +48,17 @@ export const FormVersionConfigDrawer: React.FC = () => {
 
       {/* Tabs */}
       <Tabs defaultValue="stages" className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="mx-6 mt-4 grid w-full grid-cols-2 gap-2">
+        <TabsList className="mx-6 mt-4 grid w-full grid-cols-3 gap-2">
           <TabsTrigger value="stages" className="data-[state=active]:bg-blue-50">
             Stages
           </TabsTrigger>
           <TabsTrigger value="sections" className="data-[state=active]:bg-blue-50">
             Sections
           </TabsTrigger>
+          <TabsTrigger value="fields" className="data-[state=active]:bg-blue-50">
+            Fields
+          </TabsTrigger>
           {/* Future tabs */}
-          {/* <TabsTrigger value="fields">Fields</TabsTrigger> */}
           {/* <TabsTrigger value="transitions">Transitions</TabsTrigger> */}
         </TabsList>
 
@@ -68,8 +75,13 @@ export const FormVersionConfigDrawer: React.FC = () => {
           <SectionConfigTab />
         </TabsContent>
 
+        {/* Fields Tab Content (NEW) */}
+        <TabsContent value="fields" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
+          <FieldConfigTab />
+        </TabsContent>
+
         {/* Future tab contents */}
-        {/* <TabsContent value="fields">...</TabsContent> */}
+        {/* <TabsContent value="transitions">...</TabsContent> */}
       </Tabs>
     </div>
   );

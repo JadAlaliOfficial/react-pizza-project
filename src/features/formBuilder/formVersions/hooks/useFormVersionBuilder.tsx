@@ -24,6 +24,7 @@ import {
   selectSelectedFieldId,
   selectSelectedStage,
   selectSelectedSection,
+  selectSelectedField,
   selectBuilderDirty,
   selectBuilderSaving,
   selectBuilderLastSavedAt,
@@ -34,10 +35,14 @@ import {
 } from '../store/formVersionBuilderSlice';
 import { useStageActions } from './useFormVersionBuilder.stages';
 import { useSectionActions } from './useFormVersionBuilder.sections';
+import { useFieldActions } from './useFormVersionBuilder.fields';
 import { useSelectionActions } from './useFormVersionBuilder.selections';
 
 // Re-export specialized hooks
 export { useBuilderSave } from './useFormVersionBuilder.save';
+export { useStageSelection } from './useFormVersionBuilder.stages';
+export { useSectionSelection } from './useFormVersionBuilder.sections';
+export { useFieldSelection, useCurrentFieldContext } from './useFormVersionBuilder.fields';
 export { useBuilderValidation } from './useFormVersionBuilder.validation';
 
 // ============================================================================
@@ -59,6 +64,7 @@ export { useBuilderValidation } from './useFormVersionBuilder.validation';
  * // Dispatch actions
  * builder.initializeFrom(formVersion);
  * builder.addSection(stageId, section);
+ * builder.addField(stageId, sectionId, fieldTypeId);
  */
 export const useFormVersionBuilder = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -71,6 +77,7 @@ export const useFormVersionBuilder = () => {
   const selectedFieldId = useSelector(selectSelectedFieldId);
   const selectedStage = useSelector(selectSelectedStage);
   const selectedSection = useSelector(selectSelectedSection);
+  const selectedField = useSelector(selectSelectedField);
   const dirty = useSelector(selectBuilderDirty);
   const saving = useSelector(selectBuilderSaving);
   const lastSavedAt = useSelector(selectBuilderLastSavedAt);
@@ -82,6 +89,7 @@ export const useFormVersionBuilder = () => {
   // Get actions from specialized hooks
   const stageActions = useStageActions();
   const sectionActions = useSectionActions();
+  const fieldActions = useFieldActions();
   const selectionActions = useSelectionActions();
 
   // Core actions
@@ -131,6 +139,7 @@ export const useFormVersionBuilder = () => {
     selectedFieldId,
     selectedStage,
     selectedSection,
+    selectedField,
     dirty,
     saving,
     lastSavedAt,
@@ -143,6 +152,7 @@ export const useFormVersionBuilder = () => {
     ...coreActions,
     ...stageActions,
     ...sectionActions,
+    ...fieldActions,
     ...selectionActions,
   };
 };

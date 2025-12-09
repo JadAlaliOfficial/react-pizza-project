@@ -3,6 +3,7 @@
 /**
  * Section-specific hooks for Form Version Builder
  * Handles section CRUD operations within stages
+ * Provides convenient access to section actions and selection
  */
 
 import { useCallback, useMemo } from 'react';
@@ -20,6 +21,7 @@ import {
   reorderSections,
   setSelectedSectionId,
   selectSectionsByStageId,
+  selectSectionById,
   selectSelectedSectionId,
   selectSelectedSection,
 } from '../store/formVersionBuilderSlice';
@@ -89,7 +91,7 @@ export const useSectionActions = () => {
  * Hook for managing sections in a specific stage
  * Provides section list and selection helpers
  * 
- * @param stageId - Stage ID to manage sections for
+ * @param stageId - Stage ID to get sections for
  * @returns Sections, selected section, and actions
  * 
  * @example
@@ -114,4 +116,25 @@ export const useSectionSelection = (stageId: StageIdLike | null) => {
     selectedSection,
     setSelected,
   };
+};
+
+// ============================================================================
+// Section by ID Hook
+// ============================================================================
+
+/**
+ * Hook to get a specific section by its IDs
+ * 
+ * @param stageId - Stage ID
+ * @param sectionId - Section ID
+ * @returns The matching section or undefined
+ * 
+ * @example
+ * const section = useSectionById(stageId, sectionId);
+ */
+export const useSectionById = (
+  stageId: StageIdLike | null,
+  sectionId: SectionIdLike | null
+): UiSection | undefined => {
+  return useSelector(selectSectionById(stageId, sectionId));
 };

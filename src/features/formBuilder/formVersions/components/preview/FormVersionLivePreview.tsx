@@ -1,21 +1,21 @@
 // src/features/formVersion/components/preview/FormVersionLivePreview.tsx
 
 /**
- * Live preview component for form version workflow
- * Renders a visual representation of stages and their sections
- * Architecture supports future expansion to show fields and transitions
+ * Form Version Live Preview Component
+ * Shows real-time preview of form as it's being built
+ * Extended to display fields within sections using preview registry
  */
 
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Star, ArrowRight, ChevronDown, ChevronRight, Layers } from 'lucide-react';
+import { AlertCircle, Layers, Box } from 'lucide-react';
 import type { UiStage } from '../../types/formVersion.ui-types';
-import { isFakeId } from '../../types/formVersion.ui-types';
+import { getFieldPreviewComponent } from '../fields/fieldComponentRegistry';
 
 // ============================================================================
-// Component Props
+// Props
 // ============================================================================
 
 interface FormVersionLivePreviewProps {
@@ -29,209 +29,137 @@ interface FormVersionLivePreviewProps {
 /**
  * FormVersionLivePreview Component
  * 
- * Displays a read-only visual preview of the form workflow.
- * Shows stages in order with expandable sections.
+ * Renders a live preview of the form version structure
+ * Shows stages → sections → fields hierarchy
+ * Uses fieldPreviewRegistry for dynamic field rendering
  * 
- * @param stages - Stages to preview
+ * Features:
+ * - Stage cards with sections
+ * - Section cards with fields
+ * - Dynamic field preview components
+ * - Visual indicators for initial stage
+ * - Empty states
  */
-export const FormVersionLivePreview: React.FC<FormVersionLivePreviewProps> = ({ stages }) => {
-  console.debug('[FormVersionLivePreview] Rendering preview with', stages.length, 'stages');
-
-  // Track expanded stages
-  const [expandedStages, setExpandedStages] = useState<Set<string | number>>(new Set());
-
-  /**
-   * Toggles stage expansion
-   */
-  const toggleStageExpansion = (stageId: string | number | undefined): void => {
-    if (!stageId) return;
-
-    setExpandedStages((prev) => {
-      const next = new Set(prev);
-      if (next.has(stageId)) {
-        next.delete(stageId);
-      } else {
-        next.add(stageId);
-      }
-      return next;
-    });
-  };
+export const FormVersionLivePreview: React.FC<FormVersionLivePreviewProps> = ({
+  stages,
+}) => {
+  console.debug('[FormVersionLivePreview] Rendering', stages.length, 'stages');
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 p-6 overflow-y-auto">
+    <div className="h-full flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Workflow Preview</h2>
+      <div className="px-6 py-4 bg-white border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900">Live Preview</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Visual representation of your form workflow
+          See how your form will appear to users
         </p>
       </div>
 
-      {/* Empty state */}
-      {stages.length === 0 && (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center">
-              <Star className="h-8 w-8 text-gray-400" />
-            </div>
-            <p className="text-sm font-medium text-gray-900">No stages defined</p>
-            <p className="mt-1 text-sm text-gray-500">
-              Add stages to see your workflow preview
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Stage flow */}
-      {stages.length > 0 && (
-        <div className="space-y-4">
-          {stages.map((stage, index) => {
-            const isNewStage = stage.id && isFakeId(stage.id);
-            const isInitial = stage.is_initial;
-            const sectionCount = stage.sections.length;
-            const fieldCount = stage.sections.reduce(
-              (sum, section) => sum + section.fields.length,
-              0
-            );
-            const isExpanded = stage.id && expandedStages.has(stage.id);
-            const sortedSections = [...stage.sections].sort(
-              (a, b) => (a.order || 0) - (b.order || 0)
-            );
-
-            return (
-              <div key={stage.id}>
-                {/* Stage card */}
-                <Card
-                  className={`${
-                    isInitial ? 'border-blue-500 border-2' : 'border-gray-200'
-                  } transition-all hover:shadow-md`}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      {/* Stage number/icon */}
-                      <div className="flex-shrink-0">
-                        {isInitial ? (
-                          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <Star className="h-5 w-5 text-blue-600 fill-blue-600" />
-                          </div>
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                            <span className="text-sm font-semibold text-gray-700">
-                              {index + 1}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Stage info */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap mb-2">
-                          <h3 className="font-medium text-gray-900">{stage.name}</h3>
-                          {isInitial && (
-                            <Badge variant="default" className="bg-blue-500">
-                              Initial
-                            </Badge>
-                          )}
-                          {isNewStage && (
-                            <Badge variant="outline" className="text-orange-600 border-orange-600">
-                              New
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Stage stats */}
-                        <div className="space-y-1 text-sm text-gray-600">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{sectionCount}</span>
-                            <span>section{sectionCount !== 1 ? 's' : ''}</span>
-                            <span className="text-gray-400">•</span>
-                            <span className="font-medium">{fieldCount}</span>
-                            <span>field{fieldCount !== 1 ? 's' : ''}</span>
-                          </div>
-
-                          {stage.access_rule && (
-                            <div className="text-xs text-gray-500">
-                              Access:{' '}
-                              {stage.access_rule.allow_authenticated_users
-                                ? 'All authenticated users'
-                                : 'Restricted'}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Expand/collapse button */}
-                        {sectionCount > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleStageExpansion(stage.id)}
-                            className="mt-2 h-7 text-xs gap-1"
-                          >
-                            {isExpanded ? (
-                              <>
-                                <ChevronDown className="h-3 w-3" />
-                                Hide sections
-                              </>
-                            ) : (
-                              <>
-                                <ChevronRight className="h-3 w-3" />
-                                Show sections
-                              </>
-                            )}
-                          </Button>
-                        )}
-                      </div>
+      {/* Preview Content */}
+      <ScrollArea className="flex-1">
+        <div className="p-6 space-y-6">
+          {stages.length === 0 ? (
+            // Empty state
+            <Card className="p-8 text-center border-dashed">
+              <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-sm font-medium text-gray-900 mb-2">
+                No stages defined
+              </h3>
+              <p className="text-sm text-gray-500">
+                Add stages in the Stages tab to start building your form
+              </p>
+            </Card>
+          ) : (
+            // Render stages
+            stages.map((stage, stageIndex) => (
+              <Card key={stage.id} className="overflow-hidden">
+                {/* Stage Header */}
+                <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        {stage.name}
+                      </h3>
+                      {stage.is_initial && (
+                        <Badge variant="default" className="text-xs">
+                          Initial
+                        </Badge>
+                      )}
                     </div>
+                    <span className="text-xs text-gray-500">
+                      Stage {stageIndex + 1}
+                    </span>
+                  </div>
+                </div>
 
-                    {/* Expanded sections */}
-                    {isExpanded && sectionCount > 0 && (
-                      <div className="mt-4 ml-14 space-y-2 border-l-2 border-gray-200 pl-4">
-                        {sortedSections.map((section) => {
-                          const isFake = section.id && isFakeId(section.id);
-                          return (
-                            <div
-                              key={section.id}
-                              className="flex items-start gap-3 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
-                            >
-                              <Layers className="h-4 w-4 text-purple-600 mt-0.5" />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <p className="text-sm font-medium text-gray-900 truncate">
-                                    {section.name}
-                                  </p>
-                                  {isFake && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs text-orange-600 border-orange-600"
-                                    >
-                                      New
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-xs text-gray-500 mt-0.5">
-                                  Order: {section.order} • {section.fields.length} field
-                                  {section.fields.length !== 1 ? 's' : ''}
+                {/* Stage Sections */}
+                <div className="p-4 space-y-4">
+                  {stage.sections.length === 0 ? (
+                    // Empty sections state
+                    <div className="text-center py-6 text-gray-500">
+                      <Layers className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm">No sections in this stage</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Add sections in the Sections tab
+                      </p>
+                    </div>
+                  ) : (
+                    // Render sections
+                    stage.sections
+                      .sort((a, b) => (a.order || 0) - (b.order || 0))
+                      .map((section, sectionIndex) => (
+                        <div
+                          key={section.id}
+                          className="border border-gray-200 rounded-lg overflow-hidden"
+                        >
+                          {/* Section Header */}
+                          <div className="bg-gray-100 px-3 py-2 border-b border-gray-200">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-medium text-gray-900">
+                                {section.name}
+                              </h4>
+                              <span className="text-xs text-gray-500">
+                                Section {sectionIndex + 1}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Section Fields */}
+                          <div className="p-3 space-y-3 bg-white">
+                            {section.fields.length === 0 ? (
+                              // Empty fields state
+                              <div className="text-center py-4 text-gray-500">
+                                <Box className="h-6 w-6 mx-auto mb-2 text-gray-400" />
+                                <p className="text-xs">No fields in this section</p>
+                                <p className="text-xs text-gray-400 mt-1">
+                                  Add fields in the Fields tab
                                 </p>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                            ) : (
+                              // Render fields using preview registry
+                              section.fields.map((field) => {
+                                // Get preview component for this field type
+                                const FieldPreviewComponent = getFieldPreviewComponent(
+                                  field.field_type_id
+                                );
 
-                {/* Arrow connector (except after last stage) */}
-                {index < stages.length - 1 && (
-                  <div className="flex justify-center mt-4">
-                    <ArrowRight className="h-6 w-6 text-gray-400" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                                return (
+                                  <div key={field.id}>
+                                    <FieldPreviewComponent field={field} />
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      ))
+                  )}
+                </div>
+              </Card>
+            ))
+          )}
         </div>
-      )}
+      </ScrollArea>
     </div>
   );
 };

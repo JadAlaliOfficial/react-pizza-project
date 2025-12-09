@@ -1,139 +1,182 @@
 // src/features/formVersion/types/formVersion.ui-types.ts
 
 /**
- * UI-layer types for Form Version Builder
- * Extends domain types to support fake IDs for entities not yet persisted to the backend
- * These types are used exclusively in the UI state and mapping layer
+ * UI-specific types for Form Version Builder
+ * These types support fake IDs for draft entities
+ * Extended with all properties needed for full form version editing
  */
 
-import type {
-  Stage,
-  Section,
-  Field,
-  StageTransition,
-  AccessRule,
-  InputRule,
-  TransitionAction,
-  ActionProps,
-} from './index';
-
 // ============================================================================
-// Fake ID Types
+// Base ID Types
 // ============================================================================
 
 /**
- * Fake ID format for UI-only entities
- * Format: "FAKE_<random_number>"
- * Example: "FAKE_123456789"
+ * ID that can be either a real database ID (number) or a fake ID (string)
  */
-export type FakeId = `FAKE_${number}`;
-
-/**
- * Union type for stage IDs: real numeric ID or fake string ID
- */
-export type StageIdLike = number | FakeId;
-
-/**
- * Union type for section IDs: real numeric ID or fake string ID
- */
-export type SectionIdLike = number | FakeId;
-
-/**
- * Union type for field IDs: real numeric ID or fake string ID
- */
-export type FieldIdLike = number | FakeId;
+export type StageIdLike = number | string;
+export type SectionIdLike = number | string;
+export type FieldIdLike = number | string;
+export type TransitionIdLike = number | string;
 
 // ============================================================================
-// UI Entity Types
+// Fake ID Utility
 // ============================================================================
 
 /**
- * UI version of Field with fake ID support
- * Used for fields that haven't been saved to the backend yet
- * Note: id is REQUIRED in UI (either real or fake) for tracking and updates
+ * Re-export isFakeId from utility for convenience
  */
-export interface UiField extends Omit<Field, 'id' | 'section_id'> {
-  id: FieldIdLike; // Required - always present (real or fake)
-  section_id?: SectionIdLike; // Optional - set when section is known
+export { isFakeId } from '../utils/fakeId';
+
+/**
+ * Checks if an ID is a real numeric ID (not a fake ID)
+ * @param id - The ID to check
+ * @returns True if ID is a real number, false otherwise
+ */
+export function isRealId(id: string | number | undefined): id is number {
+  return typeof id === 'number';
+}
+
+// ============================================================================
+// Access Rule Type
+// ============================================================================
+
+/**
+ * Access control rules for stage visibility
+ */
+export interface AccessRule {
+  allowed_users: string | null;
+  allowed_roles: string | null;
+  allowed_permissions: string | null;
+  allow_authenticated_users: boolean;
+  email_field_id: number | null;
+}
+
+// ============================================================================
+// Input Rule Type
+// ============================================================================
+
+/**
+ * Input rule configuration for field validation
+ * Stored in field.rules array
+ * NOTE: This is the UI version without the 'id' property
+ */
+export interface InputRule {
+  /**
+   * ID of the input rule from backend
+   * null/undefined means rule is disabled
+   */
+  input_rule_id: number | null;
+
+  /**
+   * Rule-specific properties as JSON string
+   * Example: '{"min": 5, "max": 10}' for length rule
+   */
+  rule_props: string | null;
+
+  /**
+   * Conditional rule application as JSON string
+   * Example: '{"field_id": 3, "value": "yes"}' to only apply if another field equals "yes"
+   */
+  rule_condition: string | null;
+}
+
+// ============================================================================
+// Field Type
+// ============================================================================
+
+/**
+ * UI representation of a form field
+ * Supports fake IDs for draft fields not yet saved
+ */
+export interface UiField {
+  id: FieldIdLike;
+  section_id: SectionIdLike;
   field_type_id: number;
   label: string;
   placeholder: string | null;
   helper_text: string | null;
   default_value: string | null;
-  visibility_condition: string | null;
-  visibility_conditions?: string | null;
+  visibility_condition: string | null; // Legacy - kept for backwards compatibility
+  visibility_conditions: string | null; // New format
   rules: InputRule[];
 }
 
+// ============================================================================
+// Section Type
+// ============================================================================
+
 /**
- * UI version of Section with fake ID support
- * Used for sections that haven't been saved to the backend yet
- * Note: id is REQUIRED in UI (either real or fake) for tracking and updates
+ * UI representation of a form section
+ * Supports fake IDs for draft sections not yet saved
  */
-export interface UiSection extends Omit<Section, 'id' | 'stage_id' | 'fields'> {
-  id: SectionIdLike; // Required - always present (real or fake)
-  stage_id?: StageIdLike; // Optional - set when stage is known
+export interface UiSection {
+  id: SectionIdLike;
+  stage_id: StageIdLike;
   name: string;
-  order?: number;
-  visibility_condition?: string | null;
-  visibility_conditions?: string | null;
+  description: string | null;
+  order: number;
+  is_repeatable: boolean;
+  min_entries: number | null;
+  max_entries: number | null;
+  visibility_condition: string | null; // Legacy - kept for backwards compatibility
+  visibility_conditions: string | null; // New format
   fields: UiField[];
 }
 
+// ============================================================================
+// Stage Type
+// ============================================================================
+
 /**
- * UI version of Stage with fake ID support
- * Used for stages that haven't been saved to the backend yet
- * Note: id is REQUIRED in UI (either real or fake) for tracking and updates
+ * UI representation of a workflow stage
+ * Supports fake IDs for draft stages not yet saved
  */
-export interface UiStage
-  extends Omit<Stage, 'id' | 'form_version_id' | 'sections'> {
-  id: StageIdLike; // Required - always present (real or fake)
+export interface UiStage {
+  id: StageIdLike;
   form_version_id?: number;
   name: string;
+  description: string | null;
+  order: number;
   is_initial: boolean;
+  allow_rejection: boolean;
   visibility_condition: string | null;
-  sections: UiSection[];
   access_rule: AccessRule | null;
+  sections: UiSection[];
 }
 
+// ============================================================================
+// Stage Transition Type
+// ============================================================================
+
 /**
- * UI version of StageTransition with fake ID support
- * Used for transitions referencing stages that may have fake IDs
+ * UI representation of a stage transition
+ * Supports fake IDs for draft transitions not yet saved
  */
-export interface UiStageTransition
-  extends Omit<StageTransition, 'id' | 'from_stage_id' | 'to_stage_id'> {
-  id?: number | FakeId; // Optional - transitions might not have IDs until saved
-  form_version_id?: number;
+export interface UiStageTransition {
+  id: TransitionIdLike;
   from_stage_id: StageIdLike;
   to_stage_id: StageIdLike;
-  to_complete: boolean;
   label: string;
   condition: string | null;
-  actions: TransitionAction<ActionProps>[];
+  to_complete: boolean;
+  actions: string | null; // Stored as JSON string in UI
 }
 
 // ============================================================================
-// Type Guards
+// Helper Types
 // ============================================================================
 
 /**
- * Type guard to check if an ID is a fake ID
- * @param id - ID to check
- * @returns True if ID is a fake ID string
+ * Complete builder state structure
  */
-export function isFakeId(
-  id: StageIdLike | SectionIdLike | FieldIdLike | undefined,
-): id is FakeId {
+export interface UiFormVersionDraft {
+  stages: UiStage[];
+  stageTransitions: UiStageTransition[];
+}
+
+/**
+ * Type guard to check if ID is a fake ID
+ */
+export function isFakeIdType(id: unknown): id is string {
   return typeof id === 'string' && id.startsWith('FAKE_');
-}
-
-/**
- * Type guard to check if an ID is a real numeric ID
- * @param id - ID to check
- * @returns True if ID is a real number
- */
-export function isRealId(
-  id: StageIdLike | SectionIdLike | FieldIdLike | undefined,
-): id is number {
-  return typeof id === 'number';
 }

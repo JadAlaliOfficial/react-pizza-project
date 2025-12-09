@@ -80,7 +80,12 @@ export const SectionConfigTab: React.FC = () => {
       id: generateFakeId(),
       stage_id: workingStageId,
       name: `Section ${sections.length + 1}`,
+      description: null,
       order: maxOrder + 1,
+      is_repeatable: false,
+      min_entries: null,
+      max_entries: null,
+      visibility_condition: null,
       visibility_conditions: null,
       fields: [],
     };

@@ -4,6 +4,7 @@
  * Form Version Builder Page
  * Main page component that orchestrates form version editing
  * Uses Redux builder slice for draft state management
+ * Extended to load field types and input rules for Fields tab
  */
 
 import React, { useEffect } from 'react';
@@ -13,6 +14,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Save, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { useFormVersion, usePublishFormVersion } from '../hooks/useFormVersions';
 import { useFormVersionBuilder, useBuilderSave } from '../hooks/useFormVersionBuilder';
+import { useFieldTypes } from '@/features/formBuilder/fieldTypes/hooks/useFieldTypes';
+import { useInputRules } from '@/features/formBuilder/inputRules/hooks/useInputRules';
 import { FormVersionConfigDrawer } from '../components/ConfigDrawer/FormVersionConfigDrawer';
 import { FormVersionLivePreview } from '../components/preview/FormVersionLivePreview';
 
@@ -30,6 +33,7 @@ import { FormVersionLivePreview } from '../components/preview/FormVersionLivePre
  * - Real-time data sync with server
  * - Save and publish operations
  * - Loading and error states
+ * - Preloads field types and input rules for Fields tab
  */
 export const FormVersionBuilderPage: React.FC = () => {
   console.info('[FormVersionBuilderPage] Initializing');
@@ -52,6 +56,20 @@ export const FormVersionBuilderPage: React.FC = () => {
     error: publishError,
   } = usePublishFormVersion();
 
+  // Field types and input rules hooks (for Fields tab)
+  const { 
+    fieldTypes, 
+    isLoading: fieldTypesLoading, 
+    error: fieldTypesError,
+    ensureLoaded: ensureFieldTypesLoaded 
+  } = useFieldTypes();
+  
+  const { 
+    items: inputRules, 
+    loading: inputRulesLoading, 
+    error: inputRulesError 
+  } = useInputRules();
+
   // UI state for success messages
   const [saveSuccess, setSaveSuccess] = React.useState(false);
   const [publishSuccess, setPublishSuccess] = React.useState(false);
@@ -65,6 +83,26 @@ export const FormVersionBuilderPage: React.FC = () => {
       builder.initializeFrom(formVersion);
     }
   }, [formVersion?.id]); // Only reinitialize when ID changes
+
+  // Load field types and input rules on mount
+  useEffect(() => {
+    console.info('[FormVersionBuilderPage] Ensuring field types and input rules are loaded');
+    ensureFieldTypesLoaded();
+    // useInputRules hook auto-fetches on mount
+  }, [ensureFieldTypesLoaded]);
+
+  // Log field types and rules loading status
+  useEffect(() => {
+    console.debug(
+      '[FormVersionBuilderPage] Metadata status:',
+      {
+        fieldTypes: fieldTypes.length,
+        fieldTypesLoading,
+        inputRules: inputRules.length,
+        inputRulesLoading
+      }
+    );
+  }, [fieldTypes.length, fieldTypesLoading, inputRules.length, inputRulesLoading]);
 
   // Cleanup builder on unmount
   useEffect(() => {
@@ -184,6 +222,9 @@ export const FormVersionBuilderPage: React.FC = () => {
   const isPublished = formVersion?.status === 'published';
   const isDraft = formVersion?.status === 'draft';
 
+  // Check if metadata is still loading
+  const metadataLoading = fieldTypesLoading || inputRulesLoading;
+
   return (
     <div className="h-screen flex flex-col bg-white">
       {/* Header */}
@@ -204,6 +245,9 @@ export const FormVersionBuilderPage: React.FC = () => {
                   {' '}
                   • Saved {new Date(builder.lastSavedAt).toLocaleTimeString()}
                 </span>
+              )}
+              {metadataLoading && (
+                <span className="text-blue-600"> • Loading metadata...</span>
               )}
             </p>
           </div>
@@ -285,6 +329,25 @@ export const FormVersionBuilderPage: React.FC = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               <strong>Publish failed:</strong> {publishError.message}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Metadata loading errors */}
+        {fieldTypesError && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Field types error:</strong> {fieldTypesError}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {inputRulesError && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Input rules error:</strong> {inputRulesError}
             </AlertDescription>
           </Alert>
         )}

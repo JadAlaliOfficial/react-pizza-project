@@ -52,9 +52,11 @@ export const StageConfigTab: React.FC<StageConfigTabProps> = ({ stages, onChange
     const newStage: UiStage = {
       id: generateFakeId(),
       name: `Stage ${stages.length + 1}`,
+      description: null,
+      order: stages.length,
       is_initial: stages.length === 0, // First stage is initial by default
+      allow_rejection: false,
       visibility_condition: null,
-      sections: [],
       access_rule: {
         allowed_users: null,
         allowed_roles: null,
@@ -62,6 +64,7 @@ export const StageConfigTab: React.FC<StageConfigTabProps> = ({ stages, onChange
         allow_authenticated_users: false,
         email_field_id: null,
       },
+      sections: [],
     };
 
     onChange([...stages, newStage]);

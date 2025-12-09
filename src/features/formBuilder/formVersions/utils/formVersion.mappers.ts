@@ -12,12 +12,15 @@ import type {
   Field,
   StageTransition,
   UpdateFormVersionRequest,
+  InputRule as ApiInputRule,
+  TransitionAction,
 } from '../types';
 import type {
   UiStage,
   UiSection,
   UiField,
   UiStageTransition,
+  InputRule as UiInputRule,
 } from '../types/formVersion.ui-types';
 import { isFakeId, isRealId } from '../types/formVersion.ui-types';
 import { generateFakeId } from './fakeId';
@@ -33,12 +36,20 @@ import { generateFakeId } from './fakeId';
  */
 function mapFieldToUi(field: Field): UiField {
   return {
-    ...field,
-    id: field.id || generateFakeId(), // Ensure ID is always present
-    section_id: field.section_id,
-    // Ensure visibility_conditions is used for UPDATE compatibility
-    visibility_conditions:
-      field.visibility_conditions ?? field.visibility_condition,
+    id: field.id ?? generateFakeId(),
+    section_id: field.section_id ?? generateFakeId(),
+    field_type_id: field.field_type_id,
+    label: field.label,
+    placeholder: field.placeholder ?? null,
+    helper_text: field.helper_text ?? null,
+    default_value: field.default_value ?? null,
+    visibility_condition: field.visibility_condition ?? null,
+    visibility_conditions: field.visibility_conditions ?? field.visibility_condition ?? null,
+    rules: (field.rules || []).map((rule): UiInputRule => ({
+      input_rule_id: rule.input_rule_id,
+      rule_props: rule.rule_props ?? null,
+      rule_condition: rule.rule_condition ?? null,
+    })),
   };
 }
 
@@ -49,13 +60,17 @@ function mapFieldToUi(field: Field): UiField {
  */
 function mapSectionToUi(section: Section): UiSection {
   return {
-    ...section,
-    id: section.id || generateFakeId(), // Ensure ID is always present
-    stage_id: section.stage_id,
-    fields: section.fields.map(mapFieldToUi),
-    // Ensure visibility_conditions is used for UPDATE compatibility
-    visibility_conditions:
-      section.visibility_conditions ?? section.visibility_condition,
+    id: section.id ?? generateFakeId(),
+    stage_id: section.stage_id ?? generateFakeId(),
+    name: section.name,
+    description: null,
+    order: section.order ?? 0,
+    is_repeatable: false,
+    min_entries: null,
+    max_entries: null,
+    visibility_condition: section.visibility_condition ?? null,
+    visibility_conditions: section.visibility_conditions ?? section.visibility_condition ?? null,
+    fields: (section.fields || []).map(mapFieldToUi),
   };
 }
 
@@ -66,17 +81,22 @@ function mapSectionToUi(section: Section): UiSection {
  */
 function mapStageToUi(stage: Stage): UiStage {
   return {
-    ...stage,
-    id: stage.id || generateFakeId(), // Ensure ID is always present
+    id: stage.id ?? generateFakeId(),
     form_version_id: stage.form_version_id,
-    sections: stage.sections.map(mapSectionToUi),
-    access_rule: stage.access_rule || {
+    name: stage.name,
+    description: null,
+    order: 0,
+    is_initial: stage.is_initial,
+    allow_rejection: false,
+    visibility_condition: stage.visibility_condition ?? null,
+    access_rule: stage.access_rule ?? {
       allowed_users: null,
       allowed_roles: null,
       allowed_permissions: null,
       allow_authenticated_users: false,
       email_field_id: null,
     },
+    sections: (stage.sections || []).map(mapSectionToUi),
   };
 }
 
@@ -84,13 +104,25 @@ function mapStageToUi(stage: Stage): UiStage {
  * Maps API StageTransition to UiStageTransition
  * Preserves transition structure with stage ID references
  */
-function mapStageTransitionToUi(
-  transition: StageTransition,
-): UiStageTransition {
+function mapStageTransitionToUi(transition: StageTransition): UiStageTransition {
+  // Convert actions array to JSON string for UI storage
+  let actionsString: string | null = null;
+  if (Array.isArray(transition.actions) && transition.actions.length > 0) {
+    try {
+      actionsString = JSON.stringify(transition.actions);
+    } catch (error) {
+      console.warn('[FormVersionMappers] Failed to stringify transition actions:', error);
+    }
+  }
+
   return {
-    ...transition,
+    id: transition.id ?? generateFakeId(),
     from_stage_id: transition.from_stage_id,
     to_stage_id: transition.to_stage_id,
+    label: transition.label,
+    condition: transition.condition ?? null,
+    to_complete: transition.to_complete,
+    actions: actionsString,
   };
 }
 
@@ -148,18 +180,24 @@ function mapFieldToApi(field: UiField): Field {
     helper_text: field.helper_text,
     default_value: field.default_value,
     visibility_condition: field.visibility_condition,
-    visibility_conditions:
-      field.visibility_conditions ?? field.visibility_condition,
-    rules: field.rules,
+    visibility_conditions: field.visibility_conditions ?? field.visibility_condition,
+    // Map only valid rules and cast to API type to satisfy typing
+    rules: field.rules
+      .filter((rule) => rule.input_rule_id !== null)
+      .map((rule) => ({
+        input_rule_id: rule.input_rule_id as number,
+        rule_props: rule.rule_props,
+        rule_condition: rule.rule_condition,
+      }) as unknown as ApiInputRule),
   };
 
   // Only include ID if it's a real numeric ID (skip fake IDs)
-  if (field.id && isRealId(field.id)) {
+  if (isRealId(field.id)) {
     apiField.id = field.id;
   }
 
   // Only include section_id if it's a real numeric ID (skip fake IDs)
-  if (field.section_id && isRealId(field.section_id)) {
+  if (isRealId(field.section_id)) {
     apiField.section_id = field.section_id;
   }
 
@@ -175,18 +213,17 @@ function mapSectionToApi(section: UiSection): Section {
     name: section.name,
     order: section.order,
     visibility_condition: section.visibility_condition,
-    visibility_conditions:
-      section.visibility_conditions ?? section.visibility_condition,
+    visibility_conditions: section.visibility_conditions ?? section.visibility_condition,
     fields: section.fields.map(mapFieldToApi),
   };
 
   // Only include ID if it's a real numeric ID (skip fake IDs)
-  if (section.id && isRealId(section.id)) {
+  if (isRealId(section.id)) {
     apiSection.id = section.id;
   }
 
   // Only include stage_id if it's a real numeric ID (skip fake IDs)
-  if (section.stage_id && isRealId(section.stage_id)) {
+  if (isRealId(section.stage_id)) {
     apiSection.stage_id = section.stage_id;
   }
 
@@ -203,7 +240,7 @@ function mapStageToApi(stage: UiStage): Stage {
     is_initial: stage.is_initial,
     visibility_condition: stage.visibility_condition,
     sections: stage.sections.map(mapSectionToApi),
-    access_rule: stage.access_rule || {
+    access_rule: stage.access_rule ?? {
       allowed_users: null,
       allowed_roles: null,
       allowed_permissions: null,
@@ -213,12 +250,12 @@ function mapStageToApi(stage: UiStage): Stage {
   };
 
   // Only include ID if it's a real numeric ID (skip fake IDs)
-  if (stage.id && isRealId(stage.id)) {
+  if (isRealId(stage.id)) {
     apiStage.id = stage.id;
   }
 
-  // Only include form_version_id if it's a real numeric ID
-  if (stage.form_version_id) {
+  // Only include form_version_id if it's defined
+  if (stage.form_version_id !== undefined) {
     apiStage.form_version_id = stage.form_version_id;
   }
 
@@ -248,17 +285,28 @@ function mapStageTransitionToApi(
     return null;
   }
 
+  // Parse actions from JSON string back to array
+  let actions: TransitionAction[] = [];
+  if (transition.actions) {
+    try {
+      actions = JSON.parse(transition.actions) as TransitionAction[];
+    } catch (error) {
+      console.warn('[FormVersionMappers] Failed to parse transition actions:', error);
+      actions = [];
+    }
+  }
+
   const apiTransition: StageTransition = {
     from_stage_id: transition.from_stage_id as number,
     to_stage_id: transition.to_stage_id as number,
     to_complete: transition.to_complete,
     label: transition.label,
     condition: transition.condition,
-    actions: transition.actions,
+    actions,
   };
 
   // Only include ID if it's a real numeric ID (skip fake IDs)
-  if (transition.id && isRealId(transition.id)) {
+  if (isRealId(transition.id)) {
     apiTransition.id = transition.id;
   }
 
