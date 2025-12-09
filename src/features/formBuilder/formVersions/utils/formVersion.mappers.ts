@@ -20,6 +20,7 @@ import type {
   UiStageTransition,
 } from '../types/formVersion.ui-types';
 import { isFakeId, isRealId } from '../types/formVersion.ui-types';
+import { generateFakeId } from './fakeId';
 
 // ============================================================================
 // API to UI Mappers
@@ -28,40 +29,45 @@ import { isFakeId, isRealId } from '../types/formVersion.ui-types';
 /**
  * Maps API Field to UiField
  * Preserves all field properties and converts IDs to UI format
+ * Ensures every UI field has an ID (generates fake ID if missing)
  */
 function mapFieldToUi(field: Field): UiField {
   return {
     ...field,
-    id: field.id,
+    id: field.id || generateFakeId(), // Ensure ID is always present
     section_id: field.section_id,
     // Ensure visibility_conditions is used for UPDATE compatibility
-    visibility_conditions: field.visibility_conditions ?? field.visibility_condition,
+    visibility_conditions:
+      field.visibility_conditions ?? field.visibility_condition,
   };
 }
 
 /**
  * Maps API Section to UiSection
  * Converts nested fields to UI format
+ * Ensures every UI section has an ID (generates fake ID if missing)
  */
 function mapSectionToUi(section: Section): UiSection {
   return {
     ...section,
-    id: section.id,
+    id: section.id || generateFakeId(), // Ensure ID is always present
     stage_id: section.stage_id,
     fields: section.fields.map(mapFieldToUi),
     // Ensure visibility_conditions is used for UPDATE compatibility
-    visibility_conditions: section.visibility_conditions ?? section.visibility_condition,
+    visibility_conditions:
+      section.visibility_conditions ?? section.visibility_condition,
   };
 }
 
 /**
  * Maps API Stage to UiStage
  * Converts nested sections to UI format
+ * Ensures every UI stage has an ID (generates fake ID if missing)
  */
 function mapStageToUi(stage: Stage): UiStage {
   return {
     ...stage,
-    id: stage.id,
+    id: stage.id || generateFakeId(), // Ensure ID is always present
     form_version_id: stage.form_version_id,
     sections: stage.sections.map(mapSectionToUi),
     access_rule: stage.access_rule || {
@@ -78,7 +84,9 @@ function mapStageToUi(stage: Stage): UiStage {
  * Maps API StageTransition to UiStageTransition
  * Preserves transition structure with stage ID references
  */
-function mapStageTransitionToUi(transition: StageTransition): UiStageTransition {
+function mapStageTransitionToUi(
+  transition: StageTransition,
+): UiStageTransition {
   return {
     ...transition,
     from_stage_id: transition.from_stage_id,
@@ -89,17 +97,20 @@ function mapStageTransitionToUi(transition: StageTransition): UiStageTransition 
 /**
  * Maps FormVersion from API to UI types
  * Converts stages and transitions to UI format for editing
- * 
+ *
  * @param formVersion - API FormVersion object (can be null)
  * @returns Object containing UI stages and transitions
  */
-export function mapFormVersionToUi(
-  formVersion: FormVersion | null
-): { stages: UiStage[]; stageTransitions: UiStageTransition[] } {
+export function mapFormVersionToUi(formVersion: FormVersion | null): {
+  stages: UiStage[];
+  stageTransitions: UiStageTransition[];
+} {
   console.info('[FormVersionMappers] Mapping FormVersion to UI format');
 
   if (!formVersion) {
-    console.debug('[FormVersionMappers] FormVersion is null, returning empty arrays');
+    console.debug(
+      '[FormVersionMappers] FormVersion is null, returning empty arrays',
+    );
     return {
       stages: [],
       stageTransitions: [],
@@ -107,10 +118,12 @@ export function mapFormVersionToUi(
   }
 
   const stages = (formVersion.stages || []).map(mapStageToUi);
-  const stageTransitions = (formVersion.stage_transitions || []).map(mapStageTransitionToUi);
+  const stageTransitions = (formVersion.stage_transitions || []).map(
+    mapStageTransitionToUi,
+  );
 
   console.info(
-    `[FormVersionMappers] Mapped ${stages.length} stages and ${stageTransitions.length} transitions`
+    `[FormVersionMappers] Mapped ${stages.length} stages and ${stageTransitions.length} transitions`,
   );
 
   return {
@@ -135,16 +148,17 @@ function mapFieldToApi(field: UiField): Field {
     helper_text: field.helper_text,
     default_value: field.default_value,
     visibility_condition: field.visibility_condition,
-    visibility_conditions: field.visibility_conditions ?? field.visibility_condition,
+    visibility_conditions:
+      field.visibility_conditions ?? field.visibility_condition,
     rules: field.rules,
   };
 
-  // Only include ID if it's a real numeric ID
+  // Only include ID if it's a real numeric ID (skip fake IDs)
   if (field.id && isRealId(field.id)) {
     apiField.id = field.id;
   }
 
-  // Only include section_id if it's a real numeric ID
+  // Only include section_id if it's a real numeric ID (skip fake IDs)
   if (field.section_id && isRealId(field.section_id)) {
     apiField.section_id = field.section_id;
   }
@@ -161,16 +175,17 @@ function mapSectionToApi(section: UiSection): Section {
     name: section.name,
     order: section.order,
     visibility_condition: section.visibility_condition,
-    visibility_conditions: section.visibility_conditions ?? section.visibility_condition,
+    visibility_conditions:
+      section.visibility_conditions ?? section.visibility_condition,
     fields: section.fields.map(mapFieldToApi),
   };
 
-  // Only include ID if it's a real numeric ID
+  // Only include ID if it's a real numeric ID (skip fake IDs)
   if (section.id && isRealId(section.id)) {
     apiSection.id = section.id;
   }
 
-  // Only include stage_id if it's a real numeric ID
+  // Only include stage_id if it's a real numeric ID (skip fake IDs)
   if (section.stage_id && isRealId(section.stage_id)) {
     apiSection.stage_id = section.stage_id;
   }
@@ -197,7 +212,7 @@ function mapStageToApi(stage: UiStage): Stage {
     },
   };
 
-  // Only include ID if it's a real numeric ID
+  // Only include ID if it's a real numeric ID (skip fake IDs)
   if (stage.id && isRealId(stage.id)) {
     apiStage.id = stage.id;
   }
@@ -215,18 +230,20 @@ function mapStageToApi(stage: UiStage): Stage {
  * Validates that from_stage_id and to_stage_id are real IDs
  * Logs warnings for transitions with fake IDs (should not happen in production)
  */
-function mapStageTransitionToApi(transition: UiStageTransition): StageTransition | null {
+function mapStageTransitionToApi(
+  transition: UiStageTransition,
+): StageTransition | null {
   // Validate stage IDs are real numbers
   if (isFakeId(transition.from_stage_id)) {
     console.warn(
-      `[FormVersionMappers] Skipping transition with fake from_stage_id: ${transition.from_stage_id}`
+      `[FormVersionMappers] Skipping transition with fake from_stage_id: ${transition.from_stage_id}`,
     );
     return null;
   }
 
   if (isFakeId(transition.to_stage_id)) {
     console.warn(
-      `[FormVersionMappers] Skipping transition with fake to_stage_id: ${transition.to_stage_id}`
+      `[FormVersionMappers] Skipping transition with fake to_stage_id: ${transition.to_stage_id}`,
     );
     return null;
   }
@@ -240,7 +257,7 @@ function mapStageTransitionToApi(transition: UiStageTransition): StageTransition
     actions: transition.actions,
   };
 
-  // Only include ID if it's a real numeric ID
+  // Only include ID if it's a real numeric ID (skip fake IDs)
   if (transition.id && isRealId(transition.id)) {
     apiTransition.id = transition.id;
   }
@@ -251,7 +268,7 @@ function mapStageTransitionToApi(transition: UiStageTransition): StageTransition
 /**
  * Builds UpdateFormVersionRequest from UI state
  * Strips fake IDs and ensures API compliance
- * 
+ *
  * @param input - UI stages and transitions
  * @returns UpdateFormVersionRequest ready for API
  */
@@ -261,7 +278,7 @@ export function buildUpdateFormVersionRequest(input: {
 }): UpdateFormVersionRequest {
   console.info(
     `[FormVersionMappers] Building update request with ${input.stages.length} stages ` +
-      `and ${input.stageTransitions.length} transitions`
+      `and ${input.stageTransitions.length} transitions`,
   );
 
   try {
@@ -270,7 +287,11 @@ export function buildUpdateFormVersionRequest(input: {
       try {
         return mapStageToApi(stage);
       } catch (error) {
-        console.error('[FormVersionMappers] Error mapping stage:', stage.name, error);
+        console.error(
+          '[FormVersionMappers] Error mapping stage:',
+          stage.name,
+          error,
+        );
         throw error;
       }
     });
@@ -281,7 +302,11 @@ export function buildUpdateFormVersionRequest(input: {
         try {
           return mapStageTransitionToApi(transition);
         } catch (error) {
-          console.error('[FormVersionMappers] Error mapping transition:', transition.label, error);
+          console.error(
+            '[FormVersionMappers] Error mapping transition:',
+            transition.label,
+            error,
+          );
           return null;
         }
       })
@@ -289,7 +314,7 @@ export function buildUpdateFormVersionRequest(input: {
 
     console.info(
       `[FormVersionMappers] Built request with ${stages.length} stages ` +
-        `and ${stageTransitions.length} transitions (filtered from ${input.stageTransitions.length})`
+        `and ${stageTransitions.length} transitions (filtered from ${input.stageTransitions.length})`,
     );
 
     return {

@@ -299,10 +299,7 @@ export const FormVersionBuilderPage: React.FC = () => {
 
         {/* Right: Config Drawer */}
         <div className="w-96 overflow-hidden">
-          <FormVersionConfigDrawer
-            stages={builder.stages}
-            onStagesChange={builder.setStages}
-          />
+          <FormVersionConfigDrawer />
         </div>
       </div>
     </div>

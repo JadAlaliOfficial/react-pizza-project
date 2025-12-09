@@ -50,10 +50,11 @@ export type FieldIdLike = number | FakeId;
 /**
  * UI version of Field with fake ID support
  * Used for fields that haven't been saved to the backend yet
+ * Note: id is REQUIRED in UI (either real or fake) for tracking and updates
  */
 export interface UiField extends Omit<Field, 'id' | 'section_id'> {
-  id?: FieldIdLike;
-  section_id?: SectionIdLike;
+  id: FieldIdLike; // Required - always present (real or fake)
+  section_id?: SectionIdLike; // Optional - set when section is known
   field_type_id: number;
   label: string;
   placeholder: string | null;
@@ -67,10 +68,11 @@ export interface UiField extends Omit<Field, 'id' | 'section_id'> {
 /**
  * UI version of Section with fake ID support
  * Used for sections that haven't been saved to the backend yet
+ * Note: id is REQUIRED in UI (either real or fake) for tracking and updates
  */
 export interface UiSection extends Omit<Section, 'id' | 'stage_id' | 'fields'> {
-  id?: SectionIdLike;
-  stage_id?: StageIdLike;
+  id: SectionIdLike; // Required - always present (real or fake)
+  stage_id?: StageIdLike; // Optional - set when stage is known
   name: string;
   order?: number;
   visibility_condition?: string | null;
@@ -81,9 +83,11 @@ export interface UiSection extends Omit<Section, 'id' | 'stage_id' | 'fields'> {
 /**
  * UI version of Stage with fake ID support
  * Used for stages that haven't been saved to the backend yet
+ * Note: id is REQUIRED in UI (either real or fake) for tracking and updates
  */
-export interface UiStage extends Omit<Stage, 'id' | 'form_version_id' | 'sections'> {
-  id?: StageIdLike;
+export interface UiStage
+  extends Omit<Stage, 'id' | 'form_version_id' | 'sections'> {
+  id: StageIdLike; // Required - always present (real or fake)
   form_version_id?: number;
   name: string;
   is_initial: boolean;
@@ -96,8 +100,9 @@ export interface UiStage extends Omit<Stage, 'id' | 'form_version_id' | 'section
  * UI version of StageTransition with fake ID support
  * Used for transitions referencing stages that may have fake IDs
  */
-export interface UiStageTransition extends Omit<StageTransition, 'id' | 'from_stage_id' | 'to_stage_id'> {
-  id?: number | FakeId;
+export interface UiStageTransition
+  extends Omit<StageTransition, 'id' | 'from_stage_id' | 'to_stage_id'> {
+  id?: number | FakeId; // Optional - transitions might not have IDs until saved
   form_version_id?: number;
   from_stage_id: StageIdLike;
   to_stage_id: StageIdLike;
@@ -116,7 +121,9 @@ export interface UiStageTransition extends Omit<StageTransition, 'id' | 'from_st
  * @param id - ID to check
  * @returns True if ID is a fake ID string
  */
-export function isFakeId(id: StageIdLike | SectionIdLike | FieldIdLike | undefined): id is FakeId {
+export function isFakeId(
+  id: StageIdLike | SectionIdLike | FieldIdLike | undefined,
+): id is FakeId {
   return typeof id === 'string' && id.startsWith('FAKE_');
 }
 
@@ -125,6 +132,8 @@ export function isFakeId(id: StageIdLike | SectionIdLike | FieldIdLike | undefin
  * @param id - ID to check
  * @returns True if ID is a real number
  */
-export function isRealId(id: StageIdLike | SectionIdLike | FieldIdLike | undefined): id is number {
+export function isRealId(
+  id: StageIdLike | SectionIdLike | FieldIdLike | undefined,
+): id is number {
   return typeof id === 'number';
 }

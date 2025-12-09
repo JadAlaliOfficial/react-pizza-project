@@ -2,14 +2,15 @@
 
 /**
  * Live preview component for form version workflow
- * Renders a visual representation of stages and their flow
- * Architecture supports future expansion to show sections, fields, and transitions
+ * Renders a visual representation of stages and their sections
+ * Architecture supports future expansion to show fields and transitions
  */
 
-import React from 'react';
-import { Card, CardContent } from '../../../../../components/ui/card';
-import { Badge } from '../../../../../components/ui/badge';
-import { Star, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Star, ArrowRight, ChevronDown, ChevronRight, Layers } from 'lucide-react';
 import type { UiStage } from '../../types/formVersion.ui-types';
 import { isFakeId } from '../../types/formVersion.ui-types';
 
@@ -29,12 +30,32 @@ interface FormVersionLivePreviewProps {
  * FormVersionLivePreview Component
  * 
  * Displays a read-only visual preview of the form workflow.
- * Shows stages in order with visual indicators for initial stage.
+ * Shows stages in order with expandable sections.
  * 
  * @param stages - Stages to preview
  */
 export const FormVersionLivePreview: React.FC<FormVersionLivePreviewProps> = ({ stages }) => {
   console.debug('[FormVersionLivePreview] Rendering preview with', stages.length, 'stages');
+
+  // Track expanded stages
+  const [expandedStages, setExpandedStages] = useState<Set<string | number>>(new Set());
+
+  /**
+   * Toggles stage expansion
+   */
+  const toggleStageExpansion = (stageId: string | number | undefined): void => {
+    if (!stageId) return;
+
+    setExpandedStages((prev) => {
+      const next = new Set(prev);
+      if (next.has(stageId)) {
+        next.delete(stageId);
+      } else {
+        next.add(stageId);
+      }
+      return next;
+    });
+  };
 
   return (
     <div className="h-full flex flex-col bg-gray-50 p-6 overflow-y-auto">
@@ -71,6 +92,10 @@ export const FormVersionLivePreview: React.FC<FormVersionLivePreviewProps> = ({ 
             const fieldCount = stage.sections.reduce(
               (sum, section) => sum + section.fields.length,
               0
+            );
+            const isExpanded = stage.id && expandedStages.has(stage.id);
+            const sortedSections = [...stage.sections].sort(
+              (a, b) => (a.order || 0) - (b.order || 0)
             );
 
             return (
@@ -133,8 +158,66 @@ export const FormVersionLivePreview: React.FC<FormVersionLivePreviewProps> = ({ 
                             </div>
                           )}
                         </div>
+
+                        {/* Expand/collapse button */}
+                        {sectionCount > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleStageExpansion(stage.id)}
+                            className="mt-2 h-7 text-xs gap-1"
+                          >
+                            {isExpanded ? (
+                              <>
+                                <ChevronDown className="h-3 w-3" />
+                                Hide sections
+                              </>
+                            ) : (
+                              <>
+                                <ChevronRight className="h-3 w-3" />
+                                Show sections
+                              </>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </div>
+
+                    {/* Expanded sections */}
+                    {isExpanded && sectionCount > 0 && (
+                      <div className="mt-4 ml-14 space-y-2 border-l-2 border-gray-200 pl-4">
+                        {sortedSections.map((section) => {
+                          const isFake = section.id && isFakeId(section.id);
+                          return (
+                            <div
+                              key={section.id}
+                              className="flex items-start gap-3 p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                            >
+                              <Layers className="h-4 w-4 text-purple-600 mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                    {section.name}
+                                  </p>
+                                  {isFake && (
+                                    <Badge
+                                      variant="outline"
+                                      className="text-xs text-orange-600 border-orange-600"
+                                    >
+                                      New
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  Order: {section.order} • {section.fields.length} field
+                                  {section.fields.length !== 1 ? 's' : ''}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
