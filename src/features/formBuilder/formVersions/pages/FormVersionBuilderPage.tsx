@@ -1,261 +1,310 @@
 // src/features/formVersion/pages/FormVersionBuilderPage.tsx
 
 /**
- * Form Version Builder Page - Refactored
- *
- * Main orchestrator component that:
- * - Loads form version data
- * - Manages state for stages, sections, and transitions
- * - Renders a split view: Config Drawer (left) + Live Preview (right)
+ * Form Version Builder Page
+ * Main page component that orchestrates form version editing
+ * Uses Redux builder slice for draft state management
  */
 
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import {
-  useFormVersion,
-  useUpdateFormVersion,
-  useFormVersionTransitions,
-} from "@/features/formBuilder/formVersions/hooks/useFormVersions";
-import type {
-  Stage,
-  StageTransition,
-  UpdateFormVersionRequest,
-} from "@/features/formBuilder/formVersions/types";
+import React, { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, Save, Upload, AlertCircle, CheckCircle } from 'lucide-react';
+import { useFormVersion, usePublishFormVersion } from '../hooks/useFormVersions';
+import { useFormVersionBuilder, useBuilderSave } from '../hooks/useFormVersionBuilder';
+import { FormVersionConfigDrawer } from '../components/ConfigDrawer/FormVersionConfigDrawer';
+import { FormVersionLivePreview } from '../components/preview/FormVersionLivePreview';
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Save, RotateCw } from "lucide-react";
-import { cn } from "@/lib/utils";
+// ============================================================================
+// Component
+// ============================================================================
 
-import { ConfigDrawer } from "../components/ConfigDrawer";
-import { LivePreview } from "../components/LivePreview";
-import {
-  normalizeStagesForUpdate,
-  normalizeStageTransitionsForUpdate,
-} from "../utils/normalizers";
+/**
+ * FormVersionBuilderPage Component
+ * 
+ * Main page for editing form versions with visual builder interface.
+ * Features:
+ * - Split layout: preview (left) + config (right)
+ * - Redux builder slice for draft state
+ * - Real-time data sync with server
+ * - Save and publish operations
+ * - Loading and error states
+ */
+export const FormVersionBuilderPage: React.FC = () => {
+  console.info('[FormVersionBuilderPage] Initializing');
 
-type FormVersionBuilderPageProps = {
-  formVersionId?: number;
-};
+  // Get form version ID from route params
+  const { id } = useParams<{ id: string }>();
+  const formVersionId = id ? parseInt(id, 10) : null;
 
-export function FormVersionBuilderPage({
-  formVersionId,
-}: FormVersionBuilderPageProps) {
-  const { id } = useParams();
-  const parsedId = id ? Number(id) : NaN;
-  const effectiveFormVersionId: number | null = Number.isFinite(parsedId)
-    ? parsedId
-    : formVersionId ?? null;
+  // Server data hook (formVersion slice)
+  const { formVersion, loading, error, refetch } = useFormVersion(formVersionId);
 
-  // Load version data
+  // Builder hooks (formVersionBuilder slice)
+  const builder = useFormVersionBuilder();
+  const { save, saving, error: saveError } = useBuilderSave();
+
+  // Publish hook
   const {
-    formVersion,
-    stages,
-    loading: fetchLoading,
-    error: fetchError,
-    refetch,
-  } = useFormVersion(effectiveFormVersionId);
+    publishFormVersion,
+    loading: publishLoading,
+    error: publishError,
+  } = usePublishFormVersion();
 
-  const stageTransitions = useFormVersionTransitions();
+  // UI state for success messages
+  const [saveSuccess, setSaveSuccess] = React.useState(false);
+  const [publishSuccess, setPublishSuccess] = React.useState(false);
 
-  // Update hook
-  const {
-    updateFormVersion: updateFormVersionMutation,
-    loading: updateLoading,
-    error: updateError,
-  } = useUpdateFormVersion();
-
-  // Local editable copy of stages
-  const [editableStages, setEditableStages] = useState<Stage[]>([]);
-
-  // Local editable copy of transitions
-  const [editableTransitions, setEditableTransitions] = useState<
-    StageTransition[]
-  >([]);
-
-  // Reset local stages when remote stages change
+  // Initialize builder when formVersion loads
   useEffect(() => {
-    if (stages && stages.length >= 0) {
-      const cloned = stages.map((s) => ({
-        ...s,
-        sections: (s.sections || []).map((sec) => ({
-          ...sec,
-          fields: [...(sec.fields || [])],
-        })),
-      }));
-      setEditableStages(cloned);
+    if (formVersion) {
+      console.info(
+        '[FormVersionBuilderPage] FormVersion loaded, initializing builder'
+      );
+      builder.initializeFrom(formVersion);
     }
-  }, [stages]);
+  }, [formVersion?.id]); // Only reinitialize when ID changes
 
-  // Reset local transitions when remote transitions change
+  // Cleanup builder on unmount
   useEffect(() => {
-    if (stageTransitions && stageTransitions.length >= 0) {
-      const cloned = stageTransitions.map((t) => ({
-        ...t,
-        actions: t.actions ? [...t.actions] : [],
-      }));
-      setEditableTransitions(cloned);
-    }
-  }, [stageTransitions]);
-
-  // Derived flags
-  const isLoading = fetchLoading || updateLoading;
-  const hasError = Boolean(fetchError || updateError);
-  const currentStatus = formVersion?.status ?? "unknown";
-
-  // Reset to server state
-  const handleResetToServer = useCallback(() => {
-    // Reset stages
-    const clonedStages = (stages || []).map((s) => ({
-      ...s,
-      sections: (s.sections || []).map((sec) => ({
-        ...sec,
-        fields: [...(sec.fields || [])],
-      })),
-    }));
-    setEditableStages(clonedStages);
-
-    // Reset transitions
-    const clonedTransitions = (stageTransitions || []).map((t) => ({
-      ...t,
-      actions: t.actions ? [...t.actions] : [],
-    }));
-    setEditableTransitions(clonedTransitions);
-  }, [stages, stageTransitions]);
-
-  // Save changes
-  const handleSave = useCallback(async () => {
-    if (!formVersion) return;
-
-    const normalizedStages = normalizeStagesForUpdate(editableStages);
-    const normalizedTransitions = normalizeStageTransitionsForUpdate(
-      editableTransitions || []
-    );
-
-    const payload: UpdateFormVersionRequest = {
-      stages: normalizedStages,
-      stage_transitions: normalizedTransitions,
+    return () => {
+      console.debug('[FormVersionBuilderPage] Unmounting, resetting builder');
+      builder.reset();
     };
+  }, []);
+
+  /**
+   * Handles saving form version
+   */
+  const handleSave = async (): Promise<void> => {
+    console.info('[FormVersionBuilderPage] Save triggered');
+    setSaveSuccess(false);
 
     try {
-      await updateFormVersionMutation(formVersion.id, payload);
+      await save();
+
+      console.info('[FormVersionBuilderPage] Save successful');
+      setSaveSuccess(true);
+
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSaveSuccess(false), 3000);
+
+      // Refetch server data to sync real IDs
+      if (formVersionId) {
+        await refetch();
+      }
+    } catch (err) {
+      console.error('[FormVersionBuilderPage] Save failed:', err);
+      // Error is already in builder state via saveError
+    }
+  };
+
+  /**
+   * Handles publishing form version
+   */
+  const handlePublish = async (): Promise<void> => {
+    if (!formVersionId) {
+      console.error('[FormVersionBuilderPage] Cannot publish: No form version ID');
+      return;
+    }
+
+    // Confirm before publishing
+    const confirmed = window.confirm(
+      'Are you sure you want to publish this form version? This will make it live.'
+    );
+
+    if (!confirmed) {
+      console.debug('[FormVersionBuilderPage] Publish cancelled by user');
+      return;
+    }
+
+    console.info('[FormVersionBuilderPage] Publishing form version', formVersionId);
+    setPublishSuccess(false);
+
+    try {
+      await publishFormVersion(formVersionId);
+
+      console.info('[FormVersionBuilderPage] Publish successful');
+      setPublishSuccess(true);
+
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setPublishSuccess(false), 3000);
+
+      // Refetch to sync with backend
       await refetch();
     } catch (err) {
-      console.error("[FormVersionBuilderPage] Save failed:", err);
+      console.error('[FormVersionBuilderPage] Publish failed:', err);
+      // Error is already in hook state via publishError
     }
-  }, [
-    formVersion,
-    editableStages,
-    editableTransitions,
-    updateFormVersionMutation,
-    refetch,
-  ]);
+  };
 
-  // Header info
-  const headerTitle = useMemo(() => {
-    if (!formVersion) return "Form Version Builder";
-    const base = formVersion.form?.name ?? "Untitled Form";
-    return `${base} – v${formVersion.version_number}`;
-  }, [formVersion]);
+  // Loading state
+  if (loading && !formVersion) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-sm text-gray-600">Loading form version...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const headerSubtitle = useMemo(() => {
-    if (!formVersion) return "";
-    const status = formVersion.status;
-    const updatedAt = formVersion.updated_at
-      ? new Date(formVersion.updated_at).toLocaleString()
-      : "N/A";
-    return `Status: ${status.toUpperCase()} • Last updated: ${updatedAt}`;
-  }, [formVersion]);
+  // Error state
+  if (error && !formVersion) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Failed to load form version</strong>
+            <p className="mt-2 text-sm">{error.message}</p>
+            <Button onClick={() => refetch()} className="mt-4" variant="outline" size="sm">
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Invalid ID
+  if (!formVersionId) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>Invalid form version ID</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  const isPublished = formVersion?.status === 'published';
+  const isDraft = formVersion?.status === 'draft';
 
   return (
-    <div className="flex flex-col h-full w-full gap-4 p-6">
+    <div className="h-screen flex flex-col bg-white">
       {/* Header */}
-      <Card className="p-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight">
-            {headerTitle}
-          </h1>
-          {headerSubtitle && (
-            <p className="text-sm text-muted-foreground">{headerSubtitle}</p>
-          )}
-          {currentStatus && (
-            <Badge
-              variant={currentStatus === "published" ? "default" : "secondary"}
+      <header className="border-b border-gray-200 bg-white px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">
+              {formVersion?.form?.name || 'Form Version Builder'}
+            </h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Version {formVersion?.version_number} •{' '}
+              <span className={isDraft ? 'text-orange-600' : 'text-green-600'}>
+                {formVersion?.status}
+              </span>
+              {builder.dirty && <span className="text-orange-600"> • Unsaved changes</span>}
+              {builder.lastSavedAt && !builder.dirty && (
+                <span className="text-green-600">
+                  {' '}
+                  • Saved {new Date(builder.lastSavedAt).toLocaleTimeString()}
+                </span>
+              )}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Save button */}
+            <Button
+              onClick={handleSave}
+              disabled={saving || !builder.dirty}
+              className="gap-2"
+              variant="outline"
             >
-              {currentStatus.toUpperCase()}
-            </Badge>
-          )}
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save
+                </>
+              )}
+            </Button>
+
+            {/* Publish button */}
+            <Button
+              onClick={handlePublish}
+              disabled={publishLoading || isPublished || builder.dirty}
+              className="gap-2"
+              title={builder.dirty ? 'Save changes before publishing' : ''}
+            >
+              {publishLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Publishing...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  {isPublished ? 'Published' : 'Publish'}
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            onClick={refetch}
-            disabled={isLoading}
-          >
-            <RotateCw
-              className={cn("mr-2 h-4 w-4", fetchLoading && "animate-spin")}
-            />
-            Refresh
-          </Button>
+        {/* Success messages */}
+        {saveSuccess && (
+          <Alert className="mt-4 bg-green-50 border-green-200">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Form version saved successfully!
+            </AlertDescription>
+          </Alert>
+        )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            onClick={handleResetToServer}
-            disabled={isLoading}
-          >
-            Reset Changes
-          </Button>
+        {publishSuccess && (
+          <Alert className="mt-4 bg-green-50 border-green-200">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800">
+              Form version published successfully!
+            </AlertDescription>
+          </Alert>
+        )}
 
-          <Button
-            size="sm"
-            type="button"
-            onClick={handleSave}
-            disabled={isLoading || !formVersion}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </>
-            )}
-          </Button>
+        {/* Error messages */}
+        {saveError && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Save failed:</strong> {saveError.message}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {publishError && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Publish failed:</strong> {publishError.message}
+            </AlertDescription>
+          </Alert>
+        )}
+      </header>
+
+      {/* Main content: split layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left: Live Preview */}
+        <div className="flex-1 overflow-hidden">
+          <FormVersionLivePreview stages={builder.stages} />
         </div>
-      </Card>
 
-      {/* Error Banner */}
-      {hasError && (
-        <Card className="border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">
-          {fetchError?.message ?? updateError?.message ?? "An error occurred."}
-        </Card>
-      )}
-
-      {/* Main Content: Config Drawer + Live Preview */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[400px,1fr] xl:grid-cols-[450px,1fr]">
-        {/* Left: Config Drawer with Tabs */}
-        <ConfigDrawer
-          stages={editableStages}
-          onStagesChange={setEditableStages}
-          transitions={editableTransitions}
-          onTransitionsChange={setEditableTransitions}
-          isLoading={isLoading}
-        />
-
-        {/* Right: Live Preview */}
-        <LivePreview stages={editableStages} isLoading={isLoading} />
+        {/* Right: Config Drawer */}
+        <div className="w-96 overflow-hidden">
+          <FormVersionConfigDrawer
+            stages={builder.stages}
+            onStagesChange={builder.setStages}
+          />
+        </div>
       </div>
     </div>
   );
-}
-
-export default FormVersionBuilderPage;
+};

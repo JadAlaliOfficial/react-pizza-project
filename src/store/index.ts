@@ -39,6 +39,7 @@ import translationsReducer from '../features/formBuilder/translations/store/tran
 import languagesPreferencesReducer from '../features/formBuilder/languagesPreferences/store/languagesPreferencesSlice';
 import rulesReducer from '../features/formBuilder/inputRules/store/rulesSlice';
 import formVersionsReducer from '../features/formBuilder/formVersions/store/formVersionsSlice';
+import formVersionBuilderReducer from '../features/formBuilder/formVersions/store/formVersionBuilderSlice';
 
 
 
@@ -83,6 +84,7 @@ export const store = configureStore({
     languagesPreferences: languagesPreferencesReducer,
     rules: rulesReducer,
     formVersion: formVersionsReducer,
+    formVersionBuilder: formVersionBuilderReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
