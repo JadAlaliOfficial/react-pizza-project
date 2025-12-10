@@ -1,158 +1,240 @@
 // src/features/formVersion/hooks/useFormVersionBuilder.ts
 
 /**
- * Core hook for Form Version Builder
- * Provides comprehensive access to builder state and all actions
- * Re-exports specialized hooks for convenience
+ * Main Form Version Builder Hook
+ * Provides unified access to all builder functionality
+ * UPDATED: Added transition actions export
  */
 
-import { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch } from '@/store';
-import type { FormVersion } from '../types';
-import {
-  initializeFromFormVersion,
-  resetBuilder,
-  setDirty,
-  clearSaveError,
-  setValidationErrors,
-  clearValidationErrors,
-  selectBuilderStages,
-  selectBuilderStageTransitions,
-  selectSelectedStageId,
-  selectSelectedSectionId,
-  selectSelectedFieldId,
-  selectSelectedStage,
-  selectSelectedSection,
-  selectSelectedField,
-  selectBuilderDirty,
-  selectBuilderSaving,
-  selectBuilderLastSavedAt,
-  selectBuilderSaveError,
-  selectBuilderFormVersionId,
-  selectBuilderValidationErrors,
-  selectHasValidationErrors,
-} from '../store/formVersionBuilderSlice';
+import type { AppDispatch, RootState } from '@/store';
+import type {
+  UiStage,
+  UiStageTransition,
+  StageIdLike,
+  SectionIdLike,
+  FieldIdLike,
+} from '../types/formVersion.ui-types';
 import { useStageActions } from './useFormVersionBuilder.stages';
 import { useSectionActions } from './useFormVersionBuilder.sections';
 import { useFieldActions } from './useFormVersionBuilder.fields';
-import { useSelectionActions } from './useFormVersionBuilder.selections';
-
-// Re-export specialized hooks
-export { useBuilderSave } from './useFormVersionBuilder.save';
-export { useStageSelection } from './useFormVersionBuilder.stages';
-export { useSectionSelection } from './useFormVersionBuilder.sections';
-export { useFieldSelection, useCurrentFieldContext } from './useFormVersionBuilder.fields';
-export { useBuilderValidation } from './useFormVersionBuilder.validation';
+import { useTransitionActions } from './useFormVersionBuilder.transitions';
+import type { FormVersion } from '../types';
+import { mapFormVersionToUi } from '../utils/formVersion.mappers';
+import {
+  initializeBuilder,
+  resetBuilder,
+  setSelectedStageId as setSelectedStageIdAction,
+  setSelectedSectionId as setSelectedSectionIdAction,
+  setSelectedFieldId as setSelectedFieldIdAction,
+  addSection,
+  updateSection,
+  removeSection,
+  reorderSections,
+  addField,
+  updateField,
+  removeField,
+  reorderFields,
+} from '../store/formVersionBuilderSlice';
 
 // ============================================================================
-// Main Builder Hook
+// Selectors
 // ============================================================================
 
 /**
- * Main hook for accessing builder state and actions
- * Provides comprehensive access to draft data, flags, and actions
+ * Selects the entire builder state
+ */
+const selectBuilderState = (state: RootState) => state.formVersionBuilder;
+
+/**
+ * Selects all stages from builder
+ */
+const selectStages = (state: RootState): UiStage[] =>
+  state.formVersionBuilder.stages;
+
+/**
+ * Selects all transitions from builder
+ */
+const selectTransitions = (state: RootState): UiStageTransition[] =>
+  state.formVersionBuilder.stageTransitions;
+
+/**
+ * Selects the dirty flag
+ */
+const selectDirty = (state: RootState): boolean =>
+  state.formVersionBuilder.dirty;
+
+/**
+ * Selects last saved timestamp
+ */
+const selectLastSavedAt = (state: RootState): number | null =>
+  state.formVersionBuilder.lastSavedAt;
+
+/**
+ * Selects selected stage ID
+ */
+const selectSelectedStageId = (state: RootState): StageIdLike | null =>
+  state.formVersionBuilder.selectedStageId;
+
+/**
+ * Selects selected section ID
+ */
+const selectSelectedSectionId = (state: RootState): SectionIdLike | null =>
+  state.formVersionBuilder.selectedSectionId;
+
+/**
+ * Selects selected field ID
+ */
+const selectSelectedFieldId = (state: RootState): FieldIdLike | null =>
+  state.formVersionBuilder.selectedFieldId;
+
+// ============================================================================
+// Main Hook
+// ============================================================================
+
+/**
+ * Main hook for Form Version Builder
+ * Provides unified access to all builder state and actions
  * 
  * @returns Builder state and action dispatchers
  * 
  * @example
  * const builder = useFormVersionBuilder();
- * 
- * // Read state
- * console.log(builder.stages, builder.dirty);
- * 
- * // Dispatch actions
- * builder.initializeFrom(formVersion);
- * builder.addSection(stageId, section);
- * builder.addField(stageId, sectionId, fieldTypeId);
+ * console.log(builder.stages);
+ * console.log(builder.transitions);
+ * builder.stageActions.addStage('New Stage');
+ * builder.transitionActions.addTransition(stageId1, stageId2);
  */
 export const useFormVersionBuilder = () => {
   const dispatch = useDispatch<AppDispatch>();
-
-  // Select state
-  const stages = useSelector(selectBuilderStages);
-  const stageTransitions = useSelector(selectBuilderStageTransitions);
+  // State
+  const builderState = useSelector(selectBuilderState);
+  const stages = useSelector(selectStages);
+  const transitions = useSelector(selectTransitions);
+  const dirty = useSelector(selectDirty);
+  const lastSavedAt = useSelector(selectLastSavedAt);
   const selectedStageId = useSelector(selectSelectedStageId);
   const selectedSectionId = useSelector(selectSelectedSectionId);
   const selectedFieldId = useSelector(selectSelectedFieldId);
-  const selectedStage = useSelector(selectSelectedStage);
-  const selectedSection = useSelector(selectSelectedSection);
-  const selectedField = useSelector(selectSelectedField);
-  const dirty = useSelector(selectBuilderDirty);
-  const saving = useSelector(selectBuilderSaving);
-  const lastSavedAt = useSelector(selectBuilderLastSavedAt);
-  const saveError = useSelector(selectBuilderSaveError);
-  const formVersionId = useSelector(selectBuilderFormVersionId);
-  const validationErrors = useSelector(selectBuilderValidationErrors);
-  const hasValidationErrors = useSelector(selectHasValidationErrors);
 
-  // Get actions from specialized hooks
+  // Actions
   const stageActions = useStageActions();
   const sectionActions = useSectionActions();
   const fieldActions = useFieldActions();
-  const selectionActions = useSelectionActions();
-
-  // Core actions
-  const coreActions = useMemo(
-    () => ({
-      // Initialization
-      initializeFrom: (formVersion: FormVersion) => {
-        console.info('[useFormVersionBuilder] Initializing from FormVersion');
-        dispatch(initializeFromFormVersion(formVersion));
-      },
-
-      reset: () => {
-        console.info('[useFormVersionBuilder] Resetting builder');
-        dispatch(resetBuilder());
-      },
-
-      // Utility actions
-      setDirty: (dirty: boolean) => {
-        console.debug('[useFormVersionBuilder] Setting dirty flag', dirty);
-        dispatch(setDirty(dirty));
-      },
-
-      clearSaveError: () => {
-        console.debug('[useFormVersionBuilder] Clearing save error');
-        dispatch(clearSaveError());
-      },
-
-      setValidationErrors: (errors: Record<string, string>) => {
-        console.debug('[useFormVersionBuilder] Setting validation errors');
-        dispatch(setValidationErrors(errors));
-      },
-
-      clearValidationErrors: () => {
-        console.debug('[useFormVersionBuilder] Clearing validation errors');
-        dispatch(clearValidationErrors());
-      },
-    }),
-    [dispatch]
-  );
+  const transitionActions = useTransitionActions();
 
   return {
     // State
+    formVersionId: builderState.formVersionId,
     stages,
-    stageTransitions,
+    transitions,
+    dirty,
+    lastSavedAt,
     selectedStageId,
     selectedSectionId,
     selectedFieldId,
-    selectedStage,
-    selectedSection,
-    selectedField,
-    dirty,
-    saving,
-    lastSavedAt,
-    saveError,
-    formVersionId,
-    validationErrors,
-    hasValidationErrors,
 
-    // Actions (combined from all modules)
-    ...coreActions,
-    ...stageActions,
-    ...sectionActions,
-    ...fieldActions,
-    ...selectionActions,
+    // Actions (grouped by entity type)
+    stageActions,
+    sectionActions,
+    fieldActions,
+    transitionActions,
+
+    initializeFrom: (formVersion: FormVersion) => {
+      const { stages, stageTransitions } = mapFormVersionToUi(formVersion);
+      dispatch(
+        initializeBuilder({
+          formVersionId: formVersion.id,
+          stages,
+          stageTransitions,
+        })
+      );
+    },
+
+    reset: () => {
+      dispatch(resetBuilder());
+    },
+
+    setSelectedStageId: (id: StageIdLike | null) => {
+      dispatch(setSelectedStageIdAction(id));
+    },
+
+    setSelectedSectionId: (id: SectionIdLike | null) => {
+      dispatch(setSelectedSectionIdAction(id));
+    },
+
+    setSelectedFieldId: (id: FieldIdLike | null) => {
+      dispatch(setSelectedFieldIdAction(id));
+    },
+
+    addSection: (stageId: StageIdLike, section: UiStage['sections'][number]) => {
+      dispatch(addSection({ stageId, section }));
+    },
+
+    updateSection: (stageId: StageIdLike, section: UiStage['sections'][number]) => {
+      dispatch(updateSection({ stageId, section }));
+    },
+
+    removeSection: (stageId: StageIdLike, sectionId: SectionIdLike) => {
+      dispatch(removeSection({ stageId, sectionId }));
+    },
+
+    reorderSections: (stageId: StageIdLike, sections: UiStage['sections']) => {
+      dispatch(reorderSections({ stageId, sections }));
+    },
+
+    addField: (
+      stageId: StageIdLike,
+      sectionId: SectionIdLike,
+      fieldTypeId: number,
+      defaults?: Partial<import('../types/formVersion.ui-types').UiField>
+    ) => {
+      dispatch(addField({ stageId, sectionId, fieldTypeId, defaults }));
+    },
+
+    updateField: (
+      stageId: StageIdLike,
+      sectionId: SectionIdLike,
+      fieldId: FieldIdLike,
+      changes: Partial<import('../types/formVersion.ui-types').UiField>
+    ) => {
+      dispatch(updateField({ stageId, sectionId, fieldId, changes }));
+    },
+
+    removeField: (
+      stageId: StageIdLike,
+      sectionId: SectionIdLike,
+      fieldId: FieldIdLike
+    ) => {
+      dispatch(removeField({ stageId, sectionId, fieldId }));
+    },
+
+    reorderFields: (
+      stageId: StageIdLike,
+      sectionId: SectionIdLike,
+      fields: import('../types/formVersion.ui-types').UiField[]
+    ) => {
+      dispatch(reorderFields({ stageId, sectionId, fields }));
+    },
+
+    // Convenience getters
+    selectedStage: stages.find((s) => s.id === selectedStageId),
+    selectedSection: stages
+      .flatMap((s) => s.sections)
+      .find((sec) => sec.id === selectedSectionId),
+    selectedField: stages
+      .flatMap((s) => s.sections)
+      .flatMap((sec) => sec.fields)
+      .find((f) => f.id === selectedFieldId),
   };
 };
+
+// Re-export specific hooks for granular usage
+export { useStageActions } from './useFormVersionBuilder.stages';
+export { useSectionActions } from './useFormVersionBuilder.sections';
+export { useFieldActions } from './useFormVersionBuilder.fields';
+export {
+  useTransitionActions,
+  useTransitionSelection,
+  useTransitionById,
+} from './useFormVersionBuilder.transitions';

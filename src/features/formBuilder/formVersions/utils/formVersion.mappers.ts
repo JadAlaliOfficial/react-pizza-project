@@ -3,6 +3,7 @@
 /**
  * Mappers for converting between API domain types and UI types
  * Handles fake ID logic and ensures API contract compliance
+ * UPDATED: Added action serialization/deserialization with actionIdMap
  */
 
 import type {
@@ -13,17 +14,25 @@ import type {
   StageTransition,
   UpdateFormVersionRequest,
   InputRule as ApiInputRule,
-  TransitionAction,
 } from '../types';
 import type {
   UiStage,
   UiSection,
   UiField,
   UiStageTransition,
+  UiTransitionAction,
   InputRule as UiInputRule,
 } from '../types/formVersion.ui-types';
 import { isFakeId, isRealId } from '../types/formVersion.ui-types';
 import { generateFakeId } from './fakeId';
+
+// ============================================================================
+// Note on Actions
+// ============================================================================
+// Actions in API types (`StageTransition.actions`) use `TransitionAction` with
+// `actionType` and structured `actionProps`. UI uses `UiTransitionAction` with
+// the same shape minus backend-specific IDs. No serialization to JSON strings
+// is needed when building `UpdateFormVersionRequest`.
 
 // ============================================================================
 // API to UI Mappers
@@ -100,20 +109,20 @@ function mapStageToUi(stage: Stage): UiStage {
   };
 }
 
+// No action deserialization is required; API already provides structured actions.
+
 /**
  * Maps API StageTransition to UiStageTransition
  * Preserves transition structure with stage ID references
+ * Deserializes actions from API format to UI format
  */
 function mapStageTransitionToUi(transition: StageTransition): UiStageTransition {
-  // Convert actions array to JSON string for UI storage
-  let actionsString: string | null = null;
-  if (Array.isArray(transition.actions) && transition.actions.length > 0) {
-    try {
-      actionsString = JSON.stringify(transition.actions);
-    } catch (error) {
-      console.warn('[FormVersionMappers] Failed to stringify transition actions:', error);
-    }
-  }
+  console.debug('[MapperTransitionToUi] Mapping transition:', transition.id);
+
+  const actions: UiTransitionAction[] = (transition.actions || []).map((a) => ({
+    actionType: a.actionType,
+    actionProps: a.actionProps as Record<string, any>,
+  }));
 
   return {
     id: transition.id ?? generateFakeId(),
@@ -122,7 +131,7 @@ function mapStageTransitionToUi(transition: StageTransition): UiStageTransition 
     label: transition.label,
     condition: transition.condition ?? null,
     to_complete: transition.to_complete,
-    actions: actionsString,
+    actions,
   };
 }
 
@@ -181,14 +190,14 @@ function mapFieldToApi(field: UiField): Field {
     default_value: field.default_value,
     visibility_condition: field.visibility_condition,
     visibility_conditions: field.visibility_conditions ?? field.visibility_condition,
-    // Map only valid rules and cast to API type to satisfy typing
     rules: field.rules
       .filter((rule) => rule.input_rule_id !== null)
-      .map((rule) => ({
+      .map((rule): ApiInputRule => ({
+        id: rule.input_rule_id as number,
         input_rule_id: rule.input_rule_id as number,
         rule_props: rule.rule_props,
         rule_condition: rule.rule_condition,
-      }) as unknown as ApiInputRule),
+      })),
   };
 
   // Only include ID if it's a real numeric ID (skip fake IDs)
@@ -212,8 +221,8 @@ function mapSectionToApi(section: UiSection): Section {
   const apiSection: Section = {
     name: section.name,
     order: section.order,
-    visibility_condition: section.visibility_condition,
-    visibility_conditions: section.visibility_conditions ?? section.visibility_condition,
+    visibility_condition: section.visibility_condition ?? null,
+    visibility_conditions: section.visibility_conditions ?? section.visibility_condition ?? null,
     fields: section.fields.map(mapFieldToApi),
   };
 
@@ -238,7 +247,7 @@ function mapStageToApi(stage: UiStage): Stage {
   const apiStage: Stage = {
     name: stage.name,
     is_initial: stage.is_initial,
-    visibility_condition: stage.visibility_condition,
+    visibility_condition: stage.visibility_condition ?? null,
     sections: stage.sections.map(mapSectionToApi),
     access_rule: stage.access_rule ?? {
       allowed_users: null,
@@ -262,38 +271,31 @@ function mapStageToApi(stage: UiStage): Stage {
   return apiStage;
 }
 
+// No action serialization to JSON is required for update requests.
+
 /**
  * Maps UiStageTransition to API StageTransition format
  * Validates that from_stage_id and to_stage_id are real IDs
+ * Serializes actions to API format
  * Logs warnings for transitions with fake IDs (should not happen in production)
  */
 function mapStageTransitionToApi(
   transition: UiStageTransition,
 ): StageTransition | null {
-  // Validate stage IDs are real numbers
+  console.debug('[MapperTransitionToApi] Mapping transition:', transition.id);
+
   if (isFakeId(transition.from_stage_id)) {
     console.warn(
-      `[FormVersionMappers] Skipping transition with fake from_stage_id: ${transition.from_stage_id}`,
+      `[MapperTransitionToApi] Skipping transition with fake from_stage_id: ${transition.from_stage_id}`,
     );
     return null;
   }
 
   if (isFakeId(transition.to_stage_id)) {
     console.warn(
-      `[FormVersionMappers] Skipping transition with fake to_stage_id: ${transition.to_stage_id}`,
+      `[MapperTransitionToApi] Skipping transition with fake to_stage_id: ${transition.to_stage_id}`,
     );
     return null;
-  }
-
-  // Parse actions from JSON string back to array
-  let actions: TransitionAction[] = [];
-  if (transition.actions) {
-    try {
-      actions = JSON.parse(transition.actions) as TransitionAction[];
-    } catch (error) {
-      console.warn('[FormVersionMappers] Failed to parse transition actions:', error);
-      actions = [];
-    }
   }
 
   const apiTransition: StageTransition = {
@@ -301,11 +303,13 @@ function mapStageTransitionToApi(
     to_stage_id: transition.to_stage_id as number,
     to_complete: transition.to_complete,
     label: transition.label,
-    condition: transition.condition,
-    actions,
+    condition: transition.condition ?? null,
+    actions: transition.actions.map((a) => ({
+      actionType: a.actionType,
+      actionProps: a.actionProps,
+    })),
   };
 
-  // Only include ID if it's a real numeric ID (skip fake IDs)
   if (isRealId(transition.id)) {
     apiTransition.id = transition.id;
   }

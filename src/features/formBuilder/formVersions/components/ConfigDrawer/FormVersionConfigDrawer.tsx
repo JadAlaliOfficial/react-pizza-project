@@ -1,17 +1,40 @@
 // src/features/formVersion/components/ConfigDrawer/FormVersionConfigDrawer.tsx
 
 /**
- * Main configuration drawer for Form Version Builder
- * Provides tabbed interface for editing stages, sections, fields, and transitions
- * Extended with Fields tab for field management
+ * Form Version Config Drawer Component
+ * Provides tabbed interface for editing form version configuration
+ * UPDATED: Converted from Sheet to inline panel for side-by-side layout
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Layers, Grid3x3, Type, ArrowRightLeft } from 'lucide-react';
 import { StageConfigTab } from '../stages/StageConfigTab';
 import { SectionConfigTab } from '../sections/SectionConfigTab';
 import { FieldConfigTab } from '../fields/FieldConfigTab';
+import { TransitionConfigTab } from '../transitions/TransitionConfigTab';
 import { useFormVersionBuilder } from '../../hooks/useFormVersionBuilder';
+
+// ============================================================================
+// Component Props
+// ============================================================================
+
+interface FormVersionConfigDrawerProps {
+  /**
+   * Whether the drawer is open (kept for compatibility)
+   */
+  open: boolean;
+
+  /**
+   * Callback when drawer should close (kept for compatibility)
+   */
+  onClose: () => void;
+
+  /**
+   * Default tab to show when opened
+   */
+  defaultTab?: 'stages' | 'sections' | 'fields' | 'transitions';
+}
 
 // ============================================================================
 // Component
@@ -20,68 +43,82 @@ import { useFormVersionBuilder } from '../../hooks/useFormVersionBuilder';
 /**
  * FormVersionConfigDrawer Component
  * 
- * Renders a tabbed configuration panel for form version editing.
- * Tabs:
- * - Stages: Manage workflow stages
- * - Sections: Manage sections within stages
- * - Fields: Manage fields within sections (NEW)
- * - Transitions: Manage stage transitions (future)
+ * Main configuration interface for form versions.
+ * Features:
+ * - Tabbed navigation (Stages, Sections, Fields, Transitions)
+ * - Persistent tab selection
+ * - Inline panel layout for side-by-side display
+ * - Deep configuration for each entity type
  */
-export const FormVersionConfigDrawer: React.FC = () => {
+export const FormVersionConfigDrawer: React.FC<FormVersionConfigDrawerProps> = ({
+  open,
+  defaultTab = 'stages',
+}) => {
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const builder = useFormVersionBuilder();
 
-  console.debug(
-    '[FormVersionConfigDrawer] Rendering with',
-    builder.stages.length,
-    'stages'
-  );
+  console.debug('[FormVersionConfigDrawer] Rendering, open:', open, 'tab:', activeTab);
+
+  // Don't render if not open (kept for compatibility)
+  if (!open) {
+    return null;
+  }
 
   return (
-    <div className="h-full flex flex-col border-l border-gray-200 bg-white">
+    <div className="h-full flex flex-col p-6">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="mb-6">
         <h2 className="text-lg font-semibold text-gray-900">Configuration</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Configure your form version workflow
+        <p className="text-sm text-gray-500 mt-1">
+          Configure stages, sections, fields, and transitions
         </p>
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="stages" className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="mx-6 mt-4 grid w-full grid-cols-3 gap-2">
-          <TabsTrigger value="stages" className="data-[state=active]:bg-blue-50">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as 'stages' | 'sections' | 'fields' | 'transitions')}
+        className="flex-1 flex flex-col overflow-hidden"
+      >
+        <TabsList className="grid w-full grid-cols-4 mb-4">
+          <TabsTrigger value="stages" className="text-xs gap-1.5">
+            <Layers className="h-3.5 w-3.5" />
             Stages
           </TabsTrigger>
-          <TabsTrigger value="sections" className="data-[state=active]:bg-blue-50">
+          <TabsTrigger value="sections" className="text-xs gap-1.5">
+            <Grid3x3 className="h-3.5 w-3.5" />
             Sections
           </TabsTrigger>
-          <TabsTrigger value="fields" className="data-[state=active]:bg-blue-50">
+          <TabsTrigger value="fields" className="text-xs gap-1.5">
+            <Type className="h-3.5 w-3.5" />
             Fields
           </TabsTrigger>
-          {/* Future tabs */}
-          {/* <TabsTrigger value="transitions">Transitions</TabsTrigger> */}
+          <TabsTrigger value="transitions" className="text-xs gap-1.5">
+            <ArrowRightLeft className="h-3.5 w-3.5" />
+            Transitions
+          </TabsTrigger>
         </TabsList>
 
-        {/* Stages Tab Content */}
-        <TabsContent value="stages" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
-          <StageConfigTab
-            stages={builder.stages}
-            onChange={builder.setStages}
-          />
-        </TabsContent>
+        <div className="flex-1 overflow-auto">
+          <TabsContent value="stages" className="m-0 h-full">
+            <StageConfigTab
+              stages={builder.stages}
+              onChange={(newStages) => builder.stageActions.setStages(newStages)}
+            />
+          </TabsContent>
 
-        {/* Sections Tab Content */}
-        <TabsContent value="sections" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
-          <SectionConfigTab />
-        </TabsContent>
+          <TabsContent value="sections" className="m-0 h-full">
+            <SectionConfigTab />
+          </TabsContent>
 
-        {/* Fields Tab Content (NEW) */}
-        <TabsContent value="fields" className="flex-1 overflow-y-auto px-6 py-4 mt-0">
-          <FieldConfigTab />
-        </TabsContent>
+          <TabsContent value="fields" className="m-0 h-full">
+            <FieldConfigTab />
+          </TabsContent>
 
-        {/* Future tab contents */}
-        {/* <TabsContent value="transitions">...</TabsContent> */}
+          <TabsContent value="transitions" className="m-0 h-full">
+            <TransitionConfigTab />
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   );

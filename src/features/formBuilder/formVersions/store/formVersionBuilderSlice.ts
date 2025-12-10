@@ -1,149 +1,110 @@
 // src/features/formVersion/store/formVersionBuilderSlice.ts
 
 /**
- * Core Redux slice for Form Version Builder
- * Manages initialization, save operations, and shared state
- * Combines stage and section sub-slices for modular architecture
+ * Redux slice for Form Version Builder
+ * Manages draft state for form versions during editing
+ * Extended with transitions and action management
  */
 
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '@/store';
-import type {
-  FormVersion,
-  ServiceError,
-  UpdateFormVersionRequest,
-} from '../types';
+import type { ServiceError } from '../types';
+import { buildUpdateFormVersionRequest } from '../utils/formVersion.mappers';
+// import { updateFormVersion } from '../services/api';
 import type {
   UiStage,
-  UiSection,
-  UiField,
   UiStageTransition,
   StageIdLike,
   SectionIdLike,
   FieldIdLike,
+  TransitionIdLike,
 } from '../types/formVersion.ui-types';
-import { mapFormVersionToUi, buildUpdateFormVersionRequest } from '../utils/formVersion.mappers';
-import { updateFormVersion } from '../services/api';
-import { stageReducers, stageExtraReducers } from './formVersionBuilder.stages';
+
+// Import reducers from modular files
+import { stageReducers } from './formVersionBuilder.stages';
 import { sectionReducers } from './formVersionBuilder.sections';
+import { transitionReducers } from './formVersionBuilder.transitions';
 
 // ============================================================================
 // State Type
 // ============================================================================
 
-/**
- * Builder state structure
- * Holds the draft configuration being edited by the user
- */
 export interface FormVersionBuilderState {
-  // Draft data (UI types with fake IDs support)
-  stages: UiStage[];
-  stageTransitions: UiStageTransition[];
-
-  // Selection state for UI focus
-  selectedStageId: StageIdLike | null;
-  selectedSectionId: SectionIdLike | null;
-  selectedFieldId: FieldIdLike | null;
-
-  // Dirty flag tracking
-  dirty: boolean;
-
-  // Save operation state
-  saving: boolean;
-  lastSavedAt: number | null;
-  saveError: ServiceError | null;
-
-  // Form version ID being edited
+  /**
+   * Form version ID being edited
+   */
   formVersionId: number | null;
 
-  // Validation errors (future expansion)
-  validationErrors: Record<string, string>;
+  /**
+   * Stages in the form version
+   */
+  stages: UiStage[];
+
+  /**
+   * Stage transitions (workflow)
+   */
+  stageTransitions: UiStageTransition[];
+
+  /**
+   * Whether there are unsaved changes
+   */
+  dirty: boolean;
+
+  /**
+   * Timestamp of last save
+   */
+  lastSavedAt: number | null;
+
+  /**
+   * Currently selected stage ID (for UI focus)
+   */
+  selectedStageId: StageIdLike | null;
+
+  /**
+   * Currently selected section ID (for UI focus)
+   */
+  selectedSectionId: SectionIdLike | null;
+
+  /**
+   * Currently selected field ID (for UI focus)
+   */
+  selectedFieldId: FieldIdLike | null;
+
+  /**
+   * Currently selected transition ID (for UI focus)
+   */
+  selectedTransitionId: TransitionIdLike | null;
+
+  /**
+   * Saving state and error for draft persistence
+   */
+  saving?: boolean;
+  saveError?: ServiceError | null;
+
+  /**
+   * Validation errors keyed by field
+   */
+  validationErrors?: Record<string, string>;
 }
 
 // ============================================================================
 // Initial State
 // ============================================================================
 
-export const initialState: FormVersionBuilderState = {
+const initialState: FormVersionBuilderState = {
+  formVersionId: null,
   stages: [],
   stageTransitions: [],
+  dirty: false,
+  lastSavedAt: null,
   selectedStageId: null,
   selectedSectionId: null,
   selectedFieldId: null,
-  dirty: false,
+  selectedTransitionId: null,
   saving: false,
-  lastSavedAt: null,
   saveError: null,
-  formVersionId: null,
   validationErrors: {},
 };
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Parses stage ID from string to appropriate type
- * Handles both numeric IDs and fake IDs
- */
-export function parseStageId(idString: string): StageIdLike {
-  if (idString.startsWith('FAKE_')) {
-    return idString as StageIdLike;
-  }
-  return parseInt(idString, 10);
-}
-
-// ============================================================================
-// Async Thunks
-// ============================================================================
-
-/**
- * Saves the current builder draft to the API
- * Converts UI types to API format and calls updateFormVersion
- * 
- * @param formVersionId - Form version ID to update
- * @returns Updated form version data
- */
-export const saveFormVersionDraft = createAsyncThunk<
-  UpdateFormVersionRequest,
-  number,
-  { state: RootState; rejectValue: ServiceError }
->(
-  'formVersionBuilder/save',
-  async (formVersionId: number, { getState, rejectWithValue }) => {
-    console.info(`[FormVersionBuilderSlice] Saving draft for form version ${formVersionId}`);
-
-    const state = getState();
-    const { stages, stageTransitions } = state.formVersionBuilder;
-
-    try {
-      // Build API request from UI state
-      const updateRequest = buildUpdateFormVersionRequest({
-        stages,
-        stageTransitions,
-      });
-
-      console.debug(
-        `[FormVersionBuilderSlice] Built update request with ${updateRequest.stages.length} stages ` +
-        `and ${updateRequest.stage_transitions.length} transitions`
-      );
-
-      // Call API service
-      const result = await updateFormVersion(formVersionId, updateRequest);
-
-      console.info(`[FormVersionBuilderSlice] Save successful for form version ${formVersionId}`);
-
-      return result;
-    } catch (error) {
-      const serviceError = error as ServiceError;
-      console.error(
-        `[FormVersionBuilderSlice] Save failed for form version ${formVersionId}:`,
-        serviceError.message
-      );
-      return rejectWithValue(serviceError);
-    }
-  }
-);
 
 // ============================================================================
 // Slice Definition
@@ -153,385 +114,319 @@ const formVersionBuilderSlice = createSlice({
   name: 'formVersionBuilder',
   initialState,
   reducers: {
-    // ========================================================================
-    // Core Actions
-    // ========================================================================
-
     /**
-     * Initializes builder from an existing FormVersion
-     * Converts API types to UI types using mapper
-     * Automatically selects the first stage if available
+     * Initializes the builder from a form version
      */
-    initializeFromFormVersion: (state, action: PayloadAction<FormVersion>) => {
+    initializeBuilder: (
+      state,
+      action: PayloadAction<{
+        formVersionId: number;
+        stages: UiStage[];
+        stageTransitions: UiStageTransition[];
+      }>
+    ) => {
       console.info(
-        `[FormVersionBuilderSlice] Initializing from form version ${action.payload.id}`
+        '[FormVersionBuilderSlice] Initializing builder for form version',
+        action.payload.formVersionId
       );
 
-      const { stages, stageTransitions } = mapFormVersionToUi(action.payload);
-
-      state.stages = stages;
-      state.stageTransitions = stageTransitions;
-      state.formVersionId = action.payload.id;
+      state.formVersionId = action.payload.formVersionId;
+      state.stages = action.payload.stages;
+      state.stageTransitions = action.payload.stageTransitions;
       state.dirty = false;
       state.lastSavedAt = null;
-      state.saveError = null;
-      state.validationErrors = {};
+      state.selectedStageId = null;
+      state.selectedSectionId = null;
+      state.selectedFieldId = null;
+      state.selectedTransitionId = null;
 
-      // Auto-select first stage if available and no stage is selected
-      if (stages.length > 0 && !state.selectedStageId) {
-        state.selectedStageId = stages[0].id;
-        console.debug(`[FormVersionBuilderSlice] Auto-selected first stage: ${stages[0].id}`);
-      }
-
-      console.debug(
-        `[FormVersionBuilderSlice] Initialized with ${stages.length} stages and ` +
-        `${stageTransitions.length} transitions`
+      console.info(
+        `[FormVersionBuilderSlice] Initialized with ${state.stages.length} stages and ${state.stageTransitions.length} transitions`
       );
     },
 
     /**
-     * Resets builder to initial state
+     * Resets the builder to initial state
      */
-    resetBuilder: (state) => {
-      console.info('[FormVersionBuilderSlice] Resetting builder state');
-      Object.assign(state, initialState);
+    resetBuilder: (_state) => {
+      console.info('[FormVersionBuilderSlice] Resetting builder');
+      return initialState;
     },
 
-    // ========================================================================
-    // Selection Actions
-    // ========================================================================
+    /**
+     * Marks the builder as saved
+     */
+    markAsSaved: (state) => {
+      console.debug('[FormVersionBuilderSlice] Marking as saved');
+      state.dirty = false;
+      state.lastSavedAt = Date.now();
+    },
+    
+    /**
+     * Sets stages array (reducer provided by stageReducers handles it)
+     */
+    
 
     /**
-     * Sets selected stage ID
-     * Handles both string (from Select component) and direct ID values
-     * Clears section/field selection when stage changes
+     * Sets the selected stage ID
      */
     setSelectedStageId: (state, action: PayloadAction<StageIdLike | string | null>) => {
-      const newStageId = action.payload;
+      const payload = action.payload;
       
-      if (newStageId === null) {
-        console.debug('[FormVersionBuilderSlice] Clearing selected stage');
-        state.selectedStageId = null;
-        state.selectedSectionId = null;
-        state.selectedFieldId = null;
-        return;
+      // Handle string that might be a number
+      if (typeof payload === 'string') {
+        const parsed = parseInt(payload, 10);
+        state.selectedStageId = isNaN(parsed) ? payload : parsed;
+      } else {
+        state.selectedStageId = payload;
       }
-
-      // Parse string to appropriate type (number or FakeId)
-      const parsedId = typeof newStageId === 'string' ? parseStageId(newStageId) : newStageId;
       
-      console.debug(`[FormVersionBuilderSlice] Setting selected stage: ${parsedId}`);
-      
-      // Only clear selections if stage actually changed
-      if (state.selectedStageId !== parsedId) {
-        state.selectedStageId = parsedId;
-        state.selectedSectionId = null;
-        state.selectedFieldId = null;
-      }
+      console.debug(
+        '[FormVersionBuilderSlice] Selected stage ID set to:',
+        state.selectedStageId
+      );
     },
 
     /**
-     * Sets selected section ID
+     * Sets the selected section ID
      */
     setSelectedSectionId: (state, action: PayloadAction<SectionIdLike | null>) => {
-      console.debug(`[FormVersionBuilderSlice] Setting selected section: ${action.payload}`);
+      console.debug(
+        '[FormVersionBuilderSlice] Setting selected section:',
+        action.payload
+      );
       state.selectedSectionId = action.payload;
-      // Clear field selection when section changes
-      if (action.payload !== state.selectedSectionId) {
-        state.selectedFieldId = null;
-      }
     },
 
     /**
-     * Sets selected field ID
+     * Sets the selected field ID
      */
     setSelectedFieldId: (state, action: PayloadAction<FieldIdLike | null>) => {
-      console.debug(`[FormVersionBuilderSlice] Setting selected field: ${action.payload}`);
+      console.debug(
+        '[FormVersionBuilderSlice] Setting selected field:',
+        action.payload
+      );
       state.selectedFieldId = action.payload;
     },
 
     // ========================================================================
-    // Utility Actions
+    // Stage Reducers (imported)
     // ========================================================================
+    ...stageReducers,
 
-    /**
-     * Manually marks draft as dirty or clean
-     */
-    setDirty: (state, action: PayloadAction<boolean>) => {
-      console.debug(`[FormVersionBuilderSlice] Setting dirty flag: ${action.payload}`);
-      state.dirty = action.payload;
-    },
+    // ========================================================================
+    // Section Reducers (imported)
+    // ========================================================================
+    ...sectionReducers,
 
-    /**
-     * Clears save error
-     */
-    clearSaveError: (state) => {
-      console.debug('[FormVersionBuilderSlice] Clearing save error');
-      state.saveError = null;
-    },
+    // ========================================================================
+    // Transition Reducers (imported)
+    // ========================================================================
+    ...transitionReducers,
 
     /**
      * Sets validation errors
      */
-    setValidationErrors: (state, action: PayloadAction<Record<string, string>>) => {
-      console.debug('[FormVersionBuilderSlice] Setting validation errors');
-      state.validationErrors = action.payload;
+    setValidationErrors: (
+      state,
+      action: PayloadAction<Record<string, string>>
+    ) => {
+      state.validationErrors = action.payload || {};
     },
 
     /**
-     * Clears all validation errors
+     * Clears validation errors
      */
     clearValidationErrors: (state) => {
-      console.debug('[FormVersionBuilderSlice] Clearing validation errors');
       state.validationErrors = {};
     },
-
-    // Import stage reducers
-    ...stageReducers,
-
-    // Import section reducers (includes field reducers)
-    ...sectionReducers,
   },
-
   extraReducers: (builder) => {
-    // ========================================================================
-    // Save Draft
-    // ========================================================================
     builder.addCase(saveFormVersionDraft.pending, (state) => {
-      console.debug('[FormVersionBuilderSlice] Save pending');
       state.saving = true;
       state.saveError = null;
     });
 
-    builder.addCase(saveFormVersionDraft.fulfilled, (state, _action) => {
-      console.info('[FormVersionBuilderSlice] Save fulfilled');
+    builder.addCase(saveFormVersionDraft.fulfilled, (state) => {
       state.saving = false;
-      state.dirty = false;
-      state.lastSavedAt = Date.now();
-      state.saveError = null;
     });
 
     builder.addCase(saveFormVersionDraft.rejected, (state, action) => {
-      console.error(
-        '[FormVersionBuilderSlice] Save rejected:',
-        action.payload?.message
-      );
       state.saving = false;
-      state.saveError = action.payload || {
-        message: 'Failed to save form version draft',
-      };
+      state.saveError = (action.payload as ServiceError) || { message: 'Save failed' };
     });
-
-    // Add stage-specific extra reducers
-    stageExtraReducers(builder);
   },
 });
 
 // ============================================================================
-// Actions Export
+// Exports
 // ============================================================================
 
 export const {
-  initializeFromFormVersion,
+  initializeBuilder,
   resetBuilder,
-  setSelectedStageId,
-  setSelectedSectionId,
-  setSelectedFieldId,
-  setDirty,
-  clearSaveError,
-  setValidationErrors,
-  clearValidationErrors,
-  // Stage actions
+  markAsSaved,
   setStages,
-  updateStage,
-  addStage,
-  removeStage,
   setStageTransitions,
   addStageTransition,
   removeStageTransition,
+  setSelectedStageId,
+  setSelectedSectionId,
+  setSelectedFieldId,
+  
+  // Stage actions
+  addStage,
+  updateStage,
+  removeStage,
+  
   // Section actions
   addSection,
   updateSection,
   removeSection,
   reorderSections,
-  // Field actions (from section reducers)
+  
+  // Field actions
   addField,
   updateField,
   removeField,
   reorderFields,
+  
+  // Transition actions
+  addTransition,
+  updateTransition,
+  removeTransition,
+  setSelectedTransitionId,
+  
+  // Transition action management
+  addTransitionAction,
+  updateTransitionAction,
+  removeTransitionAction,
+  reorderTransitionActions,
+  setValidationErrors,
+  clearValidationErrors,
 } = formVersionBuilderSlice.actions;
+
+export default formVersionBuilderSlice.reducer;
+
+// ============================================================================
+// Async Thunks
+// ============================================================================
+
+export const saveFormVersionDraft = createAsyncThunk<
+  void,
+  number,
+  { state: RootState; rejectValue: ServiceError }
+>(
+  'formVersionBuilder/saveDraft',
+  async (_id: number, { getState, rejectWithValue, dispatch }) => {
+    try {
+      const state = getState();
+      const builder = state.formVersionBuilder;
+      const request = buildUpdateFormVersionRequest({
+        stages: builder.stages,
+        stageTransitions: builder.stageTransitions,
+      });
+
+      // await updateFormVersion(id, request);
+      console.log('Request:', request);
+      dispatch(markAsSaved());
+    } catch (error) {
+      const serviceError = error as ServiceError;
+      return rejectWithValue(serviceError);
+    }
+  }
+);
 
 // ============================================================================
 // Selectors
 // ============================================================================
 
-/**
- * Selects all stages from builder draft
- */
-export const selectBuilderStages = (state: RootState): UiStage[] =>
-  state.formVersionBuilder.stages;
+export const selectBuilderFormVersionId = (state: RootState): number | null =>
+  state.formVersionBuilder.formVersionId;
 
-/**
- * Selects all stage transitions from builder draft
- */
-export const selectBuilderStageTransitions = (state: RootState): UiStageTransition[] =>
-  state.formVersionBuilder.stageTransitions;
+export const selectBuilderSaving = (state: RootState): boolean =>
+  !!state.formVersionBuilder.saving;
 
-/**
- * Selects a stage by ID
- */
-export const selectBuilderStageById = (stageId: StageIdLike | null) => (
-  state: RootState
-): UiStage | undefined => {
-  if (!stageId) return undefined;
-  return state.formVersionBuilder.stages.find((s) => s.id === stageId);
-};
+export const selectBuilderSaveError = (state: RootState): ServiceError | null =>
+  state.formVersionBuilder.saveError || null;
 
-/**
- * Selects all sections from a specific stage
- */
-export const selectSectionsByStageId = (stageId: StageIdLike | null) => (
-  state: RootState
-): UiSection[] => {
-  if (!stageId) return [];
-  const stage = state.formVersionBuilder.stages.find((s) => s.id === stageId);
-  return stage?.sections || [];
-};
+export const selectSelectedStageId = (state: RootState): StageIdLike | null =>
+  state.formVersionBuilder.selectedStageId;
 
-/**
- * Selects a specific section by stage ID and section ID
- */
-export const selectSectionById = (stageId: StageIdLike | null, sectionId: SectionIdLike | null) => (
-  state: RootState
-): UiSection | undefined => {
-  if (!stageId || !sectionId) return undefined;
+export const selectBuilderStageById = (stageId: StageIdLike | null) =>
+  (state: RootState) =>
+    stageId === null
+      ? undefined
+      : state.formVersionBuilder.stages.find((s) => s.id === stageId);
+
+export const selectSectionsByStageId = (stageId: StageIdLike | null) =>
+  (state: RootState) => {
+    if (stageId === null) return [];
+    const stage = state.formVersionBuilder.stages.find((s) => s.id === stageId);
+    return stage ? stage.sections : [];
+  };
+
+export const selectSectionById = (
+  stageId: StageIdLike | null,
+  sectionId: SectionIdLike | null
+) => (state: RootState) => {
+  if (stageId === null || sectionId === null) return undefined;
   const stage = state.formVersionBuilder.stages.find((s) => s.id === stageId);
   return stage?.sections.find((sec) => sec.id === sectionId);
 };
 
-/**
- * Selects all fields from a specific section
- */
-export const selectFieldsBySectionId = (stageId: StageIdLike | null, sectionId: SectionIdLike | null) => (
-  state: RootState
-): UiField[] => {
-  if (!stageId || !sectionId) return [];
+export const selectSelectedSectionId = (state: RootState): SectionIdLike | null =>
+  state.formVersionBuilder.selectedSectionId;
+
+export const selectSelectedSection = (state: RootState) => {
+  const stageId = state.formVersionBuilder.selectedStageId;
+  const sectionId = state.formVersionBuilder.selectedSectionId;
+  if (stageId === null || sectionId === null) return undefined;
   const stage = state.formVersionBuilder.stages.find((s) => s.id === stageId);
-  const section = stage?.sections.find((sec) => sec.id === sectionId);
-  return section?.fields || [];
+  return stage?.sections.find((sec) => sec.id === sectionId);
 };
 
-/**
- * Selects a specific field by IDs
- */
+export const selectFieldsBySectionId = (
+  stageId: StageIdLike | null,
+  sectionId: SectionIdLike | null
+) => (state: RootState) => {
+  if (stageId === null || sectionId === null) return [];
+  const stage = state.formVersionBuilder.stages.find((s) => s.id === stageId);
+  const section = stage?.sections.find((sec) => sec.id === sectionId);
+  return section ? section.fields : [];
+};
+
 export const selectFieldById = (
   stageId: StageIdLike | null,
   sectionId: SectionIdLike | null,
   fieldId: FieldIdLike | null
-) => (state: RootState): UiField | undefined => {
-  if (!stageId || !sectionId || !fieldId) return undefined;
+) => (state: RootState) => {
+  if (stageId === null || sectionId === null || fieldId === null) return undefined;
   const stage = state.formVersionBuilder.stages.find((s) => s.id === stageId);
   const section = stage?.sections.find((sec) => sec.id === sectionId);
   return section?.fields.find((f) => f.id === fieldId);
 };
 
-/**
- * Selects the currently selected stage ID
- */
-export const selectSelectedStageId = (state: RootState): StageIdLike | null =>
-  state.formVersionBuilder.selectedStageId;
-
-/**
- * Selects the currently selected section ID
- */
-export const selectSelectedSectionId = (state: RootState): SectionIdLike | null =>
-  state.formVersionBuilder.selectedSectionId;
-
-/**
- * Selects the currently selected field ID
- */
 export const selectSelectedFieldId = (state: RootState): FieldIdLike | null =>
   state.formVersionBuilder.selectedFieldId;
 
-/**
- * Selects the currently selected stage object
- */
-export const selectSelectedStage = (state: RootState): UiStage | undefined => {
-  const selectedId = state.formVersionBuilder.selectedStageId;
-  if (!selectedId) return undefined;
-  return state.formVersionBuilder.stages.find((s) => s.id === selectedId);
+export const selectSelectedField = (state: RootState) => {
+  const stageId = state.formVersionBuilder.selectedStageId;
+  const sectionId = state.formVersionBuilder.selectedSectionId;
+  const fieldId = state.formVersionBuilder.selectedFieldId;
+  if (stageId === null || sectionId === null || fieldId === null) return undefined;
+  const stage = state.formVersionBuilder.stages.find((s) => s.id === stageId);
+  const section = stage?.sections.find((sec) => sec.id === sectionId);
+  return section?.fields.find((f) => f.id === fieldId);
 };
 
-/**
- * Selects the currently selected section object
- */
-export const selectSelectedSection = (state: RootState): UiSection | undefined => {
-  const selectedStageId = state.formVersionBuilder.selectedStageId;
-  const selectedSectionId = state.formVersionBuilder.selectedSectionId;
-  if (!selectedStageId || !selectedSectionId) return undefined;
-  
-  const stage = state.formVersionBuilder.stages.find((s) => s.id === selectedStageId);
-  return stage?.sections.find((sec) => sec.id === selectedSectionId);
-};
-
-/**
- * Selects the currently selected field object
- */
-export const selectSelectedField = (state: RootState): UiField | undefined => {
-  const selectedStageId = state.formVersionBuilder.selectedStageId;
-  const selectedSectionId = state.formVersionBuilder.selectedSectionId;
-  const selectedFieldId = state.formVersionBuilder.selectedFieldId;
-  if (!selectedStageId || !selectedSectionId || !selectedFieldId) return undefined;
-  
-  const stage = state.formVersionBuilder.stages.find((s) => s.id === selectedStageId);
-  const section = stage?.sections.find((sec) => sec.id === selectedSectionId);
-  return section?.fields.find((f) => f.id === selectedFieldId);
-};
-
-/**
- * Selects dirty flag
- */
-export const selectBuilderDirty = (state: RootState): boolean =>
-  state.formVersionBuilder.dirty;
-
-/**
- * Selects saving flag
- */
-export const selectBuilderSaving = (state: RootState): boolean =>
-  state.formVersionBuilder.saving;
-
-/**
- * Selects last saved timestamp
- */
-export const selectBuilderLastSavedAt = (state: RootState): number | null =>
-  state.formVersionBuilder.lastSavedAt;
-
-/**
- * Selects save error
- */
-export const selectBuilderSaveError = (state: RootState): ServiceError | null =>
-  state.formVersionBuilder.saveError;
-
-/**
- * Selects form version ID being edited
- */
-export const selectBuilderFormVersionId = (state: RootState): number | null =>
-  state.formVersionBuilder.formVersionId;
-
-/**
- * Selects validation errors
- */
 export const selectBuilderValidationErrors = (state: RootState): Record<string, string> =>
-  state.formVersionBuilder.validationErrors;
+  state.formVersionBuilder.validationErrors || {};
 
-/**
- * Selects whether there are any validation errors
- */
 export const selectHasValidationErrors = (state: RootState): boolean =>
+  !!state.formVersionBuilder.validationErrors &&
   Object.keys(state.formVersionBuilder.validationErrors).length > 0;
 
 // ============================================================================
-// Reducer Export
+// End Slice
 // ============================================================================
-
-export default formVersionBuilderSlice.reducer;

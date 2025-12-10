@@ -14,7 +14,7 @@ import { ManageLayout } from '@/components/layouts/ManageLayout';
 import { useFieldTypes } from '../hooks/useFieldTypes';
 import type { FieldType } from '../types';
 import { FieldTypeCombobox } from '../components/FieldTypeCombobox';
-import { DynamicFieldBuilder } from '../components/NewFieldType';
+// import { DynamicFieldBuilder } from '../components/NewFieldType';
 import {TextInput} from '../components/TextInput';
 // import {TextInputFieldConfig} from '../components/TextInputFieldConfig';
 
@@ -132,7 +132,7 @@ const FieldTypesPage: React.FC = () => {
       </div>
       <div className="container mx-auto p-6">
         <h1 className="text-2xl font-bold mb-4">Field Type Selector</h1>
-        <DynamicFieldBuilder />
+        {/* <DynamicFieldBuilder /> */}
       </div>
       <div>
         <TextInput

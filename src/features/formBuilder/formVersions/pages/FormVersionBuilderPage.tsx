@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Save, Upload, AlertCircle, CheckCircle } from 'lucide-react';
 import { useFormVersion, usePublishFormVersion } from '../hooks/useFormVersions';
-import { useFormVersionBuilder, useBuilderSave } from '../hooks/useFormVersionBuilder';
+import { useFormVersionBuilder } from '../hooks/useFormVersionBuilder';
+import { useBuilderSave } from '../hooks/useFormVersionBuilder.save';
 import { useFieldTypes } from '@/features/formBuilder/fieldTypes/hooks/useFieldTypes';
 import { useInputRules } from '@/features/formBuilder/inputRules/hooks/useInputRules';
 import { FormVersionConfigDrawer } from '../components/ConfigDrawer/FormVersionConfigDrawer';
@@ -226,7 +227,7 @@ export const FormVersionBuilderPage: React.FC = () => {
   const metadataLoading = fieldTypesLoading || inputRulesLoading;
 
   return (
-    <div className="h-screen flex flex-col bg-white">
+    <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
       <header className="border-b border-gray-200 bg-white px-6 py-4">
         <div className="flex items-center justify-between">
@@ -353,16 +354,16 @@ export const FormVersionBuilderPage: React.FC = () => {
         )}
       </header>
 
-      {/* Main content: split layout */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Main content: side-by-side layout */}
+      <div className="flex-1 flex gap-4 p-4 overflow-hidden">
         {/* Left: Live Preview */}
-        <div className="flex-1 overflow-hidden">
-          <FormVersionLivePreview stages={builder.stages} />
+        <div className="flex-1 bg-white rounded-lg border border-gray-200 overflow-auto">
+          <FormVersionLivePreview />
         </div>
 
-        {/* Right: Config Drawer */}
-        <div className="w-96 overflow-hidden">
-          <FormVersionConfigDrawer />
+        {/* Right: Config Panel */}
+        <div className="w-[600px] bg-white rounded-lg border border-gray-200 overflow-auto">
+          <FormVersionConfigDrawer open={true} onClose={() => {}} />
         </div>
       </div>
     </div>

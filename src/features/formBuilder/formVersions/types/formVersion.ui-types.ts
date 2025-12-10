@@ -4,6 +4,7 @@
  * UI-specific types for Form Version Builder
  * These types support fake IDs for draft entities
  * Extended with all properties needed for full form version editing
+ * UPDATED: Added UiTransitionAction type for action management
  */
 
 // ============================================================================
@@ -34,6 +35,32 @@ export { isFakeId } from '../utils/fakeId';
  */
 export function isRealId(id: string | number | undefined): id is number {
   return typeof id === 'number';
+}
+
+// ============================================================================
+// Action Types (for Transitions)
+// ============================================================================
+
+/**
+ * Action type identifiers
+ * Must match backend action_types table
+ */
+export type ActionType = 'Send Email' | 'Send Notification' | 'Call Webhook';
+
+/**
+ * UI representation of a transition action
+ * Stores action configuration before serialization to API format
+ */
+export interface UiTransitionAction {
+  /**
+   * Type of action to perform
+   */
+  actionType: ActionType;
+
+  /**
+   * Action-specific properties (stored as object in UI, serialized to JSON string for API)
+   */
+  actionProps: Record<string, any>;
 }
 
 // ============================================================================
@@ -151,6 +178,7 @@ export interface UiStage {
 /**
  * UI representation of a stage transition
  * Supports fake IDs for draft transitions not yet saved
+ * Uses UiTransitionAction[] for action management (converted to/from API format)
  */
 export interface UiStageTransition {
   id: TransitionIdLike;
@@ -159,7 +187,7 @@ export interface UiStageTransition {
   label: string;
   condition: string | null;
   to_complete: boolean;
-  actions: string | null; // Stored as JSON string in UI
+  actions: UiTransitionAction[]; // Changed from string | null to array of action objects
 }
 
 // ============================================================================

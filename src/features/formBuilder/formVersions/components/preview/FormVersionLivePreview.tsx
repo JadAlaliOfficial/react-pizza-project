@@ -1,26 +1,18 @@
-// src/features/formVersion/components/preview/FormVersionLivePreview.tsx
+// src/features/formVersion/preview/FormVersionLivePreview.tsx
 
 /**
  * Form Version Live Preview Component
- * Shows real-time preview of form as it's being built
- * Extended to display fields within sections using preview registry
+ * Shows a live preview of the form version being built
+ * UPDATED: Added transitions visualization
  */
 
 import React from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Layers, Box } from 'lucide-react';
-import type { UiStage } from '../../types/formVersion.ui-types';
-import { getFieldPreviewComponent } from '../fields/fieldComponentRegistry';
-
-// ============================================================================
-// Props
-// ============================================================================
-
-interface FormVersionLivePreviewProps {
-  stages: UiStage[];
-}
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
+import { useFormVersionBuilder } from '../../hooks/useFormVersionBuilder';
+import type { UiStage, UiStageTransition } from '../../types/formVersion.ui-types';
 
 // ============================================================================
 // Component
@@ -29,137 +21,170 @@ interface FormVersionLivePreviewProps {
 /**
  * FormVersionLivePreview Component
  * 
- * Renders a live preview of the form version structure
- * Shows stages → sections → fields hierarchy
- * Uses fieldPreviewRegistry for dynamic field rendering
- * 
+ * Displays a live preview of the form version structure.
  * Features:
- * - Stage cards with sections
- * - Section cards with fields
- * - Dynamic field preview components
- * - Visual indicators for initial stage
- * - Empty states
+ * - Stage list with sections and fields count
+ * - Transition workflow visualization
+ * - Highlights initial stage
+ * - Shows completion transitions
  */
-export const FormVersionLivePreview: React.FC<FormVersionLivePreviewProps> = ({
-  stages,
-}) => {
-  console.debug('[FormVersionLivePreview] Rendering', stages.length, 'stages');
+export const FormVersionLivePreview: React.FC = () => {
+  const builder = useFormVersionBuilder();
+
+  console.debug(
+    '[FormVersionLivePreview] Rendering with',
+    builder.stages.length,
+    'stages and',
+    builder.transitions.length,
+    'transitions'
+  );
+
+  /**
+   * Gets stage name by ID
+   */
+  const getStageName = (stageId: UiStage['id']): string => {
+    const stage = builder.stages.find((s) => s.id === stageId);
+    return stage?.name || `Stage ${stageId}`;
+  };
+
+  /**
+   * Gets transitions from a stage
+   */
+  const getTransitionsFromStage = (stageId: UiStage['id']): UiStageTransition[] => {
+    return builder.transitions.filter((t) => t.from_stage_id === stageId);
+  };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div className="space-y-6 p-6">
       {/* Header */}
-      <div className="px-6 py-4 bg-white border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Live Preview</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          See how your form will appear to users
+      <div>
+        <h3 className="text-lg font-semibold text-gray-900">Live Preview</h3>
+        <p className="text-sm text-gray-500 mt-1">
+          Preview of your form structure and workflow
         </p>
       </div>
 
-      {/* Preview Content */}
-      <ScrollArea className="flex-1">
-        <div className="p-6 space-y-6">
-          {stages.length === 0 ? (
-            // Empty state
-            <Card className="p-8 text-center border-dashed">
-              <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-sm font-medium text-gray-900 mb-2">
-                No stages defined
-              </h3>
-              <p className="text-sm text-gray-500">
-                Add stages in the Stages tab to start building your form
-              </p>
-            </Card>
-          ) : (
-            // Render stages
-            stages.map((stage, stageIndex) => (
-              <Card key={stage.id} className="overflow-hidden">
-                {/* Stage Header */}
-                <div className="bg-blue-50 px-4 py-3 border-b border-blue-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-gray-900">
+      {/* Empty state */}
+      {builder.stages.length === 0 && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            No stages defined. Start building your form by adding stages in the config panel.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Stages Preview */}
+      {builder.stages.length > 0 && (
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Stages</h4>
+            <div className="space-y-3">
+              {builder.stages.map((stage) => {
+                const sectionCount = stage.sections.length;
+                const fieldCount = stage.sections.reduce(
+                  (sum, sec) => sum + sec.fields.length,
+                  0
+                );
+                const transitionsFromStage = getTransitionsFromStage(stage.id);
+
+                return (
+                  <Card key={stage.id} className="border-gray-200">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-sm flex items-center gap-2">
                         {stage.name}
-                      </h3>
-                      {stage.is_initial && (
-                        <Badge variant="default" className="text-xs">
-                          Initial
-                        </Badge>
-                      )}
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      Stage {stageIndex + 1}
-                    </span>
-                  </div>
-                </div>
+                        {stage.is_initial && (
+                          <Badge variant="default" className="text-[10px]">
+                            Initial
+                          </Badge>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      {/* Stats */}
+                      <div className="flex gap-3 text-xs text-gray-600">
+                        <span>{sectionCount} section{sectionCount !== 1 ? 's' : ''}</span>
+                        <span>•</span>
+                        <span>{fieldCount} field{fieldCount !== 1 ? 's' : ''}</span>
+                      </div>
 
-                {/* Stage Sections */}
-                <div className="p-4 space-y-4">
-                  {stage.sections.length === 0 ? (
-                    // Empty sections state
-                    <div className="text-center py-6 text-gray-500">
-                      <Layers className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                      <p className="text-sm">No sections in this stage</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Add sections in the Sections tab
-                      </p>
-                    </div>
-                  ) : (
-                    // Render sections
-                    stage.sections
-                      .sort((a, b) => (a.order || 0) - (b.order || 0))
-                      .map((section, sectionIndex) => (
-                        <div
-                          key={section.id}
-                          className="border border-gray-200 rounded-lg overflow-hidden"
-                        >
-                          {/* Section Header */}
-                          <div className="bg-gray-100 px-3 py-2 border-b border-gray-200">
-                            <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-medium text-gray-900">
-                                {section.name}
-                              </h4>
-                              <span className="text-xs text-gray-500">
-                                Section {sectionIndex + 1}
+                      {/* Transitions from this stage */}
+                      {transitionsFromStage.length > 0 && (
+                        <div className="mt-3 space-y-1.5">
+                          <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">
+                            Transitions
+                          </p>
+                          {transitionsFromStage.map((transition) => (
+                            <div
+                              key={transition.id}
+                              className="flex items-center gap-2 text-xs bg-gray-50 rounded px-2 py-1.5"
+                            >
+                              <span className="font-medium text-gray-700">
+                                {transition.label}
                               </span>
+                              <ArrowRight className="h-3 w-3 text-gray-400" />
+                              <span className="text-gray-600">
+                                {getStageName(transition.to_stage_id)}
+                              </span>
+                              {transition.to_complete && (
+                                <CheckCircle className="h-3 w-3 text-green-600 ml-auto" />
+                              )}
+                              {transition.actions.length > 0 && (
+                                <Badge variant="outline" className="text-[9px] ml-auto">
+                                  {transition.actions.length} action{transition.actions.length !== 1 ? 's' : ''}
+                                </Badge>
+                              )}
                             </div>
-                          </div>
-
-                          {/* Section Fields */}
-                          <div className="p-3 space-y-3 bg-white">
-                            {section.fields.length === 0 ? (
-                              // Empty fields state
-                              <div className="text-center py-4 text-gray-500">
-                                <Box className="h-6 w-6 mx-auto mb-2 text-gray-400" />
-                                <p className="text-xs">No fields in this section</p>
-                                <p className="text-xs text-gray-400 mt-1">
-                                  Add fields in the Fields tab
-                                </p>
-                              </div>
-                            ) : (
-                              // Render fields using preview registry
-                              section.fields.map((field) => {
-                                // Get preview component for this field type
-                                const FieldPreviewComponent = getFieldPreviewComponent(
-                                  field.field_type_id
-                                );
-
-                                return (
-                                  <div key={field.id}>
-                                    <FieldPreviewComponent field={field} />
-                                  </div>
-                                );
-                              })
-                            )}
-                          </div>
+                          ))}
                         </div>
-                      ))
-                  )}
-                </div>
-              </Card>
-            ))
-          )}
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </ScrollArea>
+      )}
+
+      {/* Workflow Summary */}
+      {builder.transitions.length > 0 && (
+        <div>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Workflow Summary</h4>
+          <Card className="border-gray-200">
+            <CardContent className="pt-4">
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Transitions:</span>
+                  <span className="font-medium">{builder.transitions.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Completion Transitions:</span>
+                  <span className="font-medium">
+                    {builder.transitions.filter((t) => t.to_complete).length}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Actions:</span>
+                  <span className="font-medium">
+                    {builder.transitions.reduce((sum, t) => sum + t.actions.length, 0)}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Dirty indicator */}
+      {builder.dirty && (
+        <Alert className="bg-yellow-50 border-yellow-200">
+          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-900 text-xs">
+            You have unsaved changes. Remember to save your work.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 };
