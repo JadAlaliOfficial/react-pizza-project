@@ -78,11 +78,33 @@ export const transitionReducers = {
       return;
     }
 
-    // Merge changes with existing transition (but preserve id and actions)
-    state.stageTransitions[transitionIndex] = {
-      ...state.stageTransitions[transitionIndex],
+    const current = state.stageTransitions[transitionIndex];
+
+    const nextFrom = changes.from_stage_id ?? current.from_stage_id;
+    const nextTo =
+      Object.prototype.hasOwnProperty.call(changes, 'to_stage_id')
+        ? (changes.to_stage_id as UiStageTransition['to_stage_id'])
+        : current.to_stage_id;
+
+    if (nextTo !== null && nextFrom === nextTo) {
+      state.validationErrors = {
+        ...(state.validationErrors || {}),
+        [`transition_${String(transitionId)}_to_stage_id`]: 'Cannot transition to the same stage',
+      };
+      console.warn('[TransitionReducers] Prevented self-transition');
+      return;
+    }
+
+    const merged: UiStageTransition = {
+      ...current,
       ...changes,
-    };
+    } as UiStageTransition;
+
+    if (merged.to_stage_id === null) {
+      merged.to_complete = true;
+    }
+
+    state.stageTransitions[transitionIndex] = merged;
 
     state.dirty = true;
     console.debug(`[TransitionReducers] Transition ${transitionId} updated`);

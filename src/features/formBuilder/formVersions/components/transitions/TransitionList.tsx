@@ -66,7 +66,8 @@ export const TransitionList: React.FC<TransitionListProps> = ({
   /**
    * Gets stage name by ID
    */
-  const getStageName = (stageId: UiStage['id']): string => {
+  const getStageName = (stageId: UiStage['id'] | null): string => {
+    if (stageId === null) return 'Complete';
     const stage = stages.find((s) => s.id === stageId);
     return stage?.name || `Stage ${stageId}`;
   };

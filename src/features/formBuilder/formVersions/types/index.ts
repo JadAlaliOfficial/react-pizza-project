@@ -165,6 +165,7 @@ export interface TransitionAction<T extends ActionProps = ActionProps> {
  * Used for serialization to/from API
  */
 export interface TransitionActionAPI {
+  id: number | null;
   action_id: number;
   action_props: string; // JSON string containing action configuration
 }
@@ -177,10 +178,10 @@ export interface TransitionActionAPI {
  * Stage Transition entity - defines transitions between stages
  */
 export interface StageTransition {
-  id?: number; // Optional for create operations
+  id?: number | string | null; // Supports fake IDs in some contexts
   form_version_id?: number; // Present in GET response, optional in UPDATE request
   from_stage_id: number;
-  to_stage_id: number;
+  to_stage_id: number | null;
   to_complete: boolean;
   label: string;
   condition: string | null;
@@ -194,10 +195,10 @@ export interface StageTransition {
  * Used for serialization to/from API
  */
 export interface StageTransitionAPI {
-  id?: number;
+  id?: number | string | null;
   form_version_id?: number;
-  from_stage_id: number;
-  to_stage_id: number;
+  from_stage_id: number | string; // Can be fake ID
+  to_stage_id: number | string | null;   // Can be fake ID or null for completion
   to_complete: boolean;
   label: string;
   condition: string | null;
@@ -248,7 +249,7 @@ export interface FormVersion {
  */
 export interface UpdateFormVersionRequest {
   stages: Stage[];
-  stage_transitions: StageTransition[];
+  stage_transitions: StageTransitionAPI[];
 }
 
 // ============================================================================
@@ -440,6 +441,7 @@ export function serializeTransitionAction(
   actionIdMap: Record<ActionType, number>
 ): TransitionActionAPI {
   return {
+    id: typeof action.id === 'number' ? action.id : null,
     action_id: actionIdMap[action.actionType],
     action_props: JSON.stringify(action.actionProps),
   };
@@ -454,6 +456,7 @@ export function deserializeTransitionAction(
 ): TransitionAction {
   const actionType = actionTypeMap[apiAction.action_id];
   return {
+    id: apiAction.id ?? undefined,
     action_id: apiAction.action_id,
     actionType,
     actionProps: JSON.parse(apiAction.action_props),
@@ -483,9 +486,25 @@ export function deserializeStageTransition(
   actionTypeMap: Record<number, ActionType>
 ): StageTransition {
   return {
-    ...apiTransition,
+    id: apiTransition.id,
+    form_version_id: apiTransition.form_version_id,
+    from_stage_id: typeof apiTransition.from_stage_id === 'number' 
+      ? apiTransition.from_stage_id 
+      : parseInt(apiTransition.from_stage_id, 10),
+    to_stage_id:
+      apiTransition.to_stage_id === null
+        ? null
+        : typeof apiTransition.to_stage_id === 'number'
+        ? apiTransition.to_stage_id
+        : parseInt(apiTransition.to_stage_id, 10),
+    to_complete: apiTransition.to_complete,
+    label: apiTransition.label,
+    condition: apiTransition.condition,
+    created_at: apiTransition.created_at,
+    updated_at: apiTransition.updated_at,
     actions: apiTransition.actions.map((action) =>
       deserializeTransitionAction(action, actionTypeMap)
     ),
   };
 }
+

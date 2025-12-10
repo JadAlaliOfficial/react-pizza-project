@@ -290,14 +290,14 @@ const formVersionSlice = createSlice({
       
       // Update normalized state
       state.stages = action.payload.data.stages;
-      state.stageTransitions = action.payload.data.stage_transitions;
+      state.stageTransitions = action.payload.data.stage_transitions as unknown as StageTransition[];
       
       // Update current version if it exists and matches ID
       if (state.current && state.current.id === action.payload.id) {
         state.current = {
           ...state.current,
           stages: action.payload.data.stages,
-          stage_transitions: action.payload.data.stage_transitions,
+          stage_transitions: action.payload.data.stage_transitions as unknown as StageTransition[],
           updated_at: new Date().toISOString(),
         };
       }

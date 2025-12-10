@@ -52,6 +52,7 @@ export type ActionType = 'Send Email' | 'Send Notification' | 'Call Webhook';
  * Stores action configuration before serialization to API format
  */
 export interface UiTransitionAction {
+  id?: number | null;
   /**
    * Type of action to perform
    */
@@ -183,7 +184,7 @@ export interface UiStage {
 export interface UiStageTransition {
   id: TransitionIdLike;
   from_stage_id: StageIdLike;
-  to_stage_id: StageIdLike;
+  to_stage_id: StageIdLike | null;
   label: string;
   condition: string | null;
   to_complete: boolean;

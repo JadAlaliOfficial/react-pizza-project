@@ -145,16 +145,24 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
           To Stage <span className="text-destructive">*</span>
         </Label>
         <Select
-          value={String(transition.to_stage_id)}
+          value={transition.to_stage_id === null ? '__COMPLETE__' : String(transition.to_stage_id)}
           onValueChange={(val) => {
+            if (val === '__COMPLETE__') {
+              updateField('to_stage_id', null as any);
+              updateField('to_complete', true as any);
+              return;
+            }
             const parsed = parseInt(val, 10);
-            updateField('to_stage_id', isNaN(parsed) ? val : parsed);
+            updateField('to_stage_id', isNaN(parsed) ? (val as any) : (parsed as any));
           }}
         >
           <SelectTrigger className="w-full h-9 text-xs">
             <SelectValue placeholder="Select to stage" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="__COMPLETE__" className="text-xs">
+              Complete Workflow (no next stage)
+            </SelectItem>
             {stages.map((stage) => (
               <SelectItem key={stage.id} value={String(stage.id)} className="text-xs">
                 {stage.name} {stage.is_initial && '(Initial)'}
@@ -192,6 +200,7 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
           </p>
         </div>
         <Switch
+          disabled={transition.to_stage_id === null}
           checked={transition.to_complete}
           onCheckedChange={(checked) => updateField('to_complete', checked)}
         />
@@ -212,12 +221,11 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
       </div>
 
       {/* Validation warning */}
-      {transition.from_stage_id === transition.to_stage_id && !transition.to_complete && (
-        <Alert className="bg-yellow-50 border-yellow-200">
-          <AlertCircle className="h-4 w-4 text-yellow-600" />
-          <AlertDescription className="text-yellow-900 text-xs">
-            This transition loops back to the same stage. Consider enabling "Completes Workflow"
-            if this represents completion.
+      {transition.from_stage_id === transition.to_stage_id && (
+        <Alert className="bg-red-50 border-red-200">
+          <AlertCircle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-900 text-xs">
+            Invalid transition: cannot transition to the same stage.
           </AlertDescription>
         </Alert>
       )}
