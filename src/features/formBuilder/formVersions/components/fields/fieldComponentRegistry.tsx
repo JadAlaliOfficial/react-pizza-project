@@ -161,9 +161,88 @@ const DefaultFieldPreview: FieldPreviewComponent = ({ field }) => {
 import { EmailInputFieldConfig } from './config/EmailInputFieldConfig';
 import { EmailInputPreview } from './preview/EmailInputPreview';
 
+// Text Input field components (REGISTERED)
+import { TextInputFieldConfig } from './config/TextInputFieldConfig';
+import { TextInputPreview } from './preview/TextInputPreview';
+// Number Input field components (REGISTERED)
+import { NumberInputFieldConfig } from './config/NumberInputFieldConfig';
+import { NumberInputPreview } from './preview/NumberInputPreview';
+// Phone Input field components (REGISTERED)
+import { PhoneInputFieldConfig } from './config/PhoneInputFieldConfig';
+import { PhoneInputPreview } from './preview/PhoneInputPreview';
+// TextArea Input field components (REGISTERED)
+import { TextAreaFieldConfig } from './config/TextAreaFieldConfig';
+import { TextAreaPreview } from './preview/TextAreaPreview';
+// Date Input field components (REGISTERED)
+import { DateInputFieldConfig } from './config/DateInputFieldConfig';
+import { DateInputPreview } from './preview/DateInputPreview';
+// Time Input field components (REGISTERED)
+import { TimeInputFieldConfig } from './config/TimeInputFieldConfig';
+import { TimeInputPreview } from './preview/TimeInputPreview';
+// DateTime Input field components (REGISTERED)
+import { DateTimeInputFieldConfig } from './config/DateTimeInputFieldConfig';
+import { DateTimeInputPreview } from './preview/DateTimeInputPreview';
+// Checkbox Input field components (REGISTERED)
+import { CheckboxFieldConfig } from './config/CheckboxFieldConfig';
+import { CheckboxPreview } from './preview/CheckboxPreview';
+// Radio Input field components (REGISTERED)
+import { RadioButtonFieldConfig } from './config/RadioButtonFieldConfig';
+import { RadioButtonPreview } from './preview/RadioButtonPreview';
+// Dropdown Select Input field components (REGISTERED)
+import { DropdownSelectFieldConfig } from './config/DropdownSelectFieldConfig';
+import { DropdownSelectPreview } from './preview/DropdownSelectPreview';
+// MultiSelect Input field components (REGISTERED)
+import { MultiSelectFieldConfig } from './config/MultiSelectFieldConfig';
+import { MultiSelectPreview } from './preview/MultiSelectPreview';
+// File Upload Input field components (REGISTERED)
+import { FileUploadFieldConfig } from './config/FileUploadFieldConfig';
+import { FileUploadPreview } from './preview/FileUploadPreview';
+// Image Upload Input field components (REGISTERED)
+import { ImageUploadFieldConfig } from './config/ImageUploadFieldConfig';
+import { ImageUploadPreview } from './preview/ImageUploadPreview';
+// Video Upload Input field components (REGISTERED)
+import { VideoUploadFieldConfig } from './config/VideoUploadFieldConfig';
+import { VideoUploadPreview } from './preview/VideoUploadPreview';
+// Document Upload Input field components (REGISTERED)
+import { DocumentUploadFieldConfig } from './config/DocumentUploadFieldConfig';
+import { DocumentUploadPreview } from './preview/DocumentUploadPreview';
+// Url Input field components (REGISTERED)
+import { UrlInputFieldConfig } from './config/UrlInputFieldConfig';
+import { UrlInputPreview } from './preview/UrlInputPreview';
+// Password Input field components (REGISTERED)
+import { PasswordInputFieldConfig } from './config/PasswordInputFieldConfig';
+import { PasswordInputPreview } from './preview/PasswordInputPreview';
+// Color Picker Input field components (REGISTERED)
+import { ColorPickerFieldConfig } from './config/ColorPickerFieldConfig';
+import { ColorPickerPreview } from './preview/ColorPickerPreview';
+// Rating Input field components (REGISTERED)
+import { RatingFieldConfig } from './config/RatingFieldConfig';
+import { RatingPreview } from './preview/RatingPreview';
+// Slider Input field components (REGISTERED)
+import { SliderFieldConfig } from './config/SliderFieldConfig';
+import { SliderPreview } from './preview/SliderPreview';
+// Toggle Switch Input field components (REGISTERED)
+import { ToggleSwitchFieldConfig } from './config/ToggleSwitchFieldConfig';
+import { ToggleSwitchPreview } from './preview/ToggleSwitchPreview';
+// Currency Input field components (REGISTERED)
+import { CurrencyInputFieldConfig } from './config/CurrencyInputFieldConfig';
+import { CurrencyInputPreview } from './preview/CurrencyInputPreview';
+// Percentage Input field components (REGISTERED)
+import { PercentageInputFieldConfig } from './config/PercentageInputFieldConfig';
+import { PercentageInputPreview } from './preview/PercentageInputPreview';
+// Signature Pad Input field components (REGISTERED)
+import { SignaturePadFieldConfig } from './config/SignaturePadFieldConfig';
+import { SignaturePadPreview } from './preview/SignaturePadPreview';
+// Location Picker Input field components (REGISTERED)
+import { LocationPickerFieldConfig } from './config/LocationPickerFieldConfig';
+import { LocationPickerPreview } from './preview/LocationPickerPreview';
+// Address Input field components (REGISTERED)
+import { AddressInputFieldConfig } from './config/AddressInputFieldConfig';
+import { AddressInputPreview } from './preview/AddressInputPreview';
+
+
+
 // TODO: Import additional field components here as you create them
-// import { TextInputFieldConfig } from './config/TextInputFieldConfig';
-// import { TextInputPreview } from './preview/TextInputPreview';
 // import { NumberInputFieldConfig } from './config/NumberInputFieldConfig';
 // import { NumberInputPreview } from './preview/NumberInputPreview';
 // ... etc
@@ -199,7 +278,33 @@ import { EmailInputPreview } from './preview/EmailInputPreview';
 export const fieldConfigRegistry: FieldConfigRegistry = {
   // Email Input field type
   // NOTE: Change this ID to match your backend's field_type_id for "Email Input"
+  1: TextInputFieldConfig,
   2: EmailInputFieldConfig,
+  3: NumberInputFieldConfig,
+  4: PhoneInputFieldConfig,
+  5: TextAreaFieldConfig,
+  6: DateInputFieldConfig,
+  7: TimeInputFieldConfig,
+  8: DateTimeInputFieldConfig,
+  9: CheckboxFieldConfig,
+  10: RadioButtonFieldConfig,
+  11: DropdownSelectFieldConfig,
+  12: MultiSelectFieldConfig,
+  13: FileUploadFieldConfig,
+  14: ImageUploadFieldConfig,
+  15: VideoUploadFieldConfig,
+  16: DocumentUploadFieldConfig,
+  17: UrlInputFieldConfig,
+  18: PasswordInputFieldConfig,
+  19: ColorPickerFieldConfig,
+  20: RatingFieldConfig,
+  21: SliderFieldConfig,
+  22: ToggleSwitchFieldConfig,
+  23: CurrencyInputFieldConfig,
+  24: PercentageInputFieldConfig,
+  25: SignaturePadFieldConfig,
+  26: LocationPickerFieldConfig,
+  27: AddressInputFieldConfig,
   
   // Add more field types here as you create them:
   // 1: TextInputFieldConfig,
@@ -229,7 +334,33 @@ export const fieldConfigRegistry: FieldConfigRegistry = {
 export const fieldPreviewRegistry: FieldPreviewRegistry = {
   // Email Input field type
   // NOTE: Change this ID to match your backend's field_type_id for "Email Input"
+  1: TextInputPreview,
   2: EmailInputPreview,
+  3: NumberInputPreview,
+  4: PhoneInputPreview,
+  5: TextAreaPreview,
+  6: DateInputPreview,
+  7: TimeInputPreview,
+  8: DateTimeInputPreview,
+  9: CheckboxPreview,
+  10: RadioButtonPreview,
+  11: DropdownSelectPreview,
+  12: MultiSelectPreview,
+  13: FileUploadPreview,
+  14: ImageUploadPreview,
+  15: VideoUploadPreview,
+  16: DocumentUploadPreview,
+  17: UrlInputPreview,
+  18: PasswordInputPreview,
+  19: ColorPickerPreview,
+  20: RatingPreview,
+  21: SliderPreview,
+  22: ToggleSwitchPreview,
+  23: CurrencyInputPreview,
+  24: PercentageInputPreview,
+  25: SignaturePadPreview,
+  26: LocationPickerPreview,
+  27: AddressInputPreview,
   
   // Add more field types here as you create them:
   // 1: TextInputPreview,

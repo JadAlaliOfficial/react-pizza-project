@@ -162,13 +162,12 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
             />
           </div>
 
-          {/* Visibility condition */}
           <div className="space-y-2">
-            <Label htmlFor="visibility-condition">Visibility Condition</Label>
+            <Label htmlFor="visibility-conditions">Visibility Conditions</Label>
             <Textarea
-              id="visibility-condition"
-              value={formData.visibility_condition || ''}
-              onChange={(e) => updateField('visibility_condition', e.target.value || null)}
+              id="visibility-conditions"
+              value={formData.visibility_conditions || ''}
+              onChange={(e) => updateField('visibility_conditions', e.target.value || null)}
               placeholder="JSON condition (optional)"
               rows={3}
               className="font-mono text-sm"

@@ -168,6 +168,7 @@ export interface UiStage {
   is_initial: boolean;
   allow_rejection: boolean;
   visibility_condition: string | null;
+  visibility_conditions: string | null;
   access_rule: AccessRule | null;
   sections: UiSection[];
 }

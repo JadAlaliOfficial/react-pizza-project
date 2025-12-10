@@ -23,7 +23,7 @@ export interface FieldType {
  * Input Rule entity - validation rules applied to fields
  */
 export interface InputRule {
-  id: number;
+  id: number | null;
   input_rule_id: number;
   rule_props: string | null;
   rule_condition: string | null;
@@ -33,14 +33,14 @@ export interface InputRule {
  * Field entity - represents a field instance within a section
  */
 export interface Field {
-  id?: number; // Optional for create operations
-  section_id?: number; // Present in GET response, optional in UPDATE request
+  id?: number | string;
+  section_id?: number | string;
   field_type_id: number;
   label: string;
   placeholder: string | null;
   helper_text: string | null;
   default_value: string | null;
-  visibility_condition: string | null;
+  visibility_condition?: string | null;
   visibility_conditions?: string | null; // Alternate naming in UPDATE
   created_at?: string;
   updated_at?: string;
@@ -52,8 +52,8 @@ export interface Field {
  * Section entity - groups fields within a stage
  */
 export interface Section {
-  id?: number; // Optional for create operations
-  stage_id?: number; // Present in GET response, optional in UPDATE request
+  id?: number | string;
+  stage_id?: number | string;
   name: string;
   order?: number; // Present in UPDATE request
   visibility_condition?: string | null; // Present in GET response

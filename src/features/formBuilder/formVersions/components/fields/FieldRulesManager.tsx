@@ -211,7 +211,7 @@ export const FieldRulesManager: React.FC<FieldRulesManagerProps> = ({
           // Get existing rule config or create placeholder
           const existingRule = getExistingRule(inputRule.id);
           const ruleConfig: UiInputRule = existingRule || {
-            input_rule_id: inputRule.id,
+            input_rule_id: null,
             rule_props: null,
             rule_condition: null,
           };

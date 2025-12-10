@@ -90,8 +90,8 @@ export const AfterDateRuleComponent: React.FC<RuleComponentProps> = ({
       date: newDate || undefined,
     };
 
-    // Serialize to JSON string
-    const propsJson = JSON.stringify(newProps);
+    // Serialize to JSON string, set null when no date
+    const propsJson = newProps.date ? JSON.stringify(newProps) : null;
     onRulePropsChange(propsJson);
   };
 

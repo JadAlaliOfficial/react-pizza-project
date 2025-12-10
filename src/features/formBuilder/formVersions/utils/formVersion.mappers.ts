@@ -152,6 +152,7 @@ function mapStageToUi(stage: Stage): UiStage {
     is_initial: stage.is_initial,
     allow_rejection: false,
     visibility_condition: stage.visibility_condition ?? null,
+    visibility_conditions: stage.visibility_condition ?? null,
     access_rule: stage.access_rule ?? {
       allowed_users: null,
       allowed_roles: null,
@@ -253,36 +254,25 @@ export function mapFormVersionToUi(formVersion: FormVersion | null): {
  */
 function mapFieldToApi(field: UiField): Field {
   const apiField: Field = {
+    id: field.id as number | string,
+    section_id: field.section_id as number | string,
     field_type_id: field.field_type_id,
     label: field.label,
     placeholder: field.placeholder,
     helper_text: field.helper_text,
     default_value: field.default_value,
-    visibility_condition: field.visibility_condition,
-    visibility_conditions:
-      field.visibility_conditions ?? field.visibility_condition,
+    visibility_conditions: field.visibility_conditions,
     rules: field.rules
       .filter((rule) => rule.input_rule_id !== null)
       .map(
         (rule): ApiInputRule => ({
-          id: rule.input_rule_id as number,
+          id: null,
           input_rule_id: rule.input_rule_id as number,
-          rule_props: rule.rule_props,
+          rule_props: rule.rule_props ?? null,
           rule_condition: rule.rule_condition,
         }),
       ),
   };
-
-  // Only include ID if it's a real numeric ID (skip fake IDs)
-  if (isRealId(field.id)) {
-    apiField.id = field.id;
-  }
-
-  // Only include section_id if it's a real numeric ID (skip fake IDs)
-  if (isRealId(field.section_id)) {
-    apiField.section_id = field.section_id;
-  }
-
   return apiField;
 }
 
@@ -294,9 +284,7 @@ function mapSectionToApi(section: UiSection): Section {
   const apiSection: Section = {
     name: section.name,
     order: section.order,
-    visibility_condition: section.visibility_condition ?? null,
-    visibility_conditions:
-      section.visibility_conditions ?? section.visibility_condition ?? null,
+    visibility_conditions: section.visibility_conditions ?? null,
     fields: section.fields.map(mapFieldToApi),
   };
 
@@ -321,7 +309,8 @@ function mapStageToApi(stage: UiStage): Stage {
   const apiStage: Stage = {
     name: stage.name,
     is_initial: stage.is_initial,
-    visibility_condition: stage.visibility_condition ?? null,
+    visibility_condition:
+      stage.visibility_conditions ?? stage.visibility_condition ?? null,
     sections: stage.sections.map(mapSectionToApi),
     access_rule: stage.access_rule ?? {
       allowed_users: null,

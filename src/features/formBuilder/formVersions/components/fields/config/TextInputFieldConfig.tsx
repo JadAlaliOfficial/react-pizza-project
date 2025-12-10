@@ -1,0 +1,175 @@
+// src/features/formVersion/components/fields/config/TextInputFieldConfig.tsx
+
+/**
+ * Text Input Field Configuration Component
+ * 
+ * Provides UI for configuring a Text Input field:
+ * - Label, placeholder, helper text
+ * - Default value
+ * - Visibility conditions
+ */
+
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Trash2, Type, Info } from 'lucide-react';
+import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
+
+// ============================================================================
+// Component
+// ============================================================================
+
+/**
+ * TextInputFieldConfig Component
+ * 
+ * Configuration UI for Text Input field type
+ * Features:
+ * - Label, placeholder, helper text
+ * - Default value
+ * - Visibility conditions (JSON)
+ * - Text-specific notes
+ */
+export const TextInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
+  field,
+  fieldIndex,
+  onFieldChange,
+  onDelete,
+}) => {
+  console.debug('[TextInputFieldConfig] Rendering for field:', field.id);
+
+  return (
+    <Card className="p-4 border-l-4 border-l-blue-500">
+      <div className="space-y-3">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Type className="h-4 w-4 text-blue-500" />
+            <Badge variant="outline" className="text-xs">
+              Text Input
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              Field {fieldIndex + 1}
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            onClick={onDelete}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Info Alert */}
+        <Alert className="py-2">
+          <Info className="h-3 w-3" />
+          <AlertDescription className="text-xs">
+            Text input accepts any string value. Use validation rules to enforce specific patterns or lengths.
+          </AlertDescription>
+        </Alert>
+
+        {/* Label */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Label <span className="text-destructive">*</span>
+          </label>
+          <Input
+            value={field.label}
+            onChange={(e) => onFieldChange({ label: e.target.value })}
+            placeholder="Enter field label"
+            className="h-9"
+            maxLength={255}
+          />
+        </div>
+
+        {/* Placeholder */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Placeholder
+          </label>
+          <Input
+            value={field.placeholder ?? ''}
+            onChange={(e) =>
+              onFieldChange({ placeholder: e.target.value || null })
+            }
+            placeholder="Enter placeholder text"
+            className="h-9"
+            maxLength={255}
+          />
+        </div>
+
+        {/* Helper Text */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Helper Text
+          </label>
+          <Textarea
+            value={field.helper_text ?? ''}
+            onChange={(e) =>
+              onFieldChange({ helper_text: e.target.value || null })
+            }
+            placeholder="Additional information to help users"
+            className="min-h-[60px] text-xs"
+          />
+        </div>
+
+        {/* Default Value */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Default Value
+          </label>
+          <Input
+            value={field.default_value ?? ''}
+            onChange={(e) =>
+              onFieldChange({ default_value: e.target.value || null })
+            }
+            placeholder="Default value for this field"
+            className="h-9"
+          />
+        </div>
+
+        {/* Visibility Conditions */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">
+            Visibility Conditions (JSON)
+          </label>
+          <Textarea
+            value={
+              field.visibility_conditions ?? field.visibility_condition ?? ''
+            }
+            onChange={(e) =>
+              onFieldChange({
+                visibility_conditions: e.target.value || null,
+              })
+            }
+            placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
+            className="min-h-[60px] text-xs font-mono"
+          />
+        </div>
+
+        {/* Available Validation Rules Info */}
+        <div className="pt-2 border-t">
+          <p className="text-[10px] font-medium text-muted-foreground mb-1">
+            📋 Suggested Validation Rules:
+          </p>
+          <ul className="text-[10px] text-muted-foreground space-y-0.5 ml-3">
+            <li>• required</li>
+            <li>• min/max (length)</li>
+            <li>• regex (pattern matching)</li>
+            <li>• alpha/alpha_num/alpha_dash</li>
+            <li>• unique</li>
+          </ul>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            💡 Configure validation rules in the Field Validation Rules section below
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+};

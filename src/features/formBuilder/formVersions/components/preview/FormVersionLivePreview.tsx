@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { useFormVersionBuilder } from '../../hooks/useFormVersionBuilder';
 import type { UiStage, UiStageTransition } from '../../types/formVersion.ui-types';
+import { getFieldPreviewComponent } from '../fields/fieldComponentRegistry';
 
 // ============================================================================
 // Component
@@ -107,6 +108,32 @@ export const FormVersionLivePreview: React.FC = () => {
                         <span>{sectionCount} section{sectionCount !== 1 ? 's' : ''}</span>
                         <span>•</span>
                         <span>{fieldCount} field{fieldCount !== 1 ? 's' : ''}</span>
+                      </div>
+
+                      {/* Sections and fields */}
+                      <div className="space-y-3 mt-3">
+                        {stage.sections.map((section) => (
+                          <div key={section.id} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs font-medium text-gray-700">
+                                {section.name}
+                              </p>
+                              <span className="text-[10px] text-gray-500">
+                                {section.fields.length} field{section.fields.length !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {section.fields.map((field) => {
+                                const Preview = getFieldPreviewComponent(field.field_type_id);
+                                return (
+                                  <div key={field.id} className="border rounded p-2 bg-white">
+                                    <Preview field={field} />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
 
                       {/* Transitions from this stage */}

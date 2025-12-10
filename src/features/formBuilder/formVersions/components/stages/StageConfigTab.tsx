@@ -57,6 +57,7 @@ export const StageConfigTab: React.FC<StageConfigTabProps> = ({ stages, onChange
       is_initial: stages.length === 0, // First stage is initial by default
       allow_rejection: false,
       visibility_condition: null,
+      visibility_conditions: null,
       access_rule: {
         allowed_users: null,
         allowed_roles: null,

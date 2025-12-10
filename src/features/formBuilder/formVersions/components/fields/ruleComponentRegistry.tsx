@@ -9,6 +9,7 @@
 
 import React from 'react';
 import type { InputRule as UiInputRule } from '../../types/formVersion.ui-types';
+import { JsonEditor } from './rules/JsonEditor';
 
 // ============================================================================
 // Component Prop Types
@@ -69,15 +70,8 @@ export type RuleComponentRegistry = Record<string, RuleComponent>;
  * Default rule component shown when rule is not registered
  * Provides basic enable/disable + JSON editor for rule_props
  */
-const DefaultRuleComponent: RuleComponent = ({
-  rule,
-  ruleIndex,
-  onEnabledChange,
-  onRulePropsChange,
-}) => {
-  // Determine if rule is enabled (check if it has input_rule_id set)
+const DefaultRuleComponent: RuleComponent = ({ rule, ruleIndex, onEnabledChange, onRulePropsChange }) => {
   const isEnabled = rule.input_rule_id !== null && rule.input_rule_id !== undefined;
-
   return (
     <div className="p-3 border border-dashed border-gray-300 rounded-md bg-gray-50">
       <div className="flex items-center space-x-2 mb-2">
@@ -89,31 +83,19 @@ const DefaultRuleComponent: RuleComponent = ({
           className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
         />
         <div className="flex-1">
-          <label
-            htmlFor={`rule-${ruleIndex}`}
-            className="text-sm font-medium text-gray-900 cursor-pointer"
-          >
-            Rule ID: {rule.input_rule_id || 'Unknown'}
+          <label htmlFor={`rule-${ruleIndex}`} className="text-sm font-medium text-gray-900 cursor-pointer">
+            Rule
           </label>
-          <p className="text-xs text-gray-500">No component registered for this rule</p>
         </div>
       </div>
-
       {isEnabled && (
-        <div className="ml-6 mt-2 space-y-2">
-          <label className="block text-xs font-medium text-gray-700">
-            Rule Props (JSON)
-          </label>
-          <textarea
-            value={rule.rule_props || ''}
-            onChange={(e) => onRulePropsChange(e.target.value || null)}
-            placeholder='{"key": "value"}'
-            rows={3}
-            className="w-full px-2 py-1 text-xs font-mono border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="ml-6 mt-2">
+          <JsonEditor
+            id={`rule-props-${ruleIndex}`}
+            label="Rule Props (JSON)"
+            value={rule.rule_props}
+            onChange={(v) => onRulePropsChange(v)}
           />
-          <p className="text-xs text-gray-500">
-            💡 Register a custom component for this rule in ruleComponentRegistry.ts
-          </p>
         </div>
       )}
     </div>
@@ -126,35 +108,74 @@ const DefaultRuleComponent: RuleComponent = ({
 
 // After Date Rule (REGISTERED)
 import { AfterDateRuleComponent } from './rules/AfterDateRuleComponent';
-
-// TODO: Import additional rule components here as you create them
-// import { RequiredRuleComponent } from './rules/RequiredRuleComponent';
-// import { EmailRuleComponent } from './rules/EmailRuleComponent';
-// import { MinLengthRuleComponent } from './rules/MinLengthRuleComponent';
-// import { MaxLengthRuleComponent } from './rules/MaxLengthRuleComponent';
-// import { RegexRuleComponent } from './rules/RegexRuleComponent';
-// import { UniqueRuleComponent } from './rules/UniqueRuleComponent';
-// import { ConfirmedRuleComponent } from './rules/ConfirmedRuleComponent';
-// import { NumericRuleComponent } from './rules/NumericRuleComponent';
-// import { AlphaRuleComponent } from './rules/AlphaRuleComponent';
-// import { AlphaDashRuleComponent } from './rules/AlphaDashRuleComponent';
-// import { AlphaNumRuleComponent } from './rules/AlphaNumRuleComponent';
-// import { BeforeDateRuleComponent } from './rules/BeforeDateRuleComponent';
-// import { BetweenRuleComponent } from './rules/BetweenRuleComponent';
-// import { DateRuleComponent } from './rules/DateRuleComponent';
-// import { StartsWithRuleComponent } from './rules/StartsWithRuleComponent';
-// import { EndsWithRuleComponent } from './rules/EndsWithRuleComponent';
-// import { InArrayRuleComponent } from './rules/InArrayRuleComponent';
-// import { NotInArrayRuleComponent } from './rules/NotInArrayRuleComponent';
-// import { UrlRuleComponent } from './rules/UrlRuleComponent';
-// import { IpAddressRuleComponent } from './rules/IpAddressRuleComponent';
-// import { JsonRuleComponent } from './rules/JsonRuleComponent';
-// import { MimeTypesRuleComponent } from './rules/MimeTypesRuleComponent';
-// import { MimesRuleComponent } from './rules/MimesRuleComponent';
-// import { ImageDimensionsRuleComponent } from './rules/ImageDimensionsRuleComponent';
-// import { FileRuleComponent } from './rules/FileRuleComponent';
-// import { ImageRuleComponent } from './rules/ImageRuleComponent';
-// ... etc
+// After or Equal Date Rule (REGISTERED)
+import { AfterOrEqualRuleComponent } from './rules/AfterOrEqualRuleComponent';
+// Alpha Dash Rule (REGISTERED)
+import { AlphaDashRuleComponent } from './rules/AlphaDashRuleComponent';
+// Alpha Numeric Rule (REGISTERED)
+import { AlphaNumRuleComponent } from './rules/AlphaNumRuleComponent';
+// Alpha Rule (REGISTERED)
+import { AlphaRuleComponent } from './rules/AlphaRuleComponent';
+// Before Date Rule (REGISTERED)
+import { BeforeDateRuleComponent } from './rules/BeforeDateRuleComponent';
+// Before or Equal Date Rule (REGISTERED)
+import { BeforeOrEqualRuleComponent } from './rules/BeforeOrEqualRuleComponent';
+// Between Rule (REGISTERED)
+import { BetweenRuleComponent } from './rules/BetweenRuleComponent';
+// Confirmed Rule (REGISTERED)
+import { ConfirmedRuleComponent } from './rules/ConfirmedRuleComponent';
+// Date Format Rule (REGISTERED)
+import { DateFormatRuleComponent } from './rules/DateFormatRuleComponent';
+// Date Rule (REGISTERED)
+import { DateRuleComponent } from './rules/DateRuleComponent';
+// Different Rule (REGISTERED)
+import { DifferentRuleComponent } from './rules/DifferentRuleComponent';
+// Dimensions Rule (REGISTERED)
+import { DimensionsRuleComponent } from './rules/DimensionsRuleComponent';
+// Email Rule (REGISTERED)
+import { EmailRuleComponent } from './rules/EmailRuleComponent';
+// Ends With Rule (REGISTERED)
+import { EndsWithRuleComponent } from './rules/EndsWithRuleComponent';
+// In Array Rule (REGISTERED)
+import { InRuleComponent } from './rules/InRuleComponent';
+// Integer Rule (REGISTERED)
+import { IntegerRuleComponent } from './rules/IntegerRuleComponent';
+// Json Rule (REGISTERED)
+import { JsonRuleComponent } from './rules/JsonRuleComponent';
+// Latitude Rule (REGISTERED)
+import { LatitudeRuleComponent } from './rules/LatitudeRuleComponent';
+// Longitude Rule (REGISTERED)
+import { LongitudeRuleComponent } from './rules/LongitudeRuleComponent';
+// Max File Size Rule (REGISTERED)
+import { MaxFileSizeRuleComponent } from './rules/MaxFileSizeRuleComponent';
+// Max Rule (REGISTERED)
+import { MaxRuleComponent } from './rules/MaxRuleComponent';
+// Mimes Rule (REGISTERED)
+import { MimesRuleComponent } from './rules/MimesRuleComponent';
+// Mime Types Rule (REGISTERED)
+import { MimeTypesRuleComponent } from './rules/MimeTypesRuleComponent';
+// Min File Size Rule (REGISTERED)
+import { MinFileSizeRuleComponent } from './rules/MinFileSizeRuleComponent';
+// Min Rule (REGISTERED)
+import { MinRuleComponent } from './rules/MinRuleComponent';
+// Not In Array Rule (REGISTERED)
+import { NotInRuleComponent } from './rules/NotInRuleComponent';
+// Numeric Rule (REGISTERED)
+import { NumericRuleComponent } from './rules/NumericRuleComponent';
+// Regex Rule (REGISTERED)
+import { RegexRuleComponent } from './rules/RegexRuleComponent';
+// Required Rule (REGISTERED)
+import { RequiredRuleComponent } from './rules/RequiredRuleComponent';
+// Same Rule (REGISTERED)
+import { SameRuleComponent } from './rules/SameRuleComponent';
+// Size Rule (REGISTERED)
+import { SizeRuleComponent } from './rules/SizeRuleComponent';
+// StartsWith Rule (REGISTERED)
+import { StartsWithRuleComponent } from './rules/StartsWithRuleComponent';
+// Unique Rule (REGISTERED)
+import { UniqueRuleComponent } from './rules/UniqueRuleComponent';
+// Url Rule (REGISTERED)
+import { UrlRuleComponent } from './rules/UrlRuleComponent';
 
 // ============================================================================
 // Rule Registry
@@ -203,35 +224,75 @@ import { AfterDateRuleComponent } from './rules/AfterDateRuleComponent';
 export const ruleComponentRegistry: RuleComponentRegistry = {
   // After date rule (REGISTERED)
   'after': AfterDateRuleComponent,
+  // After or equal date rule (REGISTERED)
+  'after_or_equal': AfterOrEqualRuleComponent,
+  // Alpha Dash Rule (REGISTERED)
+  'alpha_dash': AlphaDashRuleComponent,
+  // Alpha Numeric Rule (REGISTERED)
+  'alpha_num': AlphaNumRuleComponent,
+  // Alpha Rule (REGISTERED)
+  'alpha': AlphaRuleComponent,
+  // Before Date Rule (REGISTERED)
+  'before': BeforeDateRuleComponent,
+  // Before or Equal Date Rule (REGISTERED)
+  'before_or_equal': BeforeOrEqualRuleComponent,
+  // Between Rule (REGISTERED)
+  'between': BetweenRuleComponent,
+  // Confirmed Rule (REGISTERED)
+  'confirmed': ConfirmedRuleComponent,
+  // Date Format Rule (REGISTERED)
+  'date_format': DateFormatRuleComponent,
+  // Date Rule (REGISTERED)
+  'date': DateRuleComponent,
+  // Different Rule (REGISTERED)
+  'different': DifferentRuleComponent,
+  // Dimensions Rule (REGISTERED)
+  'dimensions': DimensionsRuleComponent,
+  // Email Rule (REGISTERED)
+  'email': EmailRuleComponent,
+  // Ends With Rule (REGISTERED)
+  'ends_with': EndsWithRuleComponent,
+  // In Rule (REGISTERED)
+  'in': InRuleComponent,
+  // Integer Rule (REGISTERED)
+  'integer': IntegerRuleComponent,
+  // JSON Rule (REGISTERED)
+  'json': JsonRuleComponent,
+  // Latitude Rule (REGISTERED)
+  'latitude': LatitudeRuleComponent,
+  // Longitude Rule (REGISTERED)
+  'longitude': LongitudeRuleComponent,
+  // Max File Size Rule (REGISTERED)
+  'max_file_size': MaxFileSizeRuleComponent,
+  // Max Rule (REGISTERED)
+  'max': MaxRuleComponent,
+  // Mimes Rule (REGISTERED)
+  'mimes': MimesRuleComponent,
+  // Mime Types Rule (REGISTERED)
+  'mimetypes': MimeTypesRuleComponent,
+  // Min File Size Rule (REGISTERED)
+  'min_file_size': MinFileSizeRuleComponent,
+  // Min Rule (REGISTERED)
+  'min': MinRuleComponent,
+  // Not In Array Rule (REGISTERED)
+  'not_in': NotInRuleComponent,
+  // Numeric Rule (REGISTERED)
+  'numeric': NumericRuleComponent,
+  // Regex Rule (REGISTERED)
+  'regex': RegexRuleComponent,
+  // Required Rule (REGISTERED)
+  'required': RequiredRuleComponent,
+  // Same Rule (REGISTERED)
+  'same': SameRuleComponent,
+  // Size Rule (REGISTERED)
+  'size': SizeRuleComponent,
+  // StartsWith Rule (REGISTERED)
+  'starts_with': StartsWithRuleComponent,
+  // Unique Rule (REGISTERED)
+  'unique': UniqueRuleComponent,
+  // Url Rule (REGISTERED)
+  'url': UrlRuleComponent,
   
-  // Add more rules here as you create their components:
-  // 'required': RequiredRuleComponent,
-  // 'email': EmailRuleComponent,
-  // 'min': MinLengthRuleComponent,
-  // 'max': MaxLengthRuleComponent,
-  // 'regex': RegexRuleComponent,
-  // 'unique': UniqueRuleComponent,
-  // 'confirmed': ConfirmedRuleComponent,
-  // 'numeric': NumericRuleComponent,
-  // 'alpha': AlphaRuleComponent,
-  // 'alpha_dash': AlphaDashRuleComponent,
-  // 'alpha_num': AlphaNumRuleComponent,
-  // 'before': BeforeDateRuleComponent,
-  // 'between': BetweenRuleComponent,
-  // 'date': DateRuleComponent,
-  // 'startswith': StartsWithRuleComponent,
-  // 'endswith': EndsWithRuleComponent,
-  // 'in': InArrayRuleComponent,
-  // 'not_in': NotInArrayRuleComponent,
-  // 'url': UrlRuleComponent,
-  // 'ip': IpAddressRuleComponent,
-  // 'json': JsonRuleComponent,
-  // 'mimetypes': MimeTypesRuleComponent,
-  // 'mimes': MimesRuleComponent,
-  // 'dimensions': ImageDimensionsRuleComponent,
-  // 'file': FileRuleComponent,
-  // 'image': ImageRuleComponent,
-  // ... etc for all 35 rules
 };
 
 // ============================================================================

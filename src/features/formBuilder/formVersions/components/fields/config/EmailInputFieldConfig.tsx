@@ -155,9 +155,7 @@ export const EmailInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             Visibility Conditions (JSON)
           </label>
           <Textarea
-            value={
-              field.visibility_conditions ?? field.visibility_condition ?? ''
-            }
+            value={field.visibility_conditions ?? ''}
             onChange={(e) =>
               onFieldChange({
                 visibility_conditions: e.target.value || null,
