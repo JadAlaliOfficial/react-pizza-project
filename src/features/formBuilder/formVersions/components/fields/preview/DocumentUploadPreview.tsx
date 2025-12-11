@@ -9,7 +9,6 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import {
   FileText,
   Upload,
@@ -38,14 +37,6 @@ export const DocumentUploadPreview: React.FC<FieldPreviewComponentProps> = ({
 }) => {
   console.debug('[DocumentUploadPreview] Rendering for field:', field.id);
 
-  const allowedTypes =
-    field.placeholder || 'pdf,doc,docx,xls,xlsx,ppt,pptx';
-  const typeArray = allowedTypes
-    .split(',')
-    .map((t) => t.trim().toUpperCase())
-    .filter((t) => t.length > 0);
-
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
     (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
   );
@@ -58,14 +49,6 @@ export const DocumentUploadPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Document Upload
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Upload Area with Document Icons */}
@@ -113,9 +96,6 @@ export const DocumentUploadPreview: React.FC<FieldPreviewComponentProps> = ({
             <p className="text-sm text-muted-foreground">
               Drag and drop document here, or click to browse
             </p>
-            <p className="text-xs text-muted-foreground">
-              Accepted formats: {typeArray.join(', ')}
-            </p>
           </div>
         </div>
       </div>
@@ -123,10 +103,6 @@ export const DocumentUploadPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-orange-600 italic">
-        ✓ Document upload for office and business files. Stored in documents/ directory. Preview/viewer and download available; filter by document type.
-      </p>
     </div>
   );
 };

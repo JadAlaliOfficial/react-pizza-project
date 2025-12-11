@@ -10,7 +10,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Calendar } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -35,7 +34,6 @@ export const DateInputPreview: React.FC<FieldPreviewComponentProps> = ({
   console.debug('[DateInputPreview] Rendering for field:', field.id);
 
   // Determine if field has validation rules
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
     (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
   );
@@ -48,15 +46,7 @@ export const DateInputPreview: React.FC<FieldPreviewComponentProps> = ({
         <Label className="text-sm font-medium">
           {field.label}
           {isRequired && <span className="text-destructive">*</span>}
-          {hasRules && (
-            <span className="text-[10px] text-muted-foreground font-normal ml-1">
-              ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-            </span>
-          )}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Date
-        </Badge>
       </div>
 
       {/* Input preview */}
@@ -72,11 +62,6 @@ export const DateInputPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* Date-specific hint */}
-      <p className="text-[10px] text-indigo-600 italic">
-        ✓ Normalized to YYYY-MM-DD format. Supports date range validation.
-      </p>
     </div>
   );
 };

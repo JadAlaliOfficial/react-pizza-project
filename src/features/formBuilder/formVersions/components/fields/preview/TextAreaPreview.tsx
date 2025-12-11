@@ -2,7 +2,7 @@
 
 /**
  * Text Area Preview Component
- * 
+ *
  * Displays preview of how the Text Area field will appear in the form
  * Shows multi-line text support with proper formatting
  */
@@ -19,7 +19,7 @@ import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
 /**
  * TextAreaPreview Component
- * 
+ *
  * Preview component for Text Area field type
  * Features:
  * - Shows label with text area icon
@@ -33,10 +33,8 @@ export const TextAreaPreview: React.FC<FieldPreviewComponentProps> = ({
 }) => {
   console.debug('[TextAreaPreview] Rendering for field:', field.id);
 
-  // Determine if field has validation rules
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -46,11 +44,6 @@ export const TextAreaPreview: React.FC<FieldPreviewComponentProps> = ({
         <AlignLeft className="h-3.5 w-3.5 text-orange-500" />
         {field.label}
         {isRequired && <span className="text-destructive">*</span>}
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </Label>
 
       {/* Textarea preview */}
@@ -66,11 +59,6 @@ export const TextAreaPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* TextArea-specific hint */}
-      <p className="text-[10px] text-muted-foreground italic">
-        Multi-line text • Supports newlines
-      </p>
     </div>
   );
 };

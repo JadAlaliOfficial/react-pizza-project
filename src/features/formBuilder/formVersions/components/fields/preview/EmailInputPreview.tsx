@@ -66,11 +66,6 @@ export const EmailInputPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* Email-specific hint */}
-      <p className="text-xs text-purple-600 italic">
-        Email format • Lowercase conversion
-      </p>
     </div>
   );
 };

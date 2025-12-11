@@ -11,14 +11,13 @@
  * - Visibility conditions
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, DollarSign, Info } from 'lucide-react';
+import { Trash2, DollarSign } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -31,7 +30,7 @@ import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
  * Configuration UI for Currency Input field type
  * Features:
  * - Label, placeholder, helper text
- * - Default formatted amount with symbol
+ * - Default formatted amount with symbol and thousand separators
  * - Visibility conditions (JSON)
  * - Validation rule guidance
  */
@@ -43,14 +42,86 @@ export const CurrencyInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
 }) => {
   console.debug('[CurrencyInputFieldConfig] Rendering for field:', field.id);
 
-  const [currencySymbol] = useState('$');
-  const [defaultValue, setDefaultValue] = useState(field.default_value || '');
+  const currencySymbol = '$';
 
-  const formatCurrency = (value: string) => {
+  /**
+   * Format number with thousand separators
+   * Example: "1234.56" => "1,234.56"
+   * Preserves trailing decimal point for better UX
+   */
+  const formatWithCommas = (value: string): string => {
+    // Handle empty or just decimal point
+    if (!value || value === '.') return value;
+
+    // Check if ends with decimal point
+    const endsWithDecimal = value.endsWith('.');
+
+    // Remove all non-numeric characters except dot
     const cleaned = value.replace(/[^0-9.]/g, '');
-    const num = parseFloat(cleaned || '0');
-    return num.toFixed(2);
+
+    // Split into integer and decimal parts
+    const parts = cleaned.split('.');
+
+    // Add thousand separators to integer part
+    const integerPart = parts[0]
+      ? parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      : '';
+
+    // Handle decimal part (limit to 2 places)
+    if (parts.length > 1) {
+      const decimalPart = parts[1].substring(0, 2);
+      return `${integerPart}.${decimalPart}`;
+    }
+
+    // Preserve trailing decimal point if user just typed it
+    if (endsWithDecimal && parts.length === 1) {
+      return `${integerPart}.`;
+    }
+
+    return integerPart;
   };
+
+  /**
+   * Remove formatting for storage (store raw number)
+   * Example: "1,234.56" => "1234.56"
+   */
+  const removeFormatting = (value: string): string => {
+    return value.replace(/,/g, '');
+  };
+
+  const handleDefaultValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+
+    // Allow empty input
+    if (input === '') {
+      onFieldChange({ default_value: null });
+      return;
+    }
+
+    // Allow just a decimal point
+    if (input === '.') {
+      onFieldChange({ default_value: '0.' });
+      return;
+    }
+
+    // Remove all non-numeric characters except dot
+    const cleaned = input.replace(/[^0-9.]/g, '');
+
+    // Prevent multiple dots
+    const dotCount = (cleaned.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      return;
+    }
+
+    // Store raw value (without commas) in field
+    const rawValue = removeFormatting(cleaned);
+    onFieldChange({ default_value: rawValue || null });
+  };
+
+  // Get display value (formatted with commas)
+  const displayValue = field.default_value
+    ? formatWithCommas(field.default_value)
+    : '';
 
   return (
     <Card className="p-4 border-l-4 border-l-emerald-500">
@@ -77,14 +148,6 @@ export const CurrencyInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-emerald-50 border-emerald-200">
-          <Info className="h-4 w-4 text-emerald-600" />
-          <AlertDescription className="text-xs text-emerald-900">
-            Currency input for monetary amounts. Values are stored as numeric strings with two decimal places.
-          </AlertDescription>
-        </Alert>
-
         {/* Label */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -110,19 +173,12 @@ export const CurrencyInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             </span>
             <Input
               type="text"
-              value={defaultValue}
-              onChange={(e) => {
-                const formatted = formatCurrency(e.target.value);
-                setDefaultValue(formatted);
-                onFieldChange({ default_value: formatted || null });
-              }}
+              value={displayValue}
+              onChange={handleDefaultValueChange}
               placeholder="0.00"
               className="h-9 pl-8 text-right"
             />
           </div>
-          <p className="text-[10px] text-muted-foreground">
-            💡 Values are normalized to two decimal places.
-          </p>
         </div>
 
         {/* Placeholder */}
@@ -155,59 +211,6 @@ export const CurrencyInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="min-h-[60px] text-xs"
           />
         </div>
-
-        {/* Visibility Conditions */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Visibility Conditions (JSON)
-          </label>
-          <Textarea
-            value={
-              field.visibility_conditions ?? field.visibility_condition ?? ''
-            }
-            onChange={(e) =>
-              onFieldChange({
-                visibility_conditions: e.target.value || null,
-              })
-            }
-            placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
-            className="min-h-[60px] text-xs font-mono"
-          />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-            <span>• min (amount)</span>
-            <span>• max (amount)</span>
-            <span>• between</span>
-            <span>• numeric</span>
-            <span>• regex</span>
-          </div>
-          <p className="text-[10px] text-emerald-700 mt-2 font-medium">
-            💡 Use "min" and "max" to control allowed amount range; ensure values are numeric.
-          </p>
-        </div>
-
-        {/* Example Validation Configuration */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Example Validation:</strong> Add "min" with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "value": 0 }'}
-            </code>{' '}
-            for non-negative amounts and "max" with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "value": 10000 }'}
-            </code>{' '}
-            to cap the maximum.
-          </AlertDescription>
-        </Alert>
       </div>
     </Card>
   );

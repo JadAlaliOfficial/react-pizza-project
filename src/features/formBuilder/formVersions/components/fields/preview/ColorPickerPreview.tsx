@@ -10,7 +10,6 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Palette } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
@@ -35,7 +34,6 @@ export const ColorPickerPreview: React.FC<FieldPreviewComponentProps> = ({
   console.debug('[ColorPickerPreview] Rendering for field:', field.id);
 
   const defaultColor = field.default_value || '#3B82F6';
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
     (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
   );
@@ -48,14 +46,6 @@ export const ColorPickerPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Color Picker
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Color Picker Input */}
@@ -105,10 +95,6 @@ export const ColorPickerPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-purple-600 italic">
-        ✓ Color picker with visual preview. Values stored as hex (#rrggbb); can be filtered by exact color or limited to a preset palette.
-      </p>
     </div>
   );
 };

@@ -11,14 +11,13 @@
  * - Visibility conditions
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, Video as VideoIcon, Info } from 'lucide-react';
+import { Trash2, Video as VideoIcon } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -42,11 +41,6 @@ export const VideoUploadFieldConfig: React.FC<FieldConfigComponentProps> = ({
   onDelete,
 }) => {
   console.debug('[VideoUploadFieldConfig] Rendering for field:', field.id);
-
-  const [allowedTypes, setAllowedTypes] = useState(
-    field.placeholder || 'mp4,mov,avi,webm'
-  );
-  const [maxSizeMB, setMaxSizeMB] = useState('100');
 
   return (
     <Card className="p-4 border-l-4 border-l-purple-500">
@@ -73,14 +67,6 @@ export const VideoUploadFieldConfig: React.FC<FieldConfigComponentProps> = ({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-purple-50 border-purple-200">
-          <Info className="h-4 w-4 text-purple-600" />
-          <AlertDescription className="text-xs text-purple-900">
-            Video upload field with player preview and progress tracking. Videos stored in public/videos/ directory. Metadata includes path, size, format, and duration.
-          </AlertDescription>
-        </Alert>
-
         {/* Label */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -93,45 +79,6 @@ export const VideoUploadFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="h-9"
             maxLength={255}
           />
-        </div>
-
-        {/* Allowed Video Types */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Allowed Video Types (Extensions)
-          </label>
-          <Input
-            value={allowedTypes}
-            onChange={(e) => {
-              setAllowedTypes(e.target.value);
-              onFieldChange({ placeholder: e.target.value || null });
-            }}
-            placeholder="e.g., mp4,mov,avi,webm,mkv,flv"
-            className="h-9"
-          />
-          <p className="text-[10px] text-muted-foreground">
-            💡 Comma-separated list of video extensions. Used for validation via "mimes" rule.
-          </p>
-        </div>
-
-        {/* Video Size Limit */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Maximum Video Size (MB)
-          </label>
-          <Input
-            type="number"
-            value={maxSizeMB}
-            onChange={(e) => setMaxSizeMB(e.target.value)}
-            placeholder="100"
-            className="h-9"
-            min={1}
-            max={500}
-          />
-          <p className="text-[10px] text-muted-foreground">
-            💡 Videos are typically larger. Use "maxfilesize" rule with value in KB (e.g., {maxSizeMB || '100'}MB ≈{' '}
-            {((Number(maxSizeMB) || 100) * 1024).toString()}KB).
-          </p>
         </div>
 
         {/* Helper Text */}
@@ -147,34 +94,6 @@ export const VideoUploadFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder="Additional information (e.g., 'Accepted: MP4, MOV. Max size: 100MB. Max duration: 5 minutes')"
             className="min-h-[60px] text-xs"
           />
-        </div>
-
-        {/* Video Storage Information */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🎬 Video Storage Details:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Directory:</strong> public/videos/</div>
-            <div>• <strong>Storage Format:</strong> JSON with metadata</div>
-            <div>• <strong>Metadata:</strong> path, originalname, mimetype, size, extension, duration (optional)</div>
-            <div>• <strong>Preview:</strong> Video player with playback controls</div>
-            <div>• <strong>Upload:</strong> Progress indicator for large files</div>
-          </div>
-        </div>
-
-        {/* Common Use Cases */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🎥 Common Use Cases:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Presentations:</strong> Pitch videos, project demos</div>
-            <div>• <strong>Tutorials:</strong> How-to guides, training videos</div>
-            <div>• <strong>Testimonials:</strong> Customer reviews, feedback</div>
-            <div>• <strong>Recordings:</strong> Meetings, interviews, sessions</div>
-            <div>• <strong>Submissions:</strong> Video assignments, applications</div>
-          </div>
         </div>
 
         {/* Visibility Conditions */}
@@ -195,48 +114,6 @@ export const VideoUploadFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="min-h-[60px] text-xs font-mono"
           />
         </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required (must upload)</span>
-            <span>• mimes (video types)</span>
-            <span>• mimetypes</span>
-            <span>• size</span>
-            <span>• maxfilesize (KB)</span>
-            <span>• minfilesize (KB)</span>
-          </div>
-          <p className="text-[10px] text-purple-700 mt-2 font-medium">
-            ⚠️ Stored in videos/ directory. Large file sizes supported. Progress tracking recommended.
-          </p>
-        </div>
-
-        {/* Example Validation Configuration */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Example Validation:</strong> Add "mimes" rule with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "types": ["mp4", "mov", "webm"] }'}
-            </code>{' '}
-            and "maxfilesize" rule with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "maxsize": 102400 }'}
-            </code>{' '}
-            (100MB). Consider upload time for large videos.
-          </AlertDescription>
-        </Alert>
-
-        {/* Performance Note */}
-        <Alert className="bg-blue-50 border-blue-200">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-xs text-blue-900">
-            <strong>Performance Tip:</strong> For large videos, consider chunked uploads, compression, or transcoding. Display upload progress to improve user experience.
-          </AlertDescription>
-        </Alert>
       </div>
     </Card>
   );

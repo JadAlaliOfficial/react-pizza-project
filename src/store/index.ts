@@ -37,7 +37,6 @@ import formsReducer from '../features/formBuilder/forms/store/formsSlice';
 import catagoriesReducer from '../features/formBuilder/catagories/store/catagoriesSlice';
 import translationsReducer from '../features/formBuilder/translations/store/translationsSlice';
 import languagesPreferencesReducer from '../features/formBuilder/languagesPreferences/store/languagesPreferencesSlice';
-import rulesReducer from '../features/formBuilder/inputRules/store/rulesSlice';
 import formVersionsReducer from '../features/formBuilder/formVersions/store/formVersionsSlice';
 import formVersionBuilderReducer from '../features/formBuilder/formVersions/store/formVersionBuilderSlice';
 
@@ -82,7 +81,6 @@ export const store = configureStore({
     catagories: catagoriesReducer,
     translations: translationsReducer,
     languagesPreferences: languagesPreferencesReducer,
-    rules: rulesReducer,
     formVersion: formVersionsReducer,
     formVersionBuilder: formVersionBuilderReducer,
   },

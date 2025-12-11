@@ -33,8 +33,6 @@ export const NumberInputPreview: React.FC<FieldPreviewComponentProps> = ({
 }) => {
   console.debug('[NumberInputPreview] Rendering for field:', field.id);
 
-  // Determine if field has validation rules
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
     (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
   );
@@ -51,11 +49,6 @@ export const NumberInputPreview: React.FC<FieldPreviewComponentProps> = ({
         <Hash className="h-3.5 w-3.5 text-green-500" />
         {field.label}
         {isRequired && <span className="text-destructive">*</span>}
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </Label>
 
       {/* Input preview */}
@@ -72,11 +65,6 @@ export const NumberInputPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* Number-specific hint */}
-      <p className="text-[10px] text-muted-foreground italic">
-        Numeric input • Supports decimals
-      </p>
     </div>
   );
 };

@@ -16,9 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Slider } from '@/components/ui/slider';
-import { Trash2, SlidersHorizontal, Info } from 'lucide-react';
+import { Trash2, SlidersHorizontal } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -78,14 +77,6 @@ export const SliderFieldConfig: React.FC<FieldConfigComponentProps> = ({
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Info Alert */}
-        <Alert className="bg-indigo-50 border-indigo-200">
-          <Info className="h-4 w-4 text-indigo-600" />
-          <AlertDescription className="text-xs text-indigo-900">
-            Numeric slider for selecting values within a range. Use validation rules to control min, max, and numeric constraints.
-          </AlertDescription>
-        </Alert>
 
         {/* Label */}
         <div className="space-y-1.5">
@@ -179,40 +170,6 @@ export const SliderFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="min-h-[60px] text-xs font-mono"
           />
         </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-            <span>• min (value)</span>
-            <span>• max (value)</span>
-            <span>• between</span>
-            <span>• numeric</span>
-            <span>• integer</span>
-          </div>
-          <p className="text-[10px] text-indigo-700 mt-2 font-medium">
-            💡 Use "min" and "max" to enforce slider range and "integer" to prevent decimals.
-          </p>
-        </div>
-
-        {/* Example Validation Configuration */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Example Validation:</strong> Add "min" with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "value": 0 }'}
-            </code>
-            , "max" with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "value": 100 }'}
-            </code>
-            , and an "integer" rule for whole numbers only.
-          </AlertDescription>
-        </Alert>
       </div>
     </Card>
   );

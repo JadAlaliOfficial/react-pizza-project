@@ -17,8 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, Palette, Info } from 'lucide-react';
+import { Trash2, Palette } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -44,7 +43,7 @@ export const ColorPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
   console.debug('[ColorPickerFieldConfig] Rendering for field:', field.id);
 
   const [defaultColor, setDefaultColor] = useState(
-    field.default_value || '#3B82F6'
+    field.default_value || '#3B82F6',
   );
 
   return (
@@ -71,14 +70,6 @@ export const ColorPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Info Alert */}
-        <Alert className="bg-purple-50 border-purple-200">
-          <Info className="h-4 w-4 text-purple-600" />
-          <AlertDescription className="text-xs text-purple-900">
-            Color picker for visual color selection. Values are stored as lowercase hex format (#rrggbb) with live preview support.
-          </AlertDescription>
-        </Alert>
 
         {/* Label */}
         <div className="space-y-1.5">
@@ -145,9 +136,6 @@ export const ColorPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
               className="h-9 w-16 cursor-pointer rounded border"
             />
           </div>
-          <p className="text-[10px] text-muted-foreground">
-            💡 Pre-selected color in hex format (e.g., #3B82F6 for blue).
-          </p>
         </div>
 
         {/* Helper Text */}
@@ -163,45 +151,6 @@ export const ColorPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder="Additional information (e.g., 'Choose a color that represents your brand')"
             className="min-h-[60px] text-xs"
           />
-        </div>
-
-        {/* Color Format Information */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🎨 Color Format Details:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Format:</strong> Hex color (#RRGGBB)</div>
-            <div>• <strong>Storage:</strong> Lowercase hex string</div>
-            <div>• <strong>Example:</strong> #3b82f6 (blue), #ef4444 (red)</div>
-            <div>• <strong>Preview:</strong> Visual color swatch display</div>
-          </div>
-        </div>
-
-        {/* Color Picker Features */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🎨 Color Picker Features:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Visual Selector:</strong> Native color picker input</div>
-            <div>• <strong>Hex Input:</strong> Manual hex color entry</div>
-            <div>• <strong>Color Swatch:</strong> Live preview of selected color</div>
-            <div>• <strong>Palette:</strong> Common color presets (optional)</div>
-          </div>
-        </div>
-
-        {/* Common Use Cases */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🎨 Common Use Cases:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Branding:</strong> Brand color selection, logo colors</div>
-            <div>• <strong>Design:</strong> UI themes, color schemes, preferences</div>
-            <div>• <strong>Customization:</strong> Product colors, event colors</div>
-            <div>• <strong>Organization:</strong> Category colors, status indicators</div>
-          </div>
         </div>
 
         {/* Visibility Conditions */}
@@ -222,38 +171,6 @@ export const ColorPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="min-h-[60px] text-xs font-mono"
           />
         </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-            <span>• regex</span>
-            <span>• in (specific colors)</span>
-            <span>• notin (restrict colors)</span>
-          </div>
-          <p className="text-[10px] text-purple-700 mt-2 font-medium">
-            💡 Use "regex" to validate hex format, or "in" to limit allowed colors.
-          </p>
-        </div>
-
-        {/* Example Validation Configuration */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Example Validation:</strong> Add "regex" rule with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "pattern": "/^#([A-Fa-f0-9]{6})$/" }'}
-            </code>{' '}
-            to ensure valid hex format, or "in" with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "values": ["#3b82f6", "#ef4444", "#10b981"] }'}
-            </code>{' '}
-            to constrain the palette.
-          </AlertDescription>
-        </Alert>
       </div>
     </Card>
   );

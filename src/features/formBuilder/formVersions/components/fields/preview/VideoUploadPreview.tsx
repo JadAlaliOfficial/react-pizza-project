@@ -9,7 +9,6 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Video as VideoIcon, Upload, Play } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -33,15 +32,8 @@ export const VideoUploadPreview: React.FC<FieldPreviewComponentProps> = ({
 }) => {
   console.debug('[VideoUploadPreview] Rendering for field:', field.id);
 
-  const allowedTypes = field.placeholder || 'mp4,mov,avi,webm';
-  const typeArray = allowedTypes
-    .split(',')
-    .map((t) => t.trim().toUpperCase())
-    .filter((t) => t.length > 0);
-
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -52,14 +44,6 @@ export const VideoUploadPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Video Upload
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Upload Area with Video Player Preview */}
@@ -91,18 +75,6 @@ export const VideoUploadPreview: React.FC<FieldPreviewComponentProps> = ({
             <p className="text-sm text-muted-foreground">
               Drag and drop video here, or click to browse
             </p>
-            <p className="text-xs text-muted-foreground">
-              Accepted formats: {typeArray.join(', ')}
-            </p>
-            {/* Upload Progress Bar (placeholder) */}
-            <div className="w-full max-w-xs mt-2">
-              <div className="h-2 bg-purple-100 rounded-full overflow-hidden">
-                <div className="w-0 h-full bg-purple-500 rounded-full transition-all" />
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-1 text-center">
-                Upload progress will appear here
-              </p>
-            </div>
           </div>
         </div>
       </div>
@@ -110,10 +82,6 @@ export const VideoUploadPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-purple-600 italic">
-        ✓ Video upload with player preview. Stored in videos/ directory. Large file support with progress tracking. JSON metadata can include duration.
-      </p>
     </div>
   );
 };

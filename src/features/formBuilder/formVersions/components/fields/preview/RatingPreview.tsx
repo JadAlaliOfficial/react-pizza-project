@@ -38,7 +38,6 @@ export const RatingPreview: React.FC<FieldPreviewComponentProps> = ({
   const [hoveredStar, setHoveredStar] = useState<number | null>(null);
   const maxStars = 5;
 
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
     (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
   );
@@ -51,11 +50,6 @@ export const RatingPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Star Rating Display */}

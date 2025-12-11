@@ -16,9 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Percent, Info } from 'lucide-react';
+import { Trash2, Percent } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -72,14 +71,6 @@ export const PercentageInputFieldConfig: React.FC<FieldConfigComponentProps> = (
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Info Alert */}
-        <Alert className="bg-blue-50 border-blue-200">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-xs text-blue-900">
-            Percentage input for values between 0 and 100. Ideal for completion rates, progress, or ratios.
-          </AlertDescription>
-        </Alert>
 
         {/* Label */}
         <div className="space-y-1.5">
@@ -141,22 +132,6 @@ export const PercentageInputFieldConfig: React.FC<FieldConfigComponentProps> = (
           </div>
         </div>
 
-        {/* Placeholder */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Placeholder Text
-          </label>
-          <Input
-            value={field.placeholder ?? ''}
-            onChange={(e) =>
-              onFieldChange({ placeholder: e.target.value || null })
-            }
-            placeholder="e.g., 0"
-            className="h-9"
-            maxLength={255}
-          />
-        </div>
-
         {/* Helper Text */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -190,39 +165,6 @@ export const PercentageInputFieldConfig: React.FC<FieldConfigComponentProps> = (
             className="min-h-[60px] text-xs font-mono"
           />
         </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-            <span>• min (percentage)</span>
-            <span>• max (percentage)</span>
-            <span>• between</span>
-            <span>• numeric</span>
-          </div>
-          <p className="text-[10px] text-blue-700 mt-2 font-medium">
-            💡 Use "min" (0) and "max" (100) to enforce 0–100 range; the % symbol is added in the UI only.
-          </p>
-        </div>
-
-        {/* Example Validation Configuration */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Example Validation:</strong> Add "min" rule with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "value": 0 }'}
-            </code>{' '}
-            and "max" rule with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "value": 100 }'}
-            </code>{' '}
-            for a standard percentage range.
-          </AlertDescription>
-        </Alert>
       </div>
     </Card>
   );

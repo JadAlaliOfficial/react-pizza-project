@@ -120,9 +120,6 @@ export const RatingFieldConfig: React.FC<FieldConfigComponentProps> = ({
                 />
               ))}
             </div>
-            <p className="text-[10px] text-muted-foreground">
-              💡 Default rating is between 0 and 5 stars (inclusive).
-            </p>
           </div>
         </div>
 
@@ -158,19 +155,6 @@ export const RatingFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
             className="min-h-[60px] text-xs font-mono"
           />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-          </div>
-          <p className="text-[10px] text-amber-700 mt-2 font-medium">
-            ⚠️ Note: Rating field is not configured for min, max, between, numeric, or integer rules in the backend; only the "required" rule is supported.
-          </p>
         </div>
       </div>
     </Card>

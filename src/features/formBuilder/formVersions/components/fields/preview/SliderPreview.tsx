@@ -40,9 +40,8 @@ export const SliderPreview: React.FC<FieldPreviewComponentProps> = ({
   const maxValue = 100;
   const step = 1;
 
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -53,11 +52,6 @@ export const SliderPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Slider Component */}
@@ -89,23 +83,7 @@ export const SliderPreview: React.FC<FieldPreviewComponentProps> = ({
             <span className="font-medium">{maxValue}</span>
           </div>
         </div>
-
-        {/* Tick Marks (Optional) */}
-        <div className="flex justify-between text-[10px] text-muted-foreground px-0.5">
-          {[0, 25, 50, 75, 100].map((tick) => (
-            <div key={tick} className="flex flex-col items-center">
-              <div className="w-px h-2 bg-gray-300" />
-              <span className="mt-1">{tick}</span>
-            </div>
-          ))}
-        </div>
       </div>
-
-      {field.placeholder && (
-        <p className="text-xs text-muted-foreground italic">
-          {field.placeholder}
-        </p>
-      )}
 
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>

@@ -3,24 +3,35 @@
 /**
  * Address Input Field Configuration Component
  *
- * Provides UI for configuring an Address Input field:
+ * Provides UI for configuring an Address Input field with dynamic default values
  * - Label (main question)
- * - Address components configuration
- * - Autocomplete settings
+ * - Placeholder
  * - Helper text
+ * - Default value builder for address components (set any combination)
  * - Visibility conditions
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, Home, Info } from 'lucide-react';
+import { Trash2, Home, X } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
+
+// ============================================================================
+// Types
+// ============================================================================
+
+interface AddressDefaults {
+  street: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+}
 
 // ============================================================================
 // Component
@@ -29,13 +40,7 @@ import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 /**
  * AddressInputFieldConfig Component
  *
- * Configuration UI for Address Input field type
- * Features:
- * - Label, placeholder, helper text
- * - Autocomplete toggle
- * - Required address components (UI only)
- * - Visibility conditions (JSON)
- * - Storage and validation notes
+ * Configuration UI for Address Input field type with dynamic default value builder
  */
 export const AddressInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
   field,
@@ -45,14 +50,127 @@ export const AddressInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
 }) => {
   console.debug('[AddressInputFieldConfig] Rendering for field:', field.id);
 
-  const [enableAutocomplete, setEnableAutocomplete] = useState(true);
-  const [requiredComponents, setRequiredComponents] = useState({
-    street: true,
-    city: true,
-    state: true,
-    postalCode: true,
-    country: true,
+  // Parse existing default_value or initialize empty
+  const [addressDefaults, setAddressDefaults] = useState<AddressDefaults>({
+    street: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    country: '',
   });
+
+  const [enabledFields, setEnabledFields] = useState({
+    street: false,
+    city: false,
+    state: false,
+    postal_code: false,
+    country: false,
+  });
+
+  // Initialize from field.default_value on mount and when it changes
+  useEffect(() => {
+    if (field.default_value) {
+      try {
+        const parsed = JSON.parse(field.default_value);
+        const newDefaults: AddressDefaults = {
+          street: parsed.street || '',
+          city: parsed.city || '',
+          state: parsed.state || '',
+          postal_code: parsed.postal_code || '',
+          country: parsed.country || '',
+        };
+        setAddressDefaults(newDefaults);
+
+        // Set which fields are enabled based on non-empty values
+        setEnabledFields({
+          street: !!parsed.street,
+          city: !!parsed.city,
+          state: !!parsed.state,
+          postal_code: !!parsed.postal_code,
+          country: !!parsed.country,
+        });
+      } catch (e) {
+        console.warn('Invalid default_value JSON for address field:', e);
+      }
+    }
+  }, [field.default_value]);
+
+  // Update field.default_value whenever addressDefaults changes
+  const updateDefaultValue = (
+    newDefaults: AddressDefaults,
+    newEnabled: typeof enabledFields,
+  ) => {
+    // Only include fields that are enabled
+    const filtered: Partial<AddressDefaults> = {};
+
+    if (newEnabled.street && newDefaults.street) {
+      filtered.street = newDefaults.street;
+    }
+    if (newEnabled.city && newDefaults.city) {
+      filtered.city = newDefaults.city;
+    }
+    if (newEnabled.state && newDefaults.state) {
+      filtered.state = newDefaults.state;
+    }
+    if (newEnabled.postal_code && newDefaults.postal_code) {
+      filtered.postal_code = newDefaults.postal_code;
+    }
+    if (newEnabled.country && newDefaults.country) {
+      filtered.country = newDefaults.country;
+    }
+
+    // Convert to JSON string or null if no defaults
+    const jsonValue =
+      Object.keys(filtered).length > 0 ? JSON.stringify(filtered) : null;
+
+    onFieldChange({ default_value: jsonValue });
+  };
+
+  const handleFieldValueChange = (
+    fieldName: keyof AddressDefaults,
+    value: string,
+  ) => {
+    const newDefaults = { ...addressDefaults, [fieldName]: value };
+    setAddressDefaults(newDefaults);
+    updateDefaultValue(newDefaults, enabledFields);
+  };
+
+  const handleFieldToggle = (
+    fieldName: keyof typeof enabledFields,
+    checked: boolean,
+  ) => {
+    const newEnabled = { ...enabledFields, [fieldName]: checked };
+    setEnabledFields(newEnabled);
+
+    // If disabling, clear the value
+    if (!checked) {
+      const newDefaults = { ...addressDefaults, [fieldName]: '' };
+      setAddressDefaults(newDefaults);
+      updateDefaultValue(newDefaults, newEnabled);
+    } else {
+      updateDefaultValue(addressDefaults, newEnabled);
+    }
+  };
+
+  const clearAllDefaults = () => {
+    setAddressDefaults({
+      street: '',
+      city: '',
+      state: '',
+      postal_code: '',
+      country: '',
+    });
+    setEnabledFields({
+      street: false,
+      city: false,
+      state: false,
+      postal_code: false,
+      country: false,
+    });
+    onFieldChange({ default_value: null });
+  };
+
+  const hasAnyDefaults = Object.values(enabledFields).some((v) => v);
 
   return (
     <Card className="p-4 border-l-4 border-l-orange-500">
@@ -79,15 +197,6 @@ export const AddressInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-orange-50 border-orange-200">
-          <Info className="h-4 w-4 text-orange-600" />
-          <AlertDescription className="text-xs text-orange-900">
-            Multi-field address input with optional autocomplete. Values are stored
-            as JSON including street, city, state, postal_code, and country.
-          </AlertDescription>
-        </Alert>
-
         {/* Label */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -102,137 +211,17 @@ export const AddressInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
           />
         </div>
 
-        {/* Address Autocomplete */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={enableAutocomplete}
-              onCheckedChange={(checked) =>
-                setEnableAutocomplete(checked as boolean)
-              }
-            />
-            <label className="text-xs font-medium text-muted-foreground">
-              Enable Address Autocomplete (e.g., Google Places API)
-            </label>
-          </div>
-          <p className="text-[10px] text-muted-foreground pl-6">
-            Provides suggestions as users type and can auto-fill address components.
-          </p>
-        </div>
-
-        {/* Required Components (UI-level setting) */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Required Address Components
-          </label>
-          <div className="grid grid-cols-2 gap-2 p-3 border rounded-md bg-muted/30">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={requiredComponents.street}
-                onCheckedChange={(checked) =>
-                  setRequiredComponents((prev) => ({
-                    ...prev,
-                    street: checked as boolean,
-                  }))
-                }
-              />
-              <span className="text-xs">Street Address</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={requiredComponents.city}
-                onCheckedChange={(checked) =>
-                  setRequiredComponents((prev) => ({
-                    ...prev,
-                    city: checked as boolean,
-                  }))
-                }
-              />
-              <span className="text-xs">City</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={requiredComponents.state}
-                onCheckedChange={(checked) =>
-                  setRequiredComponents((prev) => ({
-                    ...prev,
-                    state: checked as boolean,
-                  }))
-                }
-              />
-              <span className="text-xs">State/Province</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={requiredComponents.postalCode}
-                onCheckedChange={(checked) =>
-                  setRequiredComponents((prev) => ({
-                    ...prev,
-                    postalCode: checked as boolean,
-                  }))
-                }
-              />
-              <span className="text-xs">Postal/ZIP Code</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={requiredComponents.country}
-                onCheckedChange={(checked) =>
-                  setRequiredComponents((prev) => ({
-                    ...prev,
-                    country: checked as boolean,
-                  }))
-                }
-              />
-              <span className="text-xs">Country</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Address Components Preview */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Address Form Preview
-          </label>
-          <div className="p-3 border rounded-md bg-white space-y-2">
-            <div className="text-[10px] font-medium text-muted-foreground">
-              Address Components:
-            </div>
-            <div className="grid grid-cols-1 gap-2 text-xs">
-              <div className="p-2 border rounded bg-muted/30 text-muted-foreground">
-                📍 Street Address
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-2 border rounded bg-muted/30 text-muted-foreground">
-                  🏙️ City
-                </div>
-                <div className="p-2 border rounded bg-muted/30 text-muted-foreground">
-                  🗺️ State/Province
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-2 border rounded bg-muted/30 text-muted-foreground">
-                  📮 Postal Code
-                </div>
-                <div className="p-2 border rounded bg-muted/30 text-muted-foreground">
-                  🌍 Country
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Placeholder */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
-            Placeholder Text
+            Placeholder Text (for street address field)
           </label>
           <Input
             value={field.placeholder ?? ''}
             onChange={(e) =>
               onFieldChange({ placeholder: e.target.value || null })
             }
-            placeholder="e.g., Start typing your address..."
+            placeholder="e.g., 123 Main Street..."
             className="h-9"
             maxLength={255}
           />
@@ -253,37 +242,203 @@ export const AddressInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
           />
         </div>
 
-        {/* Address Input Details */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🏠 Address Input Details:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Storage:</strong> JSON with address components</div>
-            <div>
-              • <strong>Format:</strong>{' '}
-              {'{"street": "...", "city": "...", "state": "...", "postal_code": "...", "country": "..."}'}
-            </div>
-            <div>
-              • <strong>Components:</strong> Street, City, State, Postal Code, Country
-            </div>
-            <div>
-              • <strong>Autocomplete:</strong> Optional integration with address APIs
-            </div>
+        {/* Default Value Builder */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-muted-foreground">
+              Default Values (Pre-fill Address Components)
+            </label>
+            {hasAnyDefaults && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={clearAllDefaults}
+                className="h-6 text-xs text-destructive hover:text-destructive"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Clear All
+              </Button>
+            )}
           </div>
-        </div>
 
-        {/* Common Use Cases */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            📍 Common Use Cases:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Shipping:</strong> Delivery or mailing addresses</div>
-            <div>• <strong>Billing:</strong> Payment and invoice addresses</div>
-            <div>• <strong>Contact:</strong> Business or office addresses</div>
-            <div>• <strong>Property:</strong> Real estate and service locations</div>
+          <div className="p-3 border rounded-md bg-muted/20 space-y-2">
+            <p className="text-[10px] text-muted-foreground mb-2">
+              Enable and set default values for any combination of address
+              fields:
+            </p>
+
+            {/* Street Address */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="enable-street"
+                  checked={enabledFields.street}
+                  onCheckedChange={(checked) =>
+                    handleFieldToggle('street', checked as boolean)
+                  }
+                />
+                <label
+                  htmlFor="enable-street"
+                  className="text-xs font-medium cursor-pointer"
+                >
+                  📍 Street Address
+                </label>
+              </div>
+              {enabledFields.street && (
+                <Input
+                  value={addressDefaults.street}
+                  onChange={(e) =>
+                    handleFieldValueChange('street', e.target.value)
+                  }
+                  placeholder="e.g., 123 Main Street, Apt 4B"
+                  className="h-8 text-xs"
+                  maxLength={255}
+                />
+              )}
+            </div>
+
+            {/* City */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="enable-city"
+                  checked={enabledFields.city}
+                  onCheckedChange={(checked) =>
+                    handleFieldToggle('city', checked as boolean)
+                  }
+                />
+                <label
+                  htmlFor="enable-city"
+                  className="text-xs font-medium cursor-pointer"
+                >
+                  🏙️ City
+                </label>
+              </div>
+              {enabledFields.city && (
+                <Input
+                  value={addressDefaults.city}
+                  onChange={(e) =>
+                    handleFieldValueChange('city', e.target.value)
+                  }
+                  placeholder="e.g., New York"
+                  className="h-8 text-xs"
+                  maxLength={255}
+                />
+              )}
+            </div>
+
+            {/* State/Province */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="enable-state"
+                  checked={enabledFields.state}
+                  onCheckedChange={(checked) =>
+                    handleFieldToggle('state', checked as boolean)
+                  }
+                />
+                <label
+                  htmlFor="enable-state"
+                  className="text-xs font-medium cursor-pointer"
+                >
+                  🗺️ State/Province
+                </label>
+              </div>
+              {enabledFields.state && (
+                <Input
+                  value={addressDefaults.state}
+                  onChange={(e) =>
+                    handleFieldValueChange('state', e.target.value)
+                  }
+                  placeholder="e.g., NY or New York"
+                  className="h-8 text-xs"
+                  maxLength={100}
+                />
+              )}
+            </div>
+
+            {/* Postal Code */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="enable-postal"
+                  checked={enabledFields.postal_code}
+                  onCheckedChange={(checked) =>
+                    handleFieldToggle('postal_code', checked as boolean)
+                  }
+                />
+                <label
+                  htmlFor="enable-postal"
+                  className="text-xs font-medium cursor-pointer"
+                >
+                  📮 Postal/ZIP Code
+                </label>
+              </div>
+              {enabledFields.postal_code && (
+                <Input
+                  value={addressDefaults.postal_code}
+                  onChange={(e) =>
+                    handleFieldValueChange('postal_code', e.target.value)
+                  }
+                  placeholder="e.g., 10001"
+                  className="h-8 text-xs"
+                  maxLength={20}
+                />
+              )}
+            </div>
+
+            {/* Country */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="enable-country"
+                  checked={enabledFields.country}
+                  onCheckedChange={(checked) =>
+                    handleFieldToggle('country', checked as boolean)
+                  }
+                />
+                <label
+                  htmlFor="enable-country"
+                  className="text-xs font-medium cursor-pointer"
+                >
+                  🌍 Country
+                </label>
+              </div>
+              {enabledFields.country && (
+                <Input
+                  value={addressDefaults.country}
+                  onChange={(e) =>
+                    handleFieldValueChange('country', e.target.value)
+                  }
+                  placeholder="e.g., United States"
+                  className="h-8 text-xs"
+                  maxLength={100}
+                />
+              )}
+            </div>
+
+            {!hasAnyDefaults && (
+              <div className="text-center py-2">
+                <p className="text-[10px] text-muted-foreground italic">
+                  No default values set. Check boxes above to pre-fill address
+                  fields.
+                </p>
+              </div>
+            )}
           </div>
+
+          {/* Current JSON Preview */}
+          {hasAnyDefaults && (
+            <div className="p-2 bg-muted/50 rounded border">
+              <p className="text-[9px] font-medium text-muted-foreground mb-1">
+                Stored as JSON:
+              </p>
+              <pre className="text-[9px] font-mono text-muted-foreground overflow-x-auto">
+                {field.default_value || '{}'}
+              </pre>
+            </div>
+          )}
         </div>
 
         {/* Visibility Conditions */}
@@ -292,41 +447,19 @@ export const AddressInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             Visibility Conditions (JSON)
           </label>
           <Textarea
-            value={
-              field.visibility_conditions ?? field.visibility_condition ?? ''
-            }
+            value={field.visibility_condition ?? ''}
             onChange={(e) =>
               onFieldChange({
-                visibility_conditions: e.target.value || null,
+                visibility_condition: e.target.value || null,
               })
             }
             placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
             className="min-h-[60px] text-xs font-mono"
           />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-1 gap-1 text-[10px] text-muted-foreground">
-            <span>• required (address must be provided)</span>
-            <span>• min/max or regex on individual components</span>
-          </div>
-          <p className="text-[10px] text-orange-700 mt-2 font-medium">
-            💡 Use "required" for mandatory addresses; additional rules can target specific components such as postal code.
+          <p className="text-[10px] text-muted-foreground">
+            Control when this field appears based on other field values
           </p>
         </div>
-
-        {/* Example Validation / Filtering */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Filtering:</strong> Filter entries by city, state, postal code,
-            or country, and support full-text search across all address components.
-          </AlertDescription>
-        </Alert>
       </div>
     </Card>
   );

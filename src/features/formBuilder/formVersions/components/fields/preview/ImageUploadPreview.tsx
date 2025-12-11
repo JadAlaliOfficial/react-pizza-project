@@ -9,7 +9,6 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Image as ImageIcon, Upload } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -32,15 +31,8 @@ export const ImageUploadPreview: React.FC<FieldPreviewComponentProps> = ({
 }) => {
   console.debug('[ImageUploadPreview] Rendering for field:', field.id);
 
-  const allowedTypes = field.placeholder || 'jpg,jpeg,png,gif,webp';
-  const typeArray = allowedTypes
-    .split(',')
-    .map((t) => t.trim().toUpperCase())
-    .filter((t) => t.length > 0);
-
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -51,14 +43,6 @@ export const ImageUploadPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Image Upload
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Upload Area Preview */}
@@ -75,9 +59,6 @@ export const ImageUploadPreview: React.FC<FieldPreviewComponentProps> = ({
             <p className="text-sm text-muted-foreground">
               Drag and drop image here, or click to browse
             </p>
-            <p className="text-xs text-muted-foreground">
-              Accepted formats: {typeArray.join(', ')}
-            </p>
           </div>
         </div>
       </div>
@@ -85,10 +66,6 @@ export const ImageUploadPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-pink-600 italic">
-        ✓ Image upload with preview. Stored in images/ directory. JSON metadata includes dimensions. Supports base64 encoding.
-      </p>
     </div>
   );
 };

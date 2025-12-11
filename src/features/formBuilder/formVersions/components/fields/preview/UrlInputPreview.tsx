@@ -33,7 +33,6 @@ export const UrlInputPreview: React.FC<FieldPreviewComponentProps> = ({
 }) => {
   console.debug('[UrlInputPreview] Rendering for field:', field.id);
 
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
     (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
   );
@@ -46,11 +45,6 @@ export const UrlInputPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* URL Input with Link Icon */}

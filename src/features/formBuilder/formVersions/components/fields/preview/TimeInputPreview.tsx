@@ -2,7 +2,7 @@
 
 /**
  * Time Input Preview Component
- * 
+ *
  * Displays preview of how the Time Input field will appear in the form
  * Shows native time picker with clock interface
  */
@@ -10,7 +10,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Clock } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -20,7 +19,7 @@ import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
 /**
  * TimeInputPreview Component
- * 
+ *
  * Preview component for Time Input field type
  * Features:
  * - Shows label with clock icon and badge
@@ -34,10 +33,8 @@ export const TimeInputPreview: React.FC<FieldPreviewComponentProps> = ({
 }) => {
   console.debug('[TimeInputPreview] Rendering for field:', field.id);
 
-  // Determine if field has validation rules
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -48,15 +45,7 @@ export const TimeInputPreview: React.FC<FieldPreviewComponentProps> = ({
         <Label className="text-sm font-medium">
           {field.label}
           {isRequired && <span className="text-destructive">*</span>}
-          {hasRules && (
-            <span className="text-[10px] text-muted-foreground font-normal ml-1">
-              ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-            </span>
-          )}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Time
-        </Badge>
       </div>
 
       {/* Input preview */}
@@ -72,11 +61,6 @@ export const TimeInputPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* Time-specific hint */}
-      <p className="text-[10px] text-teal-600 italic">
-        ✓ Normalized to HH:MM:SS format (24-hour). Supports time range validation.
-      </p>
     </div>
   );
 };

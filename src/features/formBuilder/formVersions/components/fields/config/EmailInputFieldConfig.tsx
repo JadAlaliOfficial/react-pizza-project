@@ -12,8 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, Mail, Info } from 'lucide-react';
+import { Trash2, Mail } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -73,15 +72,6 @@ export const EmailInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Info Alert */}
-        <Alert className="bg-purple-50 border-purple-200">
-          <Info className="h-4 w-4 text-purple-600" />
-          <AlertDescription className="text-xs text-purple-900">
-            Email values are automatically converted to lowercase and trimmed.
-            Built-in email validation is available via rules.
-          </AlertDescription>
-        </Alert>
 
         {/* Label */}
         <div className="space-y-1.5">
@@ -164,28 +154,6 @@ export const EmailInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
             className="min-h-[60px] text-xs font-mono"
           />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1">
-            <span className="text-[10px] text-muted-foreground">
-              • required
-            </span>
-            <span className="text-[10px] text-muted-foreground">• email</span>
-            <span className="text-[10px] text-muted-foreground">• min/max</span>
-            <span className="text-[10px] text-muted-foreground">• unique</span>
-            <span className="text-[10px] text-muted-foreground">
-              • confirmed
-            </span>
-            <span className="text-[10px] text-muted-foreground">• regex</span>
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-2">
-            💡 Configure validation rules in the Field Validation Rules section below
-          </p>
         </div>
       </div>
     </Card>

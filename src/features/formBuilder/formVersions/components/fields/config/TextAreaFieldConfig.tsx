@@ -2,7 +2,7 @@
 
 /**
  * Text Area Field Configuration Component
- * 
+ *
  * Provides UI for configuring a Text Area field:
  * - Label, placeholder, helper text
  * - Default value (multi-line text)
@@ -17,8 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, AlignLeft, Info } from 'lucide-react';
+import { Trash2, AlignLeft } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -27,7 +26,7 @@ import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 /**
  * TextAreaFieldConfig Component
- * 
+ *
  * Configuration UI for Text Area field type
  * Features:
  * - Multi-line placeholder and default value support
@@ -67,14 +66,6 @@ export const TextAreaFieldConfig: React.FC<FieldConfigComponentProps> = ({
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Info Alert */}
-        <Alert className="py-2">
-          <Info className="h-3 w-3" />
-          <AlertDescription className="text-xs">
-            Multi-line text input. Perfect for descriptions, comments, or structured data (JSON).
-          </AlertDescription>
-        </Alert>
 
         {/* Label */}
         <div className="space-y-1.5">
@@ -153,30 +144,6 @@ export const TextAreaFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
             className="min-h-[60px] text-xs font-mono"
           />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-            <span>• min/max (length)</span>
-            <span>• alpha</span>
-            <span>• alphanum</span>
-            <span>• alphadash</span>
-            <span>• regex</span>
-            <span>• startswith</span>
-            <span>• endswith</span>
-            <span>• json (data)</span>
-          </div>
-          <p className="text-[10px] text-orange-700 mt-2 font-medium">
-            💡 Use "json" rule to validate structured data entry
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            💡 Configure validation rules in the Field Validation Rules section below
-          </p>
         </div>
       </div>
     </Card>

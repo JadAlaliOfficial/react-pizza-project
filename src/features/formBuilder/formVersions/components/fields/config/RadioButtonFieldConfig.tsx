@@ -17,10 +17,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Trash2, Circle, Plus, X, Info } from 'lucide-react';
+import { Trash2, Circle, Plus, X } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -121,14 +120,6 @@ export const RadioButtonFieldConfig: React.FC<FieldConfigComponentProps> = ({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-cyan-50 border-cyan-200">
-          <Info className="h-4 w-4 text-cyan-600" />
-          <AlertDescription className="text-xs text-cyan-900">
-            Single-choice selection field. User can select ONE option from predefined choices. Perfect for mutually exclusive options like gender, yes/no, or priority levels.
-          </AlertDescription>
-        </Alert>
-
         {/* Label (Main Question) */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -194,9 +185,6 @@ export const RadioButtonFieldConfig: React.FC<FieldConfigComponentProps> = ({
               Add
             </Button>
           </div>
-          <p className="text-[10px] text-muted-foreground">
-            💡 Options stored as JSON array. Minimum 1 option required.
-          </p>
         </div>
 
         {/* Helper Text */}
@@ -245,23 +233,6 @@ export const RadioButtonFieldConfig: React.FC<FieldConfigComponentProps> = ({
               ))}
             </div>
           </RadioGroup>
-          <p className="text-[10px] text-muted-foreground">
-            💡 Pre-select an option when the form loads
-          </p>
-        </div>
-
-        {/* Common Use Cases */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🔘 Common Use Cases:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Gender:</strong> Male, Female, Other, Prefer not to say</div>
-            <div>• <strong>Yes/No Questions:</strong> Yes, No</div>
-            <div>• <strong>Priority:</strong> Low, Medium, High, Critical</div>
-            <div>• <strong>Status:</strong> New, In Progress, Completed</div>
-            <div>• <strong>Ratings:</strong> Excellent, Good, Fair, Poor</div>
-          </div>
         </div>
 
         {/* Visibility Conditions */}
@@ -281,24 +252,6 @@ export const RadioButtonFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
             className="min-h-[60px] text-xs font-mono"
           />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required (must select)</span>
-            <span>• in</span>
-            <span>• notin</span>
-          </div>
-          <p className="text-[10px] text-cyan-700 mt-2 font-medium">
-            ⚠️ Single selection only - mutually exclusive choices
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            💡 Configure validation rules in the Field Validation Rules section below
-          </p>
         </div>
       </div>
     </Card>

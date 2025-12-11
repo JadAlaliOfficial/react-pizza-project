@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { ChevronDown } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -56,7 +55,6 @@ export const DropdownSelectPreview: React.FC<FieldPreviewComponentProps> = ({
   const options = getOptions();
 
   // Determine if field has validation rules
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
     (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
   );
@@ -70,14 +68,6 @@ export const DropdownSelectPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Dropdown
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Dropdown preview */}
@@ -98,11 +88,6 @@ export const DropdownSelectPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* Dropdown-specific hint */}
-      <p className="text-[10px] text-sky-600 italic">
-        ✓ Single selection dropdown. Options: {options.length}. Space-efficient for long lists.
-      </p>
     </div>
   );
 };

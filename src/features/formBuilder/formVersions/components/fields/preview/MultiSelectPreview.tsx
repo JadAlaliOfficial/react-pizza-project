@@ -10,7 +10,6 @@
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { CheckSquare } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -61,8 +60,6 @@ export const MultiSelectPreview: React.FC<FieldPreviewComponentProps> = ({
   const options = getOptions();
   const defaultSelected = getDefaultSelected();
 
-  // Determine if field has validation rules
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
     (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
   );
@@ -76,14 +73,6 @@ export const MultiSelectPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Multi-Select
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Multi-checkbox preview */}
@@ -109,11 +98,6 @@ export const MultiSelectPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* Multi-select specific hint */}
-      <p className="text-[10px] text-indigo-600 italic">
-        ✓ Multiple selections allowed. Options: {options.length}. Selected by default: {defaultSelected.length}. Values stored as JSON array.
-      </p>
     </div>
   );
 };

@@ -122,7 +122,7 @@ export const FormVersionLivePreview: React.FC = () => {
                                 {section.fields.length} field{section.fields.length !== 1 ? 's' : ''}
                               </span>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 md:grid-cols-1 gap-2">
                               {section.fields.map((field) => {
                                 const Preview = getFieldPreviewComponent(field.field_type_id);
                                 return (

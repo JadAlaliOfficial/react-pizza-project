@@ -63,9 +63,8 @@ export const SignaturePadPreview: React.FC<FieldPreviewComponentProps> = ({
     setIsSigned(false);
   };
 
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -76,14 +75,6 @@ export const SignaturePadPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Signature
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Canvas Area */}
@@ -136,42 +127,9 @@ export const SignaturePadPreview: React.FC<FieldPreviewComponentProps> = ({
         )}
       </div>
 
-      {/* Signature Info */}
-      <div className="p-3 border border-blue-200 rounded-md bg-blue-50/50">
-        <div className="space-y-1 text-xs text-muted-foreground">
-          <div className="flex items-center justify-between">
-            <span>
-              <strong>Status:</strong> {isSigned ? 'Signed' : 'Unsigned'}
-            </span>
-            <Badge
-              variant="outline"
-              className={`text-xs ${
-                isSigned
-                  ? 'bg-green-100 text-green-700 border-green-300'
-                  : 'bg-gray-100 text-gray-700 border-gray-300'
-              }`}
-            >
-              {isSigned ? 'Complete' : 'Pending'}
-            </Badge>
-          </div>
-          <div>
-            <strong>Format:</strong> Base64 PNG image
-          </div>
-          <div>
-            <strong>Features:</strong> Touch-friendly, smooth drawing, clear
-            button
-          </div>
-        </div>
-      </div>
-
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-blue-600 italic">
-        ✍️ Canvas-based signature capture stored as base64 image; can be used to
-        distinguish signed vs unsigned submissions.
-      </p>
     </div>
   );
 };

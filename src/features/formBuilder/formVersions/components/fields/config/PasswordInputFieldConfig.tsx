@@ -17,8 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, Lock, Info, AlertTriangle } from 'lucide-react';
+import { Trash2, Lock } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -67,14 +66,6 @@ export const PasswordInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
           </Button>
         </div>
 
-        {/* Security Alert */}
-        <Alert className="bg-red-50 border-red-200">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-xs text-red-900">
-            <strong>Security:</strong> Passwords are hashed (bcrypt) before storage and never stored as plain text. Password values should not be filterable or searchable.
-          </AlertDescription>
-        </Alert>
-
         {/* Label */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -104,14 +95,6 @@ export const PasswordInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             maxLength={255}
           />
         </div>
-
-        {/* No Default Value for Security */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Note:</strong> Default values are not recommended for password fields for security reasons. Each user should set a unique password.
-          </AlertDescription>
-        </Alert>
 
         {/* Helper Text */}
         <div className="space-y-1.5">
@@ -146,41 +129,6 @@ export const PasswordInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="min-h-[60px] text-xs font-mono"
           />
         </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-            <span>• min (length)</span>
-            <span>• max (length)</span>
-            <span>• confirmed</span>
-            <span>• regex</span>
-            <span>• same</span>
-            <span>• different</span>
-          </div>
-          <p className="text-[10px] text-red-700 mt-2 font-medium">
-            ⚠️ Use "confirmed" with a confirmation field, and "min" for at least 8 characters.
-          </p>
-        </div>
-
-        {/* Example Validation Configuration */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Example Validation:</strong> Add "min" rule with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "value": 8 }'}
-            </code>
-            , a "confirmed" rule, and "regex" with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "pattern": "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\\\d).+$/" }'}
-            </code>{' '}
-            for complexity requirements.
-          </AlertDescription>
-        </Alert>
       </div>
     </Card>
   );

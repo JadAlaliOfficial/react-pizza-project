@@ -42,7 +42,6 @@ export const LocationPickerPreview: React.FC<FieldPreviewComponentProps> = ({
   });
   const [isSelected] = useState(false);
 
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
     (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
   );
@@ -55,14 +54,6 @@ export const LocationPickerPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Location
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Search Bar */}
@@ -205,10 +196,6 @@ export const LocationPickerPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-emerald-600 italic">
-        🗺️ Interactive map with location picker. Values stored as JSON with lat and lng; useful for radius or bounding-box filters.
-      </p>
     </div>
   );
 };

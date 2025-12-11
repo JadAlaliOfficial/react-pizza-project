@@ -17,10 +17,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Trash2, CheckSquare, Plus, X, Info } from 'lucide-react';
+import { Trash2, CheckSquare, Plus, X } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -170,14 +169,6 @@ export const MultiSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-indigo-50 border-indigo-200">
-          <Info className="h-4 w-4 text-indigo-600" />
-          <AlertDescription className="text-xs text-indigo-900">
-            Multi-choice selection field. Users can select MULTIPLE options from predefined choices. Perfect for "select all that apply" scenarios like skills, interests, or features.
-          </AlertDescription>
-        </Alert>
-
         {/* Label (Main Question) */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -245,9 +236,6 @@ export const MultiSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
               Add
             </Button>
           </div>
-          <p className="text-[10px] text-muted-foreground">
-            💡 Options stored as JSON array. Minimum 1 option required. Users can select multiple.
-          </p>
         </div>
 
         {/* Helper Text */}
@@ -287,26 +275,6 @@ export const MultiSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-muted-foreground">
-            💡 Pre-select multiple options. Selected: {defaultSelected.length} of {options.length}
-          </p>
-        </div>
-
-        {/* Common Use Cases */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            ☑️ Common Use Cases:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Skills:</strong> Programming languages, technical skills</div>
-            <div>• <strong>Interests:</strong> Hobbies, topics of interest</div>
-            <div>• <strong>Features:</strong> Product features, requirements</div>
-            <div>• <strong>Tags/Categories:</strong> Multiple categorization</div>
-            <div>• <strong>Preferences:</strong> Communication preferences, notifications</div>
-          </div>
-          <p className="text-[10px] text-indigo-700 mt-2">
-            💡 <strong>Tip:</strong> Use for "Select all that apply" questions
-          </p>
         </div>
 
         {/* Visibility Conditions */}
@@ -326,26 +294,6 @@ export const MultiSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
             className="min-h-[60px] text-xs font-mono"
           />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required (at least one)</span>
-            <span>• min</span>
-            <span>• max</span>
-            <span>• in</span>
-            <span>• notin</span>
-          </div>
-          <p className="text-[10px] text-indigo-700 mt-2 font-medium">
-            ⚠️ Multiple selections allowed - stored as JSON array
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            💡 Configure validation rules in the Field Validation Rules section below
-          </p>
         </div>
       </div>
     </Card>

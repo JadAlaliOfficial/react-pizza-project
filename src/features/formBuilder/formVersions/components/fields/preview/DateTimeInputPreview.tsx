@@ -10,7 +10,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { CalendarClock } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -54,9 +53,6 @@ export const DateTimeInputPreview: React.FC<FieldPreviewComponentProps> = ({
             </span>
           )}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          DateTime
-        </Badge>
       </div>
 
       {/* Input preview */}
@@ -72,11 +68,6 @@ export const DateTimeInputPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* DateTime-specific hint */}
-      <p className="text-[10px] text-purple-600 italic">
-        ✓ Normalized to YYYY-MM-DD HH:MM:SS format. Combines date and time in a single field.
-      </p>
     </div>
   );
 };

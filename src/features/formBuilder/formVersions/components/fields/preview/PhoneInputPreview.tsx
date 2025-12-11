@@ -2,7 +2,7 @@
 
 /**
  * Phone Input Preview Component
- * 
+ *
  * Displays preview of how the Phone Input field will appear in the form
  * Shows phone-specific features like type="tel" and format guidance
  */
@@ -10,7 +10,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Phone } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -20,7 +19,7 @@ import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
 /**
  * PhoneInputPreview Component
- * 
+ *
  * Preview component for Phone Input field type
  * Features:
  * - Shows label with phone icon and badge
@@ -34,10 +33,8 @@ export const PhoneInputPreview: React.FC<FieldPreviewComponentProps> = ({
 }) => {
   console.debug('[PhoneInputPreview] Rendering for field:', field.id);
 
-  // Determine if field has validation rules
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -48,15 +45,7 @@ export const PhoneInputPreview: React.FC<FieldPreviewComponentProps> = ({
         <Label className="text-sm font-medium">
           {field.label}
           {isRequired && <span className="text-destructive">*</span>}
-          {hasRules && (
-            <span className="text-[10px] text-muted-foreground font-normal ml-1">
-              ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-            </span>
-          )}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Phone
-        </Badge>
       </div>
 
       {/* Input preview */}
@@ -72,11 +61,6 @@ export const PhoneInputPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* Phone-specific hint */}
-      <p className="text-[10px] text-cyan-600 italic">
-        ✓ Stored as-is without formatting. Mobile-friendly tel keyboard.
-      </p>
     </div>
   );
 };

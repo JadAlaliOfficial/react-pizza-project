@@ -2,7 +2,7 @@
 
 /**
  * Radio Button Preview Component
- * 
+ *
  * Displays preview of how the Radio Button field will appear in the form
  * Shows all options with radio buttons
  */
@@ -10,7 +10,6 @@
 import React from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Circle } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -20,7 +19,7 @@ import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
 /**
  * RadioButtonPreview Component
- * 
+ *
  * Preview component for Radio Button field type
  * Features:
  * - Shows all options from JSON placeholder
@@ -49,10 +48,8 @@ export const RadioButtonPreview: React.FC<FieldPreviewComponentProps> = ({
 
   const options = getOptions();
 
-  // Determine if field has validation rules
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -64,14 +61,6 @@ export const RadioButtonPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Radio
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Radio group preview */}
@@ -98,11 +87,6 @@ export const RadioButtonPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* Radio-specific hint */}
-      <p className="text-[10px] text-cyan-600 italic">
-        ✓ Single selection. Options: {options.length}. Mutually exclusive choices.
-      </p>
     </div>
   );
 };

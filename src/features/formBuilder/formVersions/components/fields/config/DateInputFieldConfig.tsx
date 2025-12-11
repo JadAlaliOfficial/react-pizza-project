@@ -2,7 +2,7 @@
 
 /**
  * Date Input Field Configuration Component
- * 
+ *
  * Provides UI for configuring a Date Input field:
  * - Label, placeholder, helper text
  * - Default value (date format)
@@ -11,14 +11,13 @@
  * - Visibility conditions
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, Calendar, Info } from 'lucide-react';
+import { Trash2, Calendar } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -27,7 +26,7 @@ import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 /**
  * DateInputFieldConfig Component
- * 
+ *
  * Configuration UI for Date Input field type
  * Features:
  * - Native date picker with "Today" quick button
@@ -42,9 +41,6 @@ export const DateInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
   onDelete,
 }) => {
   console.debug('[DateInputFieldConfig] Rendering for field:', field.id);
-
-  const [minDateHint, setMinDateHint] = useState<string>('');
-  const [maxDateHint, setMaxDateHint] = useState<string>('');
 
   // Helper function to validate date format
   const isValidDate = (dateString: string): boolean => {
@@ -86,14 +82,6 @@ export const DateInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-indigo-50 border-indigo-200">
-          <Info className="h-4 w-4 text-indigo-600" />
-          <AlertDescription className="text-xs text-indigo-900">
-            Dates are automatically normalized to Y-m-d format (YYYY-MM-DD). Supports date validation rules like before, after, and date ranges.
-          </AlertDescription>
-        </Alert>
-
         {/* Label */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -106,25 +94,6 @@ export const DateInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="h-9"
             maxLength={255}
           />
-        </div>
-
-        {/* Placeholder */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Placeholder
-          </label>
-          <Input
-            value={field.placeholder ?? ''}
-            onChange={(e) =>
-              onFieldChange({ placeholder: e.target.value || null })
-            }
-            placeholder="e.g., YYYY-MM-DD, Select date"
-            className="h-9"
-            maxLength={255}
-          />
-          <p className="text-[10px] text-muted-foreground">
-            💡 Standard format: YYYY-MM-DD (e.g., 2024-12-04)
-          </p>
         </div>
 
         {/* Helper Text */}
@@ -173,58 +142,6 @@ export const DateInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
               ⚠️ Please enter a valid date
             </p>
           )}
-          <p className="text-[10px] text-muted-foreground">
-            💡 Will be normalized to YYYY-MM-DD format
-          </p>
-        </div>
-
-        {/* Min/Max Date Hints */}
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Min Date (Hint)
-            </label>
-            <Input
-              type="date"
-              value={minDateHint}
-              onChange={(e) => setMinDateHint(e.target.value)}
-              className="h-9 text-xs"
-            />
-            <p className="text-[10px] text-muted-foreground italic">
-              For display only. Add validation rule later.
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Max Date (Hint)
-            </label>
-            <Input
-              type="date"
-              value={maxDateHint}
-              onChange={(e) => setMaxDateHint(e.target.value)}
-              className="h-9 text-xs"
-            />
-            <p className="text-[10px] text-muted-foreground italic">
-              For display only. Add validation rule later.
-            </p>
-          </div>
-        </div>
-
-        {/* Quick Date Options */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            📅 Common Date Restrictions:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• before: "today" - past dates only</span>
-            <span>• after: "today" - future dates only</span>
-            <span>• before: "2025-12-31" - specific date</span>
-            <span>• after: "2024-01-01" - specific date</span>
-          </div>
-          <p className="text-[10px] text-indigo-700 mt-2">
-            💡 Use validation rules (before, after, min, max) to enforce date restrictions
-          </p>
         </div>
 
         {/* Visibility Conditions */}
@@ -244,29 +161,6 @@ export const DateInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
             className="min-h-[60px] text-xs font-mono"
           />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-            <span>• date</span>
-            <span>• date_format</span>
-            <span>• before</span>
-            <span>• after</span>
-            <span>• before_or_equal</span>
-            <span>• after_or_equal</span>
-            <span>• min/max (date)</span>
-          </div>
-          <p className="text-[10px] text-indigo-700 mt-2 font-medium">
-            ⚠️ Date comparisons use YYYY-MM-DD format
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            💡 Configure validation rules in the Field Validation Rules section below
-          </p>
         </div>
       </div>
     </Card>

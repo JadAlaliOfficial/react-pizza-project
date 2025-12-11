@@ -2,7 +2,7 @@
 
 /**
  * Text Input Field Configuration Component
- * 
+ *
  * Provides UI for configuring a Text Input field:
  * - Label, placeholder, helper text
  * - Default value
@@ -15,8 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, Type, Info } from 'lucide-react';
+import { Trash2, Type } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -25,7 +24,7 @@ import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 /**
  * TextInputFieldConfig Component
- * 
+ *
  * Configuration UI for Text Input field type
  * Features:
  * - Label, placeholder, helper text
@@ -65,14 +64,6 @@ export const TextInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Info Alert */}
-        <Alert className="py-2">
-          <Info className="h-3 w-3" />
-          <AlertDescription className="text-xs">
-            Text input accepts any string value. Use validation rules to enforce specific patterns or lengths.
-          </AlertDescription>
-        </Alert>
 
         {/* Label */}
         <div className="space-y-1.5">
@@ -151,23 +142,6 @@ export const TextInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
             className="min-h-[60px] text-xs font-mono"
           />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <ul className="text-[10px] text-muted-foreground space-y-0.5 ml-3">
-            <li>• required</li>
-            <li>• min/max (length)</li>
-            <li>• regex (pattern matching)</li>
-            <li>• alpha/alpha_num/alpha_dash</li>
-            <li>• unique</li>
-          </ul>
-          <p className="text-[10px] text-muted-foreground mt-2">
-            💡 Configure validation rules in the Field Validation Rules section below
-          </p>
         </div>
       </div>
     </Card>

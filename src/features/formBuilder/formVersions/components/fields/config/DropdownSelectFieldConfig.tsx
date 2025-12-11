@@ -17,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -25,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Trash2, ChevronDown, Plus, X, Info } from 'lucide-react';
+import { Trash2, ChevronDown, Plus, X } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -130,16 +129,6 @@ export const DropdownSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-sky-50 border-sky-200">
-          <Info className="h-4 w-4 text-sky-600" />
-          <AlertDescription className="text-xs text-sky-900">
-            Single-choice dropdown menu. Space-efficient and perfect for long
-            option lists (5+ options). Can be searchable for better UX with many
-            options.
-          </AlertDescription>
-        </Alert>
-
         {/* Label (Main Question) */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -207,10 +196,6 @@ export const DropdownSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
               Add
             </Button>
           </div>
-          <p className="text-[10px] text-muted-foreground">
-            💡 Options stored as JSON array. Minimum 1 option required. Use
-            dropdown for 5+ options.
-          </p>
         </div>
 
         {/* Helper Text */}
@@ -252,38 +237,6 @@ export const DropdownSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
               ))}
             </SelectContent>
           </Select>
-          <p className="text-[10px] text-muted-foreground">
-            💡 Pre-select an option when the form loads
-          </p>
-        </div>
-
-        {/* Common Use Cases */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            📋 Common Use Cases:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>
-              • <strong>Country/State:</strong> Long lists of geographic
-              locations
-            </div>
-            <div>
-              • <strong>Department:</strong> Select organization department
-            </div>
-            <div>
-              • <strong>Category:</strong> Product or content categories
-            </div>
-            <div>
-              • <strong>Time Zone:</strong> Select from many time zones
-            </div>
-            <div>
-              • <strong>Language:</strong> Choose preferred language
-            </div>
-          </div>
-          <p className="text-[10px] text-sky-700 mt-2">
-            💡 <strong>Tip:</strong> Use dropdown instead of radio buttons when
-            you have 5+ options
-          </p>
         </div>
 
         {/* Visibility Conditions */}
@@ -303,25 +256,6 @@ export const DropdownSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
             placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
             className="min-h-[60px] text-xs font-mono"
           />
-        </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required (must select)</span>
-            <span>• in</span>
-            <span>• notin</span>
-          </div>
-          <p className="text-[10px] text-sky-700 mt-2 font-medium">
-            ⚠️ Single selection only - space-efficient for long lists
-          </p>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            💡 Configure validation rules in the Field Validation Rules section
-            below
-          </p>
         </div>
       </div>
     </Card>

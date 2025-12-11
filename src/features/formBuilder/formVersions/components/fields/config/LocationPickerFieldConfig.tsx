@@ -5,45 +5,70 @@
  *
  * Provides UI for configuring a Location Picker field:
  * - Label (main question)
- * - Default location (lat/lng + address)
- * - Map provider selection
- * - Zoom level
+ * - Default location (lat/lng + address) stored as JSON
  * - Helper text
  * - Visibility conditions
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Trash2, MapPin, Info } from 'lucide-react';
+import { Trash2, MapPin } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+type LocationValue = {
+  lat: number;
+  lng: number;
+  address: string;
+};
+
+const parseLocationValue = (raw: string | null | undefined): LocationValue => {
+  if (!raw) {
+    return {
+      lat: 40.7128,
+      lng: -74.006,
+      address: 'New York, NY, USA',
+    };
+  }
+
+  try {
+    const decoded = JSON.parse(raw) as Partial<LocationValue>;
+    return {
+      lat: typeof decoded.lat === 'number' ? decoded.lat : 40.7128,
+      lng: typeof decoded.lng === 'number' ? decoded.lng : -74.006,
+      address:
+        typeof decoded.address === 'string'
+          ? decoded.address
+          : 'New York, NY, USA',
+    };
+  } catch {
+    return {
+      lat: 40.7128,
+      lng: -74.006,
+      address: 'New York, NY, USA',
+    };
+  }
+};
+
+const serializeLocationValue = (loc: LocationValue): string => {
+  return JSON.stringify({
+    lat: Number.isFinite(loc.lat) ? loc.lat : 0,
+    lng: Number.isFinite(loc.lng) ? loc.lng : 0,
+    address: loc.address ?? '',
+  });
+};
 
 // ============================================================================
 // Component
 // ============================================================================
 
-/**
- * LocationPickerFieldConfig Component
- *
- * Configuration UI for Location Picker field type
- * Features:
- * - Label, placeholder, helper text
- * - Default coordinates + address (stored as JSON string)
- * - Map provider and zoom hints
- * - Visibility conditions (JSON)
- * - Lat/lng validation rule hints
- */
 export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
   field,
   fieldIndex,
@@ -52,20 +77,35 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
 }) => {
   console.debug('[LocationPickerFieldConfig] Rendering for field:', field.id);
 
-  const [defaultLat, setDefaultLat] = useState('40.7128');
-  const [defaultLng, setDefaultLng] = useState('-74.0060');
-  const [defaultAddress, setDefaultAddress] = useState('New York, NY, USA');
-  const [zoomLevel, setZoomLevel] = useState('13');
-  const [mapProvider, setMapProvider] = useState('google');
+  // Initialize from field.default_value so existing defaults round-trip correctly
+  const initial = parseLocationValue(field.default_value ?? null);
 
-  const handleDefaultLocationChange = () => {
-    const locationData = JSON.stringify({
-      lat: parseFloat(defaultLat),
-      lng: parseFloat(defaultLng),
-      address: defaultAddress,
+  const [defaultLat, setDefaultLat] = useState<string>(initial.lat.toString());
+  const [defaultLng, setDefaultLng] = useState<string>(initial.lng.toString());
+  const [defaultAddress, setDefaultAddress] = useState<string>(initial.address);
+
+  // Keep local state in sync if default_value changes externally
+  useEffect(() => {
+    const parsed = parseLocationValue(field.default_value ?? null);
+    setDefaultLat(parsed.lat.toString());
+    setDefaultLng(parsed.lng.toString());
+    setDefaultAddress(parsed.address);
+  }, [field.default_value]);
+
+  const updateDefaultLocation = useCallback(() => {
+    const latNum = parseFloat(defaultLat);
+    const lngNum = parseFloat(defaultLng);
+
+    const loc: LocationValue = {
+      lat: Number.isFinite(latNum) ? latNum : 0,
+      lng: Number.isFinite(lngNum) ? lngNum : 0,
+      address: defaultAddress || '',
+    };
+
+    onFieldChange({
+      default_value: serializeLocationValue(loc),
     });
-    onFieldChange({ default_value: locationData || null });
-  };
+  }, [defaultLat, defaultLng, defaultAddress, onFieldChange]);
 
   return (
     <Card className="p-4 border-l-4 border-l-emerald-500">
@@ -92,14 +132,6 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
           </Button>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-emerald-50 border-emerald-200">
-          <Info className="h-4 w-4 text-emerald-600" />
-          <AlertDescription className="text-xs text-emerald-900">
-            Interactive map picker for selecting geographic locations. Values are stored as JSON containing lat, lng, and address, with geocoding support.
-          </AlertDescription>
-        </Alert>
-
         {/* Label */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -112,23 +144,6 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="h-9"
             maxLength={255}
           />
-        </div>
-
-        {/* Map Provider */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Map Provider
-          </label>
-          <Select value={mapProvider} onValueChange={setMapProvider}>
-            <SelectTrigger className="h-9">
-              <SelectValue placeholder="Select a provider" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="google">Google Maps</SelectItem>
-              <SelectItem value="leaflet">Leaflet (OpenStreetMap)</SelectItem>
-              <SelectItem value="mapbox">Mapbox</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Default Location */}
@@ -145,7 +160,7 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
                 type="number"
                 value={defaultLat}
                 onChange={(e) => setDefaultLat(e.target.value)}
-                onBlur={handleDefaultLocationChange}
+                onBlur={updateDefaultLocation}
                 placeholder="40.7128"
                 className="h-9 text-xs"
                 step={0.000001}
@@ -161,7 +176,7 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
                 type="number"
                 value={defaultLng}
                 onChange={(e) => setDefaultLng(e.target.value)}
-                onBlur={handleDefaultLocationChange}
+                onBlur={updateDefaultLocation}
                 placeholder="-74.0060"
                 className="h-9 text-xs"
                 step={0.000001}
@@ -173,57 +188,10 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
           <Input
             value={defaultAddress}
             onChange={(e) => setDefaultAddress(e.target.value)}
-            onBlur={handleDefaultLocationChange}
+            onBlur={updateDefaultLocation}
             placeholder="New York, NY, USA"
             className="h-9 text-xs"
           />
-          <p className="text-[10px] text-muted-foreground">
-            💡 Default map center; users can still select any location.
-          </p>
-        </div>
-
-        {/* Zoom Level */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Default Zoom Level
-          </label>
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              value={zoomLevel}
-              onChange={(e) => setZoomLevel(e.target.value)}
-              className="h-9 w-20"
-              min={1}
-              max={20}
-            />
-            <span className="text-xs text-muted-foreground">
-              (1 = World, 13 = City, 20 = Building)
-            </span>
-          </div>
-        </div>
-
-        {/* Map Preview */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Map Preview
-          </label>
-          <div className="relative w-full h-48 border-2 border-emerald-200 rounded-md bg-emerald-50 overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center text-muted-foreground">
-                <MapPin className="h-12 w-12 mx-auto mb-2 text-emerald-500" />
-                <p className="text-xs font-medium">Interactive Map</p>
-                <p className="text-[10px]">
-                  Lat: {defaultLat}, Lng: {defaultLng}
-                </p>
-                <p className="text-[10px] text-emerald-600 mt-1">
-                  {defaultAddress}
-                </p>
-              </div>
-            </div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <MapPin className="h-8 w-8 text-red-500 drop-shadow-lg" />
-            </div>
-          </div>
         </div>
 
         {/* Placeholder */}
@@ -257,52 +225,6 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
           />
         </div>
 
-        {/* Location Picker Details */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            🗺️ Location Picker Details:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Storage:</strong> JSON with lat, lng, and address</div>
-            <div>
-              • <strong>Format:</strong>{' '}
-              {'{"lat": 40.7128, "lng": -74.0060, "address": "..."}'}
-            </div>
-            <div>• <strong>Features:</strong> Search, current location, drag marker</div>
-            <div>• <strong>Geocoding:</strong> Address ↔ coordinates conversion</div>
-          </div>
-        </div>
-
-        {/* Map Features */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            ✨ Map Features:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <div>• Click to select</div>
-            <div>• Drag marker</div>
-            <div>• Address search</div>
-            <div>• Current location</div>
-            <div>• Zoom controls</div>
-            <div>• Map types</div>
-            <div>• Geocoding</div>
-            <div>• Touch-friendly</div>
-          </div>
-        </div>
-
-        {/* Common Use Cases */}
-        <div className="p-3 border rounded-md bg-muted/30">
-          <p className="text-[10px] font-medium text-muted-foreground mb-2">
-            📍 Common Use Cases:
-          </p>
-          <div className="space-y-1 text-[10px] text-muted-foreground">
-            <div>• <strong>Business:</strong> Store or branch locations</div>
-            <div>• <strong>Delivery:</strong> Pickup/drop-off points</div>
-            <div>• <strong>Events:</strong> Venues and meeting points</div>
-            <div>• <strong>Services:</strong> Property or service areas</div>
-          </div>
-        </div>
-
         {/* Visibility Conditions */}
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">
@@ -321,29 +243,6 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="min-h-[60px] text-xs font-mono"
           />
         </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-1 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-            <span>• latitude (-90 to 90)</span>
-            <span>• longitude (-180 to 180)</span>
-          </div>
-          <p className="text-[10px] text-emerald-700 mt-2 font-medium">
-            💡 Use "required" to ensure a location is selected; latitude and longitude rules ensure valid coordinates.
-          </p>
-        </div>
-
-        {/* Example / Filtering Note */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Filtering:</strong> Supports radius (within X km/miles) and bounding box search for geographic queries, ideal for “nearby” features.
-          </AlertDescription>
-        </Alert>
       </div>
     </Card>
   );

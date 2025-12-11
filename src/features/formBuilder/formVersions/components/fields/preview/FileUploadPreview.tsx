@@ -9,7 +9,6 @@
 
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Upload } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
 
@@ -31,16 +30,8 @@ export const FileUploadPreview: React.FC<FieldPreviewComponentProps> = ({
   field,
 }) => {
   console.debug('[FileUploadPreview] Rendering for field:', field.id);
-
-  const allowedTypes = field.placeholder || 'pdf,doc,docx,txt';
-  const typeArray = allowedTypes
-    .split(',')
-    .map((t) => t.trim())
-    .filter((t) => t.length > 0);
-
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -52,14 +43,6 @@ export const FileUploadPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          File Upload
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Upload Area Preview */}
@@ -70,19 +53,6 @@ export const FileUploadPreview: React.FC<FieldPreviewComponentProps> = ({
             <p className="text-sm text-muted-foreground">
               Drag and drop file here, or click to browse
             </p>
-            <p className="text-xs text-muted-foreground">
-              Accepted formats:{' '}
-              {typeArray.length === 0
-                ? 'Any'
-                : typeArray.map((type, index) => (
-                    <span key={index}>
-                      {index > 0 && ', '}
-                      <strong className="text-violet-600">
-                        {type.toUpperCase()}
-                      </strong>
-                    </span>
-                  ))}
-            </p>
           </div>
         </div>
       </div>
@@ -91,11 +61,6 @@ export const FileUploadPreview: React.FC<FieldPreviewComponentProps> = ({
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      {/* File-upload-specific hint */}
-      <p className="text-[10px] text-violet-600 italic">
-        ✓ File upload with drag-and-drop. Stored as JSON with metadata (path, name, size, type). Secure server-side validation.
-      </p>
     </div>
   );
 };

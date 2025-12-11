@@ -4,22 +4,26 @@
  * Address Input Preview Component
  *
  * Displays a preview of how the Address Input field will appear in the form
- * Shows multi-field address input with autocomplete
+ * Shows all 5 address components with default values if configured
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Home, MapPin, CheckCircle2 } from 'lucide-react';
+import { Home, MapPin } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
+
+// ============================================================================
+// Types
+// ============================================================================
+
+interface AddressDefaults {
+  street?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+}
 
 // ============================================================================
 // Component
@@ -29,30 +33,42 @@ import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
  * AddressInputPreview Component
  *
  * Preview component for Address Input field type
- * Features:
- * - Label with icon and badge
- * - Disabled multi-field address form
- * - Address summary and verification badge
- * - Autocomplete hint
- * - Rule/required hints
+ * Shows all 5 address fields with any configured default values
  */
 export const AddressInputPreview: React.FC<FieldPreviewComponentProps> = ({
   field,
 }) => {
   console.debug('[AddressInputPreview] Rendering for field:', field.id);
 
-  const [address, setAddress] = useState({
+  // Parse default value if it exists
+  let defaultAddress: AddressDefaults = {
     street: '',
     city: '',
     state: '',
-    postalCode: '',
-    country: 'United States',
-  });
-  const [isVerified] = useState(false);
+    postal_code: '',
+    country: '',
+  };
 
-  const hasRules = field.rules && field.rules.length > 0;
+  let _hasDefaults = false;
+
+  if (field.default_value) {
+    try {
+      const parsed = JSON.parse(field.default_value);
+      defaultAddress = {
+        street: parsed.street || '',
+        city: parsed.city || '',
+        state: parsed.state || '',
+        postal_code: parsed.postal_code || '',
+        country: parsed.country || '',
+      };
+      _hasDefaults = Object.values(defaultAddress).some((v) => v !== '');
+    } catch (e) {
+      console.warn('Invalid default_value JSON for address field:', e);
+    }
+  }
+
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -63,14 +79,6 @@ export const AddressInputPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Address
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Address Input Fields */}
@@ -78,20 +86,19 @@ export const AddressInputPreview: React.FC<FieldPreviewComponentProps> = ({
         {/* Street Address */}
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">
-            Street Address <span className="text-destructive">*</span>
+            Street Address
           </Label>
           <div className="relative">
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
             <Input
-              value={address.street}
-              onChange={(e) =>
-                setAddress({ ...address, street: e.target.value })
-              }
-              placeholder={
-                field.placeholder || '123 Main Street, Apt 4B...'
-              }
+              value={defaultAddress.street}
+              placeholder={field.placeholder || '123 Main Street, Apt 4B...'}
               disabled
-              className="pl-9 h-10 border-orange-200 focus:border-orange-500"
+              className={`pl-9 h-10 ${
+                defaultAddress.street
+                  ? 'border-blue-300 bg-blue-50/50'
+                  : 'border-orange-200'
+              }`}
             />
           </div>
         </div>
@@ -99,39 +106,32 @@ export const AddressInputPreview: React.FC<FieldPreviewComponentProps> = ({
         {/* City and State */}
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">
-              City <span className="text-destructive">*</span>
-            </Label>
+            <Label className="text-xs text-muted-foreground">City</Label>
             <Input
-              value={address.city}
-              onChange={(e) =>
-                setAddress({ ...address, city: e.target.value })
-              }
+              value={defaultAddress.city}
               placeholder="New York"
               disabled
-              className="h-10 border-orange-200"
+              className={`h-10 ${
+                defaultAddress.city
+                  ? 'border-blue-300 bg-blue-50/50'
+                  : 'border-orange-200'
+              }`}
             />
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">
-              State/Province <span className="text-destructive">*</span>
+              State/Province
             </Label>
-            <Select
-              value={address.state}
-              onValueChange={(value) =>
-                setAddress({ ...address, state: value })
-              }
+            <Input
+              value={defaultAddress.state}
+              placeholder="TX"
               disabled
-            >
-              <SelectTrigger className="h-10 border-orange-200">
-                <SelectValue placeholder="Select state" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NY">New York</SelectItem>
-                <SelectItem value="CA">California</SelectItem>
-                <SelectItem value="TX">Texas</SelectItem>
-              </SelectContent>
-            </Select>
+              className={`h-10 ${
+                defaultAddress.state
+                  ? 'border-blue-300 bg-blue-50/50'
+                  : 'border-orange-200'
+              }`}
+            />
           </div>
         </div>
 
@@ -139,95 +139,38 @@ export const AddressInputPreview: React.FC<FieldPreviewComponentProps> = ({
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">
-              Postal/ZIP Code <span className="text-destructive">*</span>
+              Postal/ZIP Code
             </Label>
             <Input
-              value={address.postalCode}
-              onChange={(e) =>
-                setAddress({ ...address, postalCode: e.target.value })
-              }
+              value={defaultAddress.postal_code}
               placeholder="10001"
               disabled
-              className="h-10 border-orange-200"
+              className={`h-10 ${
+                defaultAddress.postal_code
+                  ? 'border-blue-300 bg-blue-50/50'
+                  : 'border-orange-200'
+              }`}
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">
-              Country <span className="text-destructive">*</span>
-            </Label>
-            <Select
-              value={address.country}
-              onValueChange={(value) =>
-                setAddress({ ...address, country: value })
-              }
+            <Label className="text-xs text-muted-foreground">Country</Label>
+            <Input
+              value={defaultAddress.country}
+              placeholder="United States"
               disabled
-            >
-              <SelectTrigger className="h-10 border-orange-200">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="United States">United States</SelectItem>
-                <SelectItem value="Canada">Canada</SelectItem>
-                <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-              </SelectContent>
-            </Select>
+              className={`h-10 ${
+                defaultAddress.country
+                  ? 'border-blue-300 bg-blue-50/50'
+                  : 'border-orange-200'
+              }`}
+            />
           </div>
         </div>
-      </div>
-
-      {/* Address Summary */}
-      <div className="p-3 border border-orange-200 rounded-md bg-orange-50/50">
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-muted-foreground">
-              Address Summary:
-            </span>
-            {isVerified ? (
-              <Badge className="bg-green-500 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" />
-                Verified
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-muted-foreground">
-                Not entered
-              </Badge>
-            )}
-          </div>
-
-          <div className="text-xs text-muted-foreground">
-            {address.street ? (
-              <div className="space-y-0.5">
-                <p className="font-medium text-orange-900">
-                  {address.street}
-                </p>
-                <p>
-                  {address.city}
-                  {address.state && `, ${address.state}`}{' '}
-                  {address.postalCode}
-                </p>
-                <p>{address.country}</p>
-              </div>
-            ) : (
-              <p className="italic">Address not yet provided</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Autocomplete Info */}
-      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-        <MapPin className="h-3 w-3 text-orange-500" />
-        <span>Address autocomplete enabled – start typing for suggestions.</span>
       </div>
 
       {field.helper_text && (
         <p className="text-xs text-muted-foreground">{field.helper_text}</p>
       )}
-
-      <p className="text-[10px] text-orange-600 italic">
-        🏠 Multi-field address input stored as structured JSON; useful for
-        filtering by city, state, postal code, or country.
-      </p>
     </div>
   );
 };

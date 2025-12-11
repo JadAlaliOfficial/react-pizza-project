@@ -17,8 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Trash2, Link as LinkIcon, Info } from 'lucide-react';
+import { Trash2, Link as LinkIcon } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 // ============================================================================
@@ -67,14 +66,6 @@ export const UrlInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-
-        {/* Info Alert */}
-        <Alert className="bg-cyan-50 border-cyan-200">
-          <Info className="h-4 w-4 text-cyan-600" />
-          <AlertDescription className="text-xs text-cyan-900">
-            URL input field for links such as websites, portfolios, or resources. Supports URL format validation and optional HTTPS enforcement.
-          </AlertDescription>
-        </Alert>
 
         {/* Label */}
         <div className="space-y-1.5">
@@ -154,38 +145,6 @@ export const UrlInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
             className="min-h-[60px] text-xs font-mono"
           />
         </div>
-
-        {/* Available Validation Rules Info */}
-        <div className="pt-2 border-t">
-          <p className="text-[10px] font-medium text-muted-foreground mb-1">
-            📋 Suggested Validation Rules:
-          </p>
-          <div className="grid grid-cols-2 gap-1 text-[10px] text-muted-foreground">
-            <span>• required</span>
-            <span>• url</span>
-            <span>• min (length)</span>
-            <span>• max (length)</span>
-            <span>• startswith</span>
-            <span>• endswith</span>
-            <span>• regex</span>
-            <span>• unique</span>
-          </div>
-          <p className="text-[10px] text-cyan-700 mt-2 font-medium">
-            ⚠️ The "url" rule validates URL format. Use "startswith" to require https://.
-          </p>
-        </div>
-
-        {/* Example Validation Configuration */}
-        <Alert className="bg-amber-50 border-amber-200">
-          <Info className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-xs text-amber-900">
-            <strong>Example Validation:</strong> Add "url" rule (no props) and "startswith" rule with props:{' '}
-            <code className="bg-amber-100 px-1 rounded">
-              {'{ "values": ["https://"] }'}
-            </code>{' '}
-            to require secure URLs.
-          </AlertDescription>
-        </Alert>
       </div>
     </Card>
   );

@@ -37,8 +37,10 @@ export interface FieldPreviewComponentProps {
 // Component Types
 // ============================================================================
 
-export type FieldConfigComponent = React.ComponentType<FieldConfigComponentProps>;
-export type FieldPreviewComponent = React.ComponentType<FieldPreviewComponentProps>;
+export type FieldConfigComponent =
+  React.ComponentType<FieldConfigComponentProps>;
+export type FieldPreviewComponent =
+  React.ComponentType<FieldPreviewComponentProps>;
 
 // ============================================================================
 // Registry Types
@@ -61,7 +63,11 @@ export type FieldPreviewRegistry = Record<number, FieldPreviewComponent>;
 /**
  * Default config component shown when field type is not registered
  */
-const DefaultFieldConfig: FieldConfigComponent = ({ field, onFieldChange, onDelete }) => {
+const DefaultFieldConfig: FieldConfigComponent = ({
+  field,
+  onFieldChange,
+  onDelete,
+}) => {
   return (
     <div className="p-4 border border-dashed border-gray-300 rounded-md bg-gray-50">
       <div className="flex items-center justify-between mb-3">
@@ -69,7 +75,9 @@ const DefaultFieldConfig: FieldConfigComponent = ({ field, onFieldChange, onDele
           <p className="text-sm font-medium text-gray-900">
             Field Type ID: {field.field_type_id}
           </p>
-          <p className="text-xs text-gray-500">No config component registered</p>
+          <p className="text-xs text-gray-500">
+            No config component registered
+          </p>
         </div>
         <button
           onClick={onDelete}
@@ -78,7 +86,7 @@ const DefaultFieldConfig: FieldConfigComponent = ({ field, onFieldChange, onDele
           Delete
         </button>
       </div>
-      
+
       <div className="space-y-2">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -91,7 +99,7 @@ const DefaultFieldConfig: FieldConfigComponent = ({ field, onFieldChange, onDele
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        
+
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
             Placeholder
@@ -99,7 +107,9 @@ const DefaultFieldConfig: FieldConfigComponent = ({ field, onFieldChange, onDele
           <input
             type="text"
             value={field.placeholder || ''}
-            onChange={(e) => onFieldChange({ placeholder: e.target.value || null })}
+            onChange={(e) =>
+              onFieldChange({ placeholder: e.target.value || null })
+            }
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -110,7 +120,9 @@ const DefaultFieldConfig: FieldConfigComponent = ({ field, onFieldChange, onDele
           </label>
           <textarea
             value={field.helper_text || ''}
-            onChange={(e) => onFieldChange({ helper_text: e.target.value || null })}
+            onChange={(e) =>
+              onFieldChange({ helper_text: e.target.value || null })
+            }
             rows={2}
             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -118,7 +130,8 @@ const DefaultFieldConfig: FieldConfigComponent = ({ field, onFieldChange, onDele
       </div>
 
       <p className="mt-3 text-xs text-gray-500">
-        💡 Register a custom config component for field type {field.field_type_id} in fieldComponentRegistry.ts
+        💡 Register a custom config component for field type{' '}
+        {field.field_type_id} in fieldComponentRegistry.ts
       </p>
     </div>
   );
@@ -138,14 +151,14 @@ const DefaultFieldPreview: FieldPreviewComponent = ({ field }) => {
           Type: {field.field_type_id}
         </span>
       </div>
-      
+
       <input
         type="text"
         placeholder={field.placeholder || 'No preview component registered'}
         disabled
         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white opacity-60"
       />
-      
+
       {field.helper_text && (
         <p className="text-xs text-gray-500">{field.helper_text}</p>
       )}
@@ -240,28 +253,21 @@ import { LocationPickerPreview } from './preview/LocationPickerPreview';
 import { AddressInputFieldConfig } from './config/AddressInputFieldConfig';
 import { AddressInputPreview } from './preview/AddressInputPreview';
 
-
-
-// TODO: Import additional field components here as you create them
-// import { NumberInputFieldConfig } from './config/NumberInputFieldConfig';
-// import { NumberInputPreview } from './preview/NumberInputPreview';
-// ... etc
-
 // ============================================================================
 // Config Registry
 // ============================================================================
 
 /**
  * Maps field_type_id to configuration component
- * 
+ *
  * IMPORTANT: Adjust field_type_id values based on your backend data.
  * Use the IDs returned by useFieldTypes() hook.
- * 
+ *
  * To find the correct ID for Email Input:
  * 1. Check browser console logs when useFieldTypes loads
  * 2. Or check your backend field_types table
  * 3. Update the key below to match the actual ID
- * 
+ *
  * Example field type IDs (adjust to your backend):
  * 1: Text Input
  * 2: Email Input
@@ -305,21 +311,6 @@ export const fieldConfigRegistry: FieldConfigRegistry = {
   25: SignaturePadFieldConfig,
   26: LocationPickerFieldConfig,
   27: AddressInputFieldConfig,
-  
-  // Add more field types here as you create them:
-  // 1: TextInputFieldConfig,
-  // 3: NumberInputFieldConfig,
-  // 4: TextAreaFieldConfig,
-  // 5: SelectFieldConfig,
-  // 6: DateInputFieldConfig,
-  // 7: TimeInputFieldConfig,
-  // 8: DateTimeInputFieldConfig,
-  // 9: CheckboxFieldConfig,
-  // 10: RadioFieldConfig,
-  // 11: FileUploadFieldConfig,
-  // 12: CheckboxGroupFieldConfig,
-  // 13: RadioGroupFieldConfig,
-  // ... etc for all 27 types
 };
 
 // ============================================================================
@@ -328,7 +319,7 @@ export const fieldConfigRegistry: FieldConfigRegistry = {
 
 /**
  * Maps field_type_id to preview component
- * 
+ *
  * IMPORTANT: Use the same field_type_id values as in fieldConfigRegistry
  */
 export const fieldPreviewRegistry: FieldPreviewRegistry = {
@@ -361,21 +352,6 @@ export const fieldPreviewRegistry: FieldPreviewRegistry = {
   25: SignaturePadPreview,
   26: LocationPickerPreview,
   27: AddressInputPreview,
-  
-  // Add more field types here as you create them:
-  // 1: TextInputPreview,
-  // 3: NumberInputPreview,
-  // 4: TextAreaPreview,
-  // 5: SelectPreview,
-  // 6: DateInputPreview,
-  // 7: TimeInputPreview,
-  // 8: DateTimeInputPreview,
-  // 9: CheckboxPreview,
-  // 10: RadioPreview,
-  // 11: FileUploadPreview,
-  // 12: CheckboxGroupPreview,
-  // 13: RadioGroupPreview,
-  // ... etc for all 27 types
 };
 
 // ============================================================================
@@ -385,46 +361,50 @@ export const fieldPreviewRegistry: FieldPreviewRegistry = {
 /**
  * Gets the config component for a field type
  * Returns default component if field type not registered
- * 
+ *
  * @param fieldTypeId - Field type ID to look up
  * @returns Config component for the field type
  */
-export const getFieldConfigComponent = (fieldTypeId: number): FieldConfigComponent => {
+export const getFieldConfigComponent = (
+  fieldTypeId: number,
+): FieldConfigComponent => {
   const component = fieldConfigRegistry[fieldTypeId];
-  
+
   if (!component) {
     console.warn(
-      `[FieldComponentRegistry] No config component registered for field type ${fieldTypeId}, using default`
+      `[FieldComponentRegistry] No config component registered for field type ${fieldTypeId}, using default`,
     );
     return DefaultFieldConfig;
   }
-  
+
   return component;
 };
 
 /**
  * Gets the preview component for a field type
  * Returns default component if field type not registered
- * 
+ *
  * @param fieldTypeId - Field type ID to look up
  * @returns Preview component for the field type
  */
-export const getFieldPreviewComponent = (fieldTypeId: number): FieldPreviewComponent => {
+export const getFieldPreviewComponent = (
+  fieldTypeId: number,
+): FieldPreviewComponent => {
   const component = fieldPreviewRegistry[fieldTypeId];
-  
+
   if (!component) {
     console.warn(
-      `[FieldComponentRegistry] No preview component registered for field type ${fieldTypeId}, using default`
+      `[FieldComponentRegistry] No preview component registered for field type ${fieldTypeId}, using default`,
     );
     return DefaultFieldPreview;
   }
-  
+
   return component;
 };
 
 /**
  * Checks if a field type has a registered config component
- * 
+ *
  * @param fieldTypeId - Field type ID to check
  * @returns True if component is registered
  */
@@ -434,7 +414,7 @@ export const hasFieldConfigComponent = (fieldTypeId: number): boolean => {
 
 /**
  * Checks if a field type has a registered preview component
- * 
+ *
  * @param fieldTypeId - Field type ID to check
  * @returns True if component is registered
  */
@@ -444,13 +424,15 @@ export const hasFieldPreviewComponent = (fieldTypeId: number): boolean => {
 
 /**
  * Gets list of all registered field type IDs
- * 
+ *
  * @returns Array of field type IDs that have registered components
  */
 export const getRegisteredFieldTypeIds = (): number[] => {
   const configIds = Object.keys(fieldConfigRegistry).map(Number);
   const previewIds = Object.keys(fieldPreviewRegistry).map(Number);
-  
+
   // Return unique IDs that have both config and preview
-  return Array.from(new Set([...configIds, ...previewIds])).sort((a, b) => a - b);
+  return Array.from(new Set([...configIds, ...previewIds])).sort(
+    (a, b) => a - b,
+  );
 };

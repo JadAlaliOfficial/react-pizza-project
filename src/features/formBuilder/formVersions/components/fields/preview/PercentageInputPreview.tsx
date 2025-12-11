@@ -10,7 +10,6 @@
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Percent } from 'lucide-react';
 import type { FieldPreviewComponentProps } from '../fieldComponentRegistry';
@@ -37,9 +36,8 @@ export const PercentageInputPreview: React.FC<FieldPreviewComponentProps> = ({
   const [value, setValue] = useState(field.default_value || '50');
   const numValue = parseFloat(value) || 0;
 
-  const hasRules = field.rules && field.rules.length > 0;
   const isRequired = field.rules?.some(
-    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined
+    (rule) => rule.input_rule_id !== null && rule.input_rule_id !== undefined,
   );
 
   return (
@@ -50,14 +48,6 @@ export const PercentageInputPreview: React.FC<FieldPreviewComponentProps> = ({
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
-        <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
-          Percentage
-        </Badge>
-        {hasRules && (
-          <span className="text-[10px] text-muted-foreground font-normal">
-            ({field.rules.length} rule{field.rules.length !== 1 ? 's' : ''})
-          </span>
-        )}
       </div>
 
       {/* Percentage Input */}
@@ -83,18 +73,14 @@ export const PercentageInputPreview: React.FC<FieldPreviewComponentProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">Progress:</span>
-            <span className="text-xs font-bold text-blue-600">
-              {numValue}%
-            </span>
+            <span className="text-xs font-bold text-blue-600">{numValue}%</span>
           </div>
 
           <Progress value={numValue} className="h-4 bg-blue-500" />
 
           <div className="flex justify-between text-[10px] text-muted-foreground">
             <span>0%</span>
-            <span className="font-bold text-blue-600 text-sm">
-              {numValue}%
-            </span>
+            <span className="font-bold text-blue-600 text-sm">{numValue}%</span>
             <span>100%</span>
           </div>
         </div>
