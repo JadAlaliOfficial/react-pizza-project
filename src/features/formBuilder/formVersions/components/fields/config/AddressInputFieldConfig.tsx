@@ -20,7 +20,13 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2, Home, X } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
-
+import { useFormVersionBuilder } from '../../../hooks/useFormVersionBuilder';
+import type { VisibilityCondition } from '../../shared/VisibilityConditionsBuilder';
+import {
+  VisibilityConditionsBuilder,
+  parseVisibilityConditions,
+  serializeVisibilityConditions,
+} from '../../shared/VisibilityConditionsBuilder';
 // ============================================================================
 // Types
 // ============================================================================
@@ -49,6 +55,15 @@ export const AddressInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
   onDelete,
 }) => {
   console.debug('[AddressInputFieldConfig] Rendering for field:', field.id);
+  const { stages } = useFormVersionBuilder();
+  const [visibilityEditorOpen, setVisibilityEditorOpen] = useState(false);
+  const [builderValue, setBuilderValue] = useState<VisibilityCondition>(null);
+
+  useEffect(() => {
+    const raw =
+      field.visibility_conditions ?? field.visibility_condition ?? null;
+    setBuilderValue(parseVisibilityConditions(raw));
+  }, [field.visibility_conditions, field.visibility_condition]);
 
   // Parse existing default_value or initialize empty
   const [addressDefaults, setAddressDefaults] = useState<AddressDefaults>({
@@ -173,294 +188,312 @@ export const AddressInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
   const hasAnyDefaults = Object.values(enabledFields).some((v) => v);
 
   return (
-    <Card className="p-4 border-l-4 border-l-orange-500">
-      <div className="space-y-3">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Home className="h-4 w-4 text-orange-500" />
-            <Badge variant="outline" className="text-xs">
-              Address Input
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              Field {fieldIndex + 1}
-            </span>
+    <>
+      <Card className="p-4 border-l-4 border-l-orange-500">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Home className="h-4 w-4 text-orange-500" />
+              <Badge variant="outline" className="text-xs">
+                Address Input
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                Field {fieldIndex + 1}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              onClick={onDelete}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            onClick={onDelete}
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
 
-        {/* Label */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Label <span className="text-destructive">*</span>
-          </label>
-          <Input
-            value={field.label}
-            onChange={(e) => onFieldChange({ label: e.target.value })}
-            placeholder="e.g., Enter your address"
-            className="h-9"
-            maxLength={255}
-          />
-        </div>
-
-        {/* Placeholder */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Placeholder Text (for street address field)
-          </label>
-          <Input
-            value={field.placeholder ?? ''}
-            onChange={(e) =>
-              onFieldChange({ placeholder: e.target.value || null })
-            }
-            placeholder="e.g., 123 Main Street..."
-            className="h-9"
-            maxLength={255}
-          />
-        </div>
-
-        {/* Helper Text */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Helper Text
-          </label>
-          <Textarea
-            value={field.helper_text ?? ''}
-            onChange={(e) =>
-              onFieldChange({ helper_text: e.target.value || null })
-            }
-            placeholder="Additional information (e.g., 'Provide your complete mailing address')"
-            className="min-h-[60px] text-xs"
-          />
-        </div>
-
-        {/* Default Value Builder */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          {/* Label */}
+          <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">
-              Default Values (Pre-fill Address Components)
+              Label <span className="text-destructive">*</span>
             </label>
-            {hasAnyDefaults && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={clearAllDefaults}
-                className="h-6 text-xs text-destructive hover:text-destructive"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear All
-              </Button>
-            )}
+            <Input
+              value={field.label}
+              onChange={(e) => onFieldChange({ label: e.target.value })}
+              placeholder="e.g., Enter your address"
+              className="h-9"
+              maxLength={255}
+            />
           </div>
 
-          <div className="p-3 border rounded-md bg-muted/20 space-y-2">
-            <p className="text-[10px] text-muted-foreground mb-2">
-              Enable and set default values for any combination of address
-              fields:
-            </p>
-
-            {/* Street Address */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="enable-street"
-                  checked={enabledFields.street}
-                  onCheckedChange={(checked) =>
-                    handleFieldToggle('street', checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor="enable-street"
-                  className="text-xs font-medium cursor-pointer"
-                >
-                  📍 Street Address
-                </label>
-              </div>
-              {enabledFields.street && (
-                <Input
-                  value={addressDefaults.street}
-                  onChange={(e) =>
-                    handleFieldValueChange('street', e.target.value)
-                  }
-                  placeholder="e.g., 123 Main Street, Apt 4B"
-                  className="h-8 text-xs"
-                  maxLength={255}
-                />
-              )}
-            </div>
-
-            {/* City */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="enable-city"
-                  checked={enabledFields.city}
-                  onCheckedChange={(checked) =>
-                    handleFieldToggle('city', checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor="enable-city"
-                  className="text-xs font-medium cursor-pointer"
-                >
-                  🏙️ City
-                </label>
-              </div>
-              {enabledFields.city && (
-                <Input
-                  value={addressDefaults.city}
-                  onChange={(e) =>
-                    handleFieldValueChange('city', e.target.value)
-                  }
-                  placeholder="e.g., New York"
-                  className="h-8 text-xs"
-                  maxLength={255}
-                />
-              )}
-            </div>
-
-            {/* State/Province */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="enable-state"
-                  checked={enabledFields.state}
-                  onCheckedChange={(checked) =>
-                    handleFieldToggle('state', checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor="enable-state"
-                  className="text-xs font-medium cursor-pointer"
-                >
-                  🗺️ State/Province
-                </label>
-              </div>
-              {enabledFields.state && (
-                <Input
-                  value={addressDefaults.state}
-                  onChange={(e) =>
-                    handleFieldValueChange('state', e.target.value)
-                  }
-                  placeholder="e.g., NY or New York"
-                  className="h-8 text-xs"
-                  maxLength={100}
-                />
-              )}
-            </div>
-
-            {/* Postal Code */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="enable-postal"
-                  checked={enabledFields.postal_code}
-                  onCheckedChange={(checked) =>
-                    handleFieldToggle('postal_code', checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor="enable-postal"
-                  className="text-xs font-medium cursor-pointer"
-                >
-                  📮 Postal/ZIP Code
-                </label>
-              </div>
-              {enabledFields.postal_code && (
-                <Input
-                  value={addressDefaults.postal_code}
-                  onChange={(e) =>
-                    handleFieldValueChange('postal_code', e.target.value)
-                  }
-                  placeholder="e.g., 10001"
-                  className="h-8 text-xs"
-                  maxLength={20}
-                />
-              )}
-            </div>
-
-            {/* Country */}
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="enable-country"
-                  checked={enabledFields.country}
-                  onCheckedChange={(checked) =>
-                    handleFieldToggle('country', checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor="enable-country"
-                  className="text-xs font-medium cursor-pointer"
-                >
-                  🌍 Country
-                </label>
-              </div>
-              {enabledFields.country && (
-                <Input
-                  value={addressDefaults.country}
-                  onChange={(e) =>
-                    handleFieldValueChange('country', e.target.value)
-                  }
-                  placeholder="e.g., United States"
-                  className="h-8 text-xs"
-                  maxLength={100}
-                />
-              )}
-            </div>
-
-            {!hasAnyDefaults && (
-              <div className="text-center py-2">
-                <p className="text-[10px] text-muted-foreground italic">
-                  No default values set. Check boxes above to pre-fill address
-                  fields.
-                </p>
-              </div>
-            )}
+          {/* Placeholder */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Placeholder Text (for street address field)
+            </label>
+            <Input
+              value={field.placeholder ?? ''}
+              onChange={(e) =>
+                onFieldChange({ placeholder: e.target.value || null })
+              }
+              placeholder="e.g., 123 Main Street..."
+              className="h-9"
+              maxLength={255}
+            />
           </div>
 
-          {/* Current JSON Preview */}
-          {hasAnyDefaults && (
-            <div className="p-2 bg-muted/50 rounded border">
-              <p className="text-[9px] font-medium text-muted-foreground mb-1">
-                Stored as JSON:
+          {/* Helper Text */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Helper Text
+            </label>
+            <Textarea
+              value={field.helper_text ?? ''}
+              onChange={(e) =>
+                onFieldChange({ helper_text: e.target.value || null })
+              }
+              placeholder="Additional information (e.g., 'Provide your complete mailing address')"
+              className="min-h-[60px] text-xs"
+            />
+          </div>
+
+          {/* Default Value Builder */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-muted-foreground">
+                Default Values (Pre-fill Address Components)
+              </label>
+              {hasAnyDefaults && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAllDefaults}
+                  className="h-6 text-xs text-destructive hover:text-destructive"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Clear All
+                </Button>
+              )}
+            </div>
+
+            <div className="p-3 border rounded-md bg-muted/20 space-y-2">
+              <p className="text-[10px] text-muted-foreground mb-2">
+                Enable and set default values for any combination of address
+                fields:
               </p>
-              <pre className="text-[9px] font-mono text-muted-foreground overflow-x-auto">
-                {field.default_value || '{}'}
-              </pre>
-            </div>
-          )}
-        </div>
 
-        {/* Visibility Conditions */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Visibility Conditions (JSON)
-          </label>
-          <Textarea
-            value={field.visibility_condition ?? ''}
-            onChange={(e) =>
-              onFieldChange({
-                visibility_condition: e.target.value || null,
-              })
-            }
-            placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
-            className="min-h-[60px] text-xs font-mono"
-          />
-          <p className="text-[10px] text-muted-foreground">
-            Control when this field appears based on other field values
-          </p>
+              {/* Street Address */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="enable-street"
+                    checked={enabledFields.street}
+                    onCheckedChange={(checked) =>
+                      handleFieldToggle('street', checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor="enable-street"
+                    className="text-xs font-medium cursor-pointer"
+                  >
+                    📍 Street Address
+                  </label>
+                </div>
+                {enabledFields.street && (
+                  <Input
+                    value={addressDefaults.street}
+                    onChange={(e) =>
+                      handleFieldValueChange('street', e.target.value)
+                    }
+                    placeholder="e.g., 123 Main Street, Apt 4B"
+                    className="h-8 text-xs"
+                    maxLength={255}
+                  />
+                )}
+              </div>
+
+              {/* City */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="enable-city"
+                    checked={enabledFields.city}
+                    onCheckedChange={(checked) =>
+                      handleFieldToggle('city', checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor="enable-city"
+                    className="text-xs font-medium cursor-pointer"
+                  >
+                    🏙️ City
+                  </label>
+                </div>
+                {enabledFields.city && (
+                  <Input
+                    value={addressDefaults.city}
+                    onChange={(e) =>
+                      handleFieldValueChange('city', e.target.value)
+                    }
+                    placeholder="e.g., New York"
+                    className="h-8 text-xs"
+                    maxLength={255}
+                  />
+                )}
+              </div>
+
+              {/* State/Province */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="enable-state"
+                    checked={enabledFields.state}
+                    onCheckedChange={(checked) =>
+                      handleFieldToggle('state', checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor="enable-state"
+                    className="text-xs font-medium cursor-pointer"
+                  >
+                    🗺️ State/Province
+                  </label>
+                </div>
+                {enabledFields.state && (
+                  <Input
+                    value={addressDefaults.state}
+                    onChange={(e) =>
+                      handleFieldValueChange('state', e.target.value)
+                    }
+                    placeholder="e.g., NY or New York"
+                    className="h-8 text-xs"
+                    maxLength={100}
+                  />
+                )}
+              </div>
+
+              {/* Postal Code */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="enable-postal"
+                    checked={enabledFields.postal_code}
+                    onCheckedChange={(checked) =>
+                      handleFieldToggle('postal_code', checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor="enable-postal"
+                    className="text-xs font-medium cursor-pointer"
+                  >
+                    📮 Postal/ZIP Code
+                  </label>
+                </div>
+                {enabledFields.postal_code && (
+                  <Input
+                    value={addressDefaults.postal_code}
+                    onChange={(e) =>
+                      handleFieldValueChange('postal_code', e.target.value)
+                    }
+                    placeholder="e.g., 10001"
+                    className="h-8 text-xs"
+                    maxLength={20}
+                  />
+                )}
+              </div>
+
+              {/* Country */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="enable-country"
+                    checked={enabledFields.country}
+                    onCheckedChange={(checked) =>
+                      handleFieldToggle('country', checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor="enable-country"
+                    className="text-xs font-medium cursor-pointer"
+                  >
+                    🌍 Country
+                  </label>
+                </div>
+                {enabledFields.country && (
+                  <Input
+                    value={addressDefaults.country}
+                    onChange={(e) =>
+                      handleFieldValueChange('country', e.target.value)
+                    }
+                    placeholder="e.g., United States"
+                    className="h-8 text-xs"
+                    maxLength={100}
+                  />
+                )}
+              </div>
+
+              {!hasAnyDefaults && (
+                <div className="text-center py-2">
+                  <p className="text-[10px] text-muted-foreground italic">
+                    No default values set. Check boxes above to pre-fill address
+                    fields.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Current JSON Preview */}
+            {hasAnyDefaults && (
+              <div className="p-2 bg-muted/50 rounded border">
+                <p className="text-[9px] font-medium text-muted-foreground mb-1">
+                  Stored as JSON:
+                </p>
+                <pre className="text-[9px] font-mono text-muted-foreground overflow-x-auto">
+                  {field.default_value || '{}'}
+                </pre>
+              </div>
+            )}
+          </div>
+
+          {/* Visibility Conditions */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Visibility Conditions
+            </label>
+            <div className="flex items-center justify-between rounded border p-2">
+              <div className="text-[11px] text-muted-foreground">
+                {field.visibility_conditions
+                  ? 'Conditions configured'
+                  : 'No conditions'}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setVisibilityEditorOpen(true)}
+              >
+                Edit Conditions
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+        {visibilityEditorOpen && (
+        <VisibilityConditionsBuilder
+          value={builderValue}
+          onChange={(condition) => {
+            setBuilderValue(condition);
+            const serialized = serializeVisibilityConditions(condition);
+            onFieldChange({ visibility_conditions: serialized });
+          }}
+          stages={stages}
+          excludeFieldId={field.id}
+          open={visibilityEditorOpen}
+          onClose={() => setVisibilityEditorOpen(false)}
+        />
+      )}
+    </>
   );
 };

@@ -2,7 +2,7 @@
 
 /**
  * Multi-Select Field Configuration Component
- * 
+ *
  * Provides UI for configuring a Multi-Select field:
  * - Label (main question)
  * - Options (stored in placeholder as JSON array)
@@ -21,14 +21,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Trash2, CheckSquare, Plus, X } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
-
+import { useFormVersionBuilder } from '../../../hooks/useFormVersionBuilder';
+import type { VisibilityCondition } from '../../shared/VisibilityConditionsBuilder';
+import {
+  VisibilityConditionsBuilder,
+  parseVisibilityConditions,
+  serializeVisibilityConditions,
+} from '../../shared/VisibilityConditionsBuilder';
 // ============================================================================
 // Component
 // ============================================================================
 
 /**
  * MultiSelectFieldConfig Component
- * 
+ *
  * Configuration UI for Multi-Select field type
  * Features:
  * - Dynamic options management (add/remove/update)
@@ -44,6 +50,15 @@ export const MultiSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
   onDelete,
 }) => {
   console.debug('[MultiSelectFieldConfig] Rendering for field:', field.id);
+  const { stages } = useFormVersionBuilder();
+  const [visibilityEditorOpen, setVisibilityEditorOpen] = useState(false);
+  const [builderValue, setBuilderValue] = useState<VisibilityCondition>(null);
+
+  useEffect(() => {
+    const raw =
+      field.visibility_conditions ?? field.visibility_condition ?? null;
+    setBuilderValue(parseVisibilityConditions(raw));
+  }, [field.visibility_conditions, field.visibility_condition]);
 
   // Parse options from placeholder (stored as JSON array)
   const getOptions = useCallback((): string[] => {
@@ -70,7 +85,8 @@ export const MultiSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
   }, [field.default_value]);
 
   const [options, setOptions] = useState<string[]>(getOptions());
-  const [defaultSelected, setDefaultSelected] = useState<string[]>(getDefaultSelected());
+  const [defaultSelected, setDefaultSelected] =
+    useState<string[]>(getDefaultSelected());
   const [newOption, setNewOption] = useState('');
 
   // Sync options with field.placeholder changes
@@ -84,29 +100,37 @@ export const MultiSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
   }, [getDefaultSelected]);
 
   // Update placeholder field with options as JSON
-  const updateOptions = useCallback((newOptions: string[]) => {
-    setOptions(newOptions);
-    onFieldChange({ placeholder: JSON.stringify(newOptions) });
+  const updateOptions = useCallback(
+    (newOptions: string[]) => {
+      setOptions(newOptions);
+      onFieldChange({ placeholder: JSON.stringify(newOptions) });
 
-    // Remove deleted options from default selected
-    const validDefaults = defaultSelected.filter((val) =>
-      newOptions.includes(val)
-    );
-    if (validDefaults.length !== defaultSelected.length) {
-      setDefaultSelected(validDefaults);
-      onFieldChange({
-        default_value: validDefaults.length > 0 ? JSON.stringify(validDefaults) : null,
-      });
-    }
-  }, [onFieldChange, defaultSelected]);
+      // Remove deleted options from default selected
+      const validDefaults = defaultSelected.filter((val) =>
+        newOptions.includes(val),
+      );
+      if (validDefaults.length !== defaultSelected.length) {
+        setDefaultSelected(validDefaults);
+        onFieldChange({
+          default_value:
+            validDefaults.length > 0 ? JSON.stringify(validDefaults) : null,
+        });
+      }
+    },
+    [onFieldChange, defaultSelected],
+  );
 
   // Update default selected values
-  const updateDefaultSelected = useCallback((newSelected: string[]) => {
-    setDefaultSelected(newSelected);
-    onFieldChange({
-      default_value: newSelected.length > 0 ? JSON.stringify(newSelected) : null,
-    });
-  }, [onFieldChange]);
+  const updateDefaultSelected = useCallback(
+    (newSelected: string[]) => {
+      setDefaultSelected(newSelected);
+      onFieldChange({
+        default_value:
+          newSelected.length > 0 ? JSON.stringify(newSelected) : null,
+      });
+    },
+    [onFieldChange],
+  );
 
   const addOption = () => {
     if (newOption.trim()) {
@@ -131,7 +155,7 @@ export const MultiSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
     // Update default selected if the changed option was selected
     if (defaultSelected.includes(oldValue)) {
       const newSelected = defaultSelected.map((val) =>
-        val === oldValue ? value : val
+        val === oldValue ? value : val,
       );
       updateDefaultSelected(newSelected);
     }
@@ -145,157 +169,176 @@ export const MultiSelectFieldConfig: React.FC<FieldConfigComponentProps> = ({
   };
 
   return (
-    <Card className="p-4 border-l-4 border-l-indigo-500">
-      <div className="space-y-3">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-indigo-500" />
-            <Badge variant="outline" className="text-xs">
-              Multi-Select
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              Field {fieldIndex + 1}
-            </span>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            onClick={onDelete}
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Label (Main Question) */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Label (Question) <span className="text-destructive">*</span>
-          </label>
-          <Input
-            value={field.label}
-            onChange={(e) => onFieldChange({ label: e.target.value })}
-            placeholder="e.g., Select all skills that apply"
-            className="h-9"
-            maxLength={255}
-          />
-        </div>
-
-        {/* Options Management */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Options <span className="text-destructive">*</span>
-          </label>
-
-          {/* Existing Options */}
-          <div className="space-y-2">
-            {options.map((option, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-6 h-6 rounded bg-indigo-100 text-indigo-700 text-xs font-medium flex-shrink-0">
-                  {index + 1}
-                </div>
-                <Input
-                  value={option}
-                  onChange={(e) => updateOption(index, e.target.value)}
-                  className="h-9 flex-1"
-                  placeholder={`Option ${index + 1}`}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeOption(index)}
-                  className="h-9 w-9 text-destructive"
-                  disabled={options.length <= 1}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          {/* Add New Option */}
-          <div className="flex items-center gap-2">
-            <Input
-              value={newOption}
-              onChange={(e) => setNewOption(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addOption()}
-              placeholder="Add new option..."
-              className="h-9 flex-1"
-            />
+    <>
+      <Card className="p-4 border-l-4 border-l-indigo-500">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <CheckSquare className="h-4 w-4 text-indigo-500" />
+              <Badge variant="outline" className="text-xs">
+                Multi-Select
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                Field {fieldIndex + 1}
+              </span>
+            </div>
             <Button
+              variant="ghost"
+              size="icon"
               type="button"
-              variant="outline"
-              size="sm"
-              onClick={addOption}
-              className="h-9"
+              onClick={onDelete}
+              className="text-destructive hover:text-destructive"
             >
-              <Plus className="h-4 w-4 mr-1" />
-              Add
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        </div>
 
-        {/* Helper Text */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Helper Text
-          </label>
-          <Textarea
-            value={field.helper_text ?? ''}
-            onChange={(e) =>
-              onFieldChange({ helper_text: e.target.value || null })
-            }
-            placeholder="Additional information (e.g., 'Select all that apply')"
-            className="min-h-[60px] text-xs"
-          />
-        </div>
+          {/* Label (Main Question) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Label (Question) <span className="text-destructive">*</span>
+            </label>
+            <Input
+              value={field.label}
+              onChange={(e) => onFieldChange({ label: e.target.value })}
+              placeholder="e.g., Select all skills that apply"
+              className="h-9"
+              maxLength={255}
+            />
+          </div>
 
-        {/* Default Selections (Multiple) */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Default Selections (Multiple Allowed)
-          </label>
-          <div className="space-y-2 p-3 border rounded-md bg-muted/30 max-h-48 overflow-y-auto">
-            {options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`default-multi-${index}`}
-                  checked={defaultSelected.includes(option)}
-                  onCheckedChange={() => toggleDefaultSelection(option)}
-                />
-                <Label
-                  htmlFor={`default-multi-${index}`}
-                  className="text-xs cursor-pointer flex-1"
-                >
-                  {option}
-                </Label>
+          {/* Options Management */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Options <span className="text-destructive">*</span>
+            </label>
+
+            {/* Existing Options */}
+            <div className="space-y-2">
+              {options.map((option, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="flex items-center justify-center w-6 h-6 rounded bg-indigo-100 text-indigo-700 text-xs font-medium flex-shrink-0">
+                    {index + 1}
+                  </div>
+                  <Input
+                    value={option}
+                    onChange={(e) => updateOption(index, e.target.value)}
+                    className="h-9 flex-1"
+                    placeholder={`Option ${index + 1}`}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeOption(index)}
+                    className="h-9 w-9 text-destructive"
+                    disabled={options.length <= 1}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            {/* Add New Option */}
+            <div className="flex items-center gap-2">
+              <Input
+                value={newOption}
+                onChange={(e) => setNewOption(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addOption()}
+                placeholder="Add new option..."
+                className="h-9 flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addOption}
+                className="h-9"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
+            </div>
+          </div>
+
+          {/* Helper Text */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Helper Text
+            </label>
+            <Textarea
+              value={field.helper_text ?? ''}
+              onChange={(e) =>
+                onFieldChange({ helper_text: e.target.value || null })
+              }
+              placeholder="Additional information (e.g., 'Select all that apply')"
+              className="min-h-[60px] text-xs"
+            />
+          </div>
+
+          {/* Default Selections (Multiple) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Default Selections (Multiple Allowed)
+            </label>
+            <div className="space-y-2 p-3 border rounded-md bg-muted/30 max-h-48 overflow-y-auto">
+              {options.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`default-multi-${index}`}
+                    checked={defaultSelected.includes(option)}
+                    onCheckedChange={() => toggleDefaultSelection(option)}
+                  />
+                  <Label
+                    htmlFor={`default-multi-${index}`}
+                    className="text-xs cursor-pointer flex-1"
+                  >
+                    {option}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Visibility Conditions */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Visibility Conditions
+            </label>
+            <div className="flex items-center justify-between rounded border p-2">
+              <div className="text-[11px] text-muted-foreground">
+                {field.visibility_conditions
+                  ? 'Conditions configured'
+                  : 'No conditions'}
               </div>
-            ))}
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setVisibilityEditorOpen(true)}
+              >
+                Edit Conditions
+              </Button>
+            </div>
           </div>
         </div>
-
-        {/* Visibility Conditions */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Visibility Conditions (JSON)
-          </label>
-          <Textarea
-            value={
-              field.visibility_conditions ?? field.visibility_condition ?? ''
-            }
-            onChange={(e) =>
-              onFieldChange({
-                visibility_conditions: e.target.value || null,
-              })
-            }
-            placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
-            className="min-h-[60px] text-xs font-mono"
-          />
-        </div>
-      </div>
-    </Card>
+      </Card>
+      {visibilityEditorOpen && (
+        <VisibilityConditionsBuilder
+          value={builderValue}
+          onChange={(condition) => {
+            setBuilderValue(condition);
+            const serialized = serializeVisibilityConditions(condition);
+            onFieldChange({ visibility_conditions: serialized });
+          }}
+          stages={stages}
+          excludeFieldId={field.id}
+          open={visibilityEditorOpen}
+          onClose={() => setVisibilityEditorOpen(false)}
+        />
+      )}
+    </>
   );
 };

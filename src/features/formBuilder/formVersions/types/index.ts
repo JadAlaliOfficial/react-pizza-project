@@ -10,6 +10,17 @@
 // ============================================================================
 
 /**
+ * Visibility Conditions object (API/UI shape)
+ */
+export interface VisibilityConditions {
+  show_when: {
+    field_id: number | string;
+    operator: string;
+    value: any;
+  };
+}
+
+/**
  * Field Type entity - represents the type of input field
  */
 export interface FieldType {
@@ -40,8 +51,8 @@ export interface Field {
   placeholder: string | null;
   helper_text: string | null;
   default_value: string | null;
-  visibility_condition?: string | null;
-  visibility_conditions?: string | null; // Alternate naming in UPDATE
+  visibility_condition?: VisibilityConditions | null;
+  visibility_conditions?: VisibilityConditions | null;
   created_at?: string;
   updated_at?: string;
   field_type?: FieldType; // Present in GET response
@@ -56,8 +67,8 @@ export interface Section {
   stage_id?: number | string;
   name: string;
   order?: number; // Present in UPDATE request
-  visibility_condition?: string | null; // Present in GET response
-  visibility_conditions?: string | null; // Present in UPDATE request
+  visibility_condition?: VisibilityConditions | null;
+  visibility_conditions?: VisibilityConditions | null;
   created_at?: string;
   updated_at?: string;
   fields: Field[];
@@ -78,11 +89,11 @@ export interface AccessRule {
  * Stage entity - represents a workflow step in the form
  */
 export interface Stage {
-  id?: number; // Optional for create operations
+  id?: number | string; // Supports fake IDs during draft/update
   form_version_id?: number; // Present in GET response, optional in UPDATE request
   name: string;
   is_initial: boolean;
-  visibility_condition: string | null;
+  visibility_condition: VisibilityConditions | null;
   created_at?: string;
   updated_at?: string;
   sections: Section[];

@@ -13,7 +13,7 @@
  * Max stars configuration is not functional until backend is updated.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +21,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, Trash2 } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
+import { useFormVersionBuilder } from '../../../hooks/useFormVersionBuilder';
+import type { VisibilityCondition } from '../../shared/VisibilityConditionsBuilder';
+import {
+  VisibilityConditionsBuilder,
+  parseVisibilityConditions,
+  serializeVisibilityConditions,
+} from '../../shared/VisibilityConditionsBuilder';
 
 // ============================================================================
 // Component
@@ -43,11 +50,21 @@ export const RatingFieldConfig: React.FC<FieldConfigComponentProps> = ({
   onDelete,
 }) => {
   console.debug('[RatingFieldConfig] Rendering for field:', field.id);
+    const { stages } = useFormVersionBuilder();
+  const [visibilityEditorOpen, setVisibilityEditorOpen] = useState(false);
+  const [builderValue, setBuilderValue] = useState<VisibilityCondition>(null);
+
+  useEffect(() => {
+    const raw =
+      field.visibility_conditions ?? field.visibility_condition ?? null;
+    setBuilderValue(parseVisibilityConditions(raw));
+  }, [field.visibility_conditions, field.visibility_condition]);
 
   const [defaultRating, setDefaultRating] = useState(field.default_value || '0');
   const maxStars = 5; // Hardcoded in backend
 
   return (
+    <>
     <Card className="p-4 border-l-4 border-l-amber-500">
       <div className="space-y-3">
         {/* Header */}
@@ -139,24 +156,42 @@ export const RatingFieldConfig: React.FC<FieldConfigComponentProps> = ({
         </div>
 
         {/* Visibility Conditions */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Visibility Conditions (JSON)
-          </label>
-          <Textarea
-            value={
-              field.visibility_conditions ?? field.visibility_condition ?? ''
-            }
-            onChange={(e) =>
-              onFieldChange({
-                visibility_conditions: e.target.value || null,
-              })
-            }
-            placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
-            className="min-h-[60px] text-xs font-mono"
-          />
-        </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Visibility Conditions
+            </label>
+            <div className="flex items-center justify-between rounded border p-2">
+              <div className="text-[11px] text-muted-foreground">
+                {field.visibility_conditions
+                  ? 'Conditions configured'
+                  : 'No conditions'}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setVisibilityEditorOpen(true)}
+              >
+                Edit Conditions
+              </Button>
+            </div>
+          </div>
       </div>
     </Card>
+    {visibilityEditorOpen && (
+        <VisibilityConditionsBuilder
+          value={builderValue}
+          onChange={(condition) => {
+            setBuilderValue(condition);
+            const serialized = serializeVisibilityConditions(condition);
+            onFieldChange({ visibility_conditions: serialized });
+          }}
+          stages={stages}
+          excludeFieldId={field.id}
+          open={visibilityEditorOpen}
+          onClose={() => setVisibilityEditorOpen(false)}
+        />
+      )}
+    </>
   );
 };

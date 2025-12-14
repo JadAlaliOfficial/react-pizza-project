@@ -112,6 +112,8 @@ export interface InputRule {
 // Field Type
 // ============================================================================
 
+import type { VisibilityConditions } from '../types';
+
 /**
  * UI representation of a form field
  * Supports fake IDs for draft fields not yet saved
@@ -124,8 +126,8 @@ export interface UiField {
   placeholder: string | null;
   helper_text: string | null;
   default_value: string | null;
-  visibility_condition: string | null; // Legacy - kept for backwards compatibility
-  visibility_conditions: string | null; // New format
+  visibility_condition: VisibilityConditions | string | null;
+  visibility_conditions: VisibilityConditions | string | null;
   rules: InputRule[];
 }
 
@@ -146,8 +148,8 @@ export interface UiSection {
   is_repeatable: boolean;
   min_entries: number | null;
   max_entries: number | null;
-  visibility_condition: string | null; // Legacy - kept for backwards compatibility
-  visibility_conditions: string | null; // New format
+  visibility_condition: VisibilityConditions | string | null;
+  visibility_conditions: VisibilityConditions | string | null;
   fields: UiField[];
 }
 
@@ -167,8 +169,8 @@ export interface UiStage {
   order: number;
   is_initial: boolean;
   allow_rejection: boolean;
-  visibility_condition: string | null;
-  visibility_conditions: string | null;
+  visibility_condition: VisibilityConditions | string | null;
+  visibility_conditions: VisibilityConditions | string | null;
   access_rule: AccessRule | null;
   sections: UiSection[];
 }

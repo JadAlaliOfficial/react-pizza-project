@@ -49,8 +49,6 @@ export const AddressInputPreview: React.FC<FieldPreviewComponentProps> = ({
     country: '',
   };
 
-  let _hasDefaults = false;
-
   if (field.default_value) {
     try {
       const parsed = JSON.parse(field.default_value);
@@ -61,7 +59,6 @@ export const AddressInputPreview: React.FC<FieldPreviewComponentProps> = ({
         postal_code: parsed.postal_code || '',
         country: parsed.country || '',
       };
-      _hasDefaults = Object.values(defaultAddress).some((v) => v !== '');
     } catch (e) {
       console.warn('Invalid default_value JSON for address field:', e);
     }

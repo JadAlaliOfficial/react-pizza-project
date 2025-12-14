@@ -2,7 +2,7 @@
 
 /**
  * Radio Button Field Configuration Component
- * 
+ *
  * Provides UI for configuring a Radio Button field:
  * - Label (main question)
  * - Options (stored in placeholder as JSON array)
@@ -21,6 +21,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Trash2, Circle, Plus, X } from 'lucide-react';
 import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
+import { useFormVersionBuilder } from '../../../hooks/useFormVersionBuilder';
+import type { VisibilityCondition } from '../../shared/VisibilityConditionsBuilder';
+import {
+  VisibilityConditionsBuilder,
+  parseVisibilityConditions,
+  serializeVisibilityConditions,
+} from '../../shared/VisibilityConditionsBuilder';
 
 // ============================================================================
 // Component
@@ -28,7 +35,7 @@ import type { FieldConfigComponentProps } from '../fieldComponentRegistry';
 
 /**
  * RadioButtonFieldConfig Component
- * 
+ *
  * Configuration UI for Radio Button field type
  * Features:
  * - Dynamic options management (add/remove/update)
@@ -43,6 +50,15 @@ export const RadioButtonFieldConfig: React.FC<FieldConfigComponentProps> = ({
   onDelete,
 }) => {
   console.debug('[RadioButtonFieldConfig] Rendering for field:', field.id);
+  const { stages } = useFormVersionBuilder();
+  const [visibilityEditorOpen, setVisibilityEditorOpen] = useState(false);
+  const [builderValue, setBuilderValue] = useState<VisibilityCondition>(null);
+
+  useEffect(() => {
+    const raw =
+      field.visibility_conditions ?? field.visibility_condition ?? null;
+    setBuilderValue(parseVisibilityConditions(raw));
+  }, [field.visibility_conditions, field.visibility_condition]);
 
   // Parse options from placeholder (stored as JSON array)
   const getOptions = useCallback((): string[] => {
@@ -66,10 +82,13 @@ export const RadioButtonFieldConfig: React.FC<FieldConfigComponentProps> = ({
   }, [getOptions]);
 
   // Update placeholder field with options as JSON
-  const updateOptions = useCallback((newOptions: string[]) => {
-    setOptions(newOptions);
-    onFieldChange({ placeholder: JSON.stringify(newOptions) });
-  }, [onFieldChange]);
+  const updateOptions = useCallback(
+    (newOptions: string[]) => {
+      setOptions(newOptions);
+      onFieldChange({ placeholder: JSON.stringify(newOptions) });
+    },
+    [onFieldChange],
+  );
 
   const addOption = () => {
     if (newOption.trim()) {
@@ -96,164 +115,186 @@ export const RadioButtonFieldConfig: React.FC<FieldConfigComponentProps> = ({
   };
 
   return (
-    <Card className="p-4 border-l-4 border-l-cyan-500">
-      <div className="space-y-3">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Circle className="h-4 w-4 text-cyan-500" />
-            <Badge variant="outline" className="text-xs">
-              Radio Button
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              Field {fieldIndex + 1}
-            </span>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            type="button"
-            onClick={onDelete}
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Label (Main Question) */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Label (Question) <span className="text-destructive">*</span>
-          </label>
-          <Input
-            value={field.label}
-            onChange={(e) => onFieldChange({ label: e.target.value })}
-            placeholder="e.g., What is your gender?"
-            className="h-9"
-            maxLength={255}
-          />
-        </div>
-
-        {/* Options Management */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Options <span className="text-destructive">*</span>
-          </label>
-          
-          {/* Existing Options */}
-          <div className="space-y-2">
-            {options.map((option, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <Circle className="h-3 w-3 text-cyan-500 flex-shrink-0" />
-                <Input
-                  value={option}
-                  onChange={(e) => updateOption(index, e.target.value)}
-                  className="h-9 flex-1"
-                  placeholder={`Option ${index + 1}`}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeOption(index)}
-                  className="h-9 w-9 text-destructive"
-                  disabled={options.length <= 1}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          {/* Add New Option */}
-          <div className="flex items-center gap-2">
-            <Input
-              value={newOption}
-              onChange={(e) => setNewOption(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addOption()}
-              placeholder="Add new option..."
-              className="h-9 flex-1"
-            />
+    <>
+      <Card className="p-4 border-l-4 border-l-cyan-500">
+        <div className="space-y-3">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Circle className="h-4 w-4 text-cyan-500" />
+              <Badge variant="outline" className="text-xs">
+                Radio Button
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                Field {fieldIndex + 1}
+              </span>
+            </div>
             <Button
+              variant="ghost"
+              size="icon"
               type="button"
-              variant="outline"
-              size="sm"
-              onClick={addOption}
-              className="h-9"
+              onClick={onDelete}
+              className="text-destructive hover:text-destructive"
             >
-              <Plus className="h-4 w-4 mr-1" />
-              Add
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        </div>
 
-        {/* Helper Text */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Helper Text
-          </label>
-          <Textarea
-            value={field.helper_text ?? ''}
-            onChange={(e) =>
-              onFieldChange({ helper_text: e.target.value || null })
-            }
-            placeholder="Additional information (e.g., 'Select one option')"
-            className="min-h-[60px] text-xs"
-          />
-        </div>
+          {/* Label (Main Question) */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Label (Question) <span className="text-destructive">*</span>
+            </label>
+            <Input
+              value={field.label}
+              onChange={(e) => onFieldChange({ label: e.target.value })}
+              placeholder="e.g., What is your gender?"
+              className="h-9"
+              maxLength={255}
+            />
+          </div>
 
-        {/* Default Selection */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Default Selection
-          </label>
-          <RadioGroup
-            value={field.default_value ?? ''}
-            onValueChange={(value) =>
-              onFieldChange({ default_value: value || null })
-            }
-          >
-            <div className="space-y-2 p-3 border rounded-md bg-muted/30">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="" id="no-default" />
-                <Label htmlFor="no-default" className="text-xs cursor-pointer">
-                  No default selection
-                </Label>
-              </div>
+          {/* Options Management */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Options <span className="text-destructive">*</span>
+            </label>
+
+            {/* Existing Options */}
+            <div className="space-y-2">
               {options.map((option, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option} id={`default-${index}`} />
-                  <Label
-                    htmlFor={`default-${index}`}
-                    className="text-xs cursor-pointer"
+                <div key={index} className="flex items-center gap-2">
+                  <Circle className="h-3 w-3 text-cyan-500 flex-shrink-0" />
+                  <Input
+                    value={option}
+                    onChange={(e) => updateOption(index, e.target.value)}
+                    className="h-9 flex-1"
+                    placeholder={`Option ${index + 1}`}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeOption(index)}
+                    className="h-9 w-9 text-destructive"
+                    disabled={options.length <= 1}
                   >
-                    {option}
-                  </Label>
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </div>
-          </RadioGroup>
-        </div>
 
-        {/* Visibility Conditions */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">
-            Visibility Conditions (JSON)
-          </label>
-          <Textarea
-            value={
-              field.visibility_conditions ?? field.visibility_condition ?? ''
-            }
-            onChange={(e) =>
-              onFieldChange({
-                visibility_conditions: e.target.value || null,
-              })
-            }
-            placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "yes"}'
-            className="min-h-[60px] text-xs font-mono"
-          />
+            {/* Add New Option */}
+            <div className="flex items-center gap-2">
+              <Input
+                value={newOption}
+                onChange={(e) => setNewOption(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addOption()}
+                placeholder="Add new option..."
+                className="h-9 flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addOption}
+                className="h-9"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
+            </div>
+          </div>
+
+          {/* Helper Text */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Helper Text
+            </label>
+            <Textarea
+              value={field.helper_text ?? ''}
+              onChange={(e) =>
+                onFieldChange({ helper_text: e.target.value || null })
+              }
+              placeholder="Additional information (e.g., 'Select one option')"
+              className="min-h-[60px] text-xs"
+            />
+          </div>
+
+          {/* Default Selection */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Default Selection
+            </label>
+            <RadioGroup
+              value={field.default_value ?? ''}
+              onValueChange={(value) =>
+                onFieldChange({ default_value: value || null })
+              }
+            >
+              <div className="space-y-2 p-3 border rounded-md bg-muted/30">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="" id="no-default" />
+                  <Label
+                    htmlFor="no-default"
+                    className="text-xs cursor-pointer"
+                  >
+                    No default selection
+                  </Label>
+                </div>
+                {options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option} id={`default-${index}`} />
+                    <Label
+                      htmlFor={`default-${index}`}
+                      className="text-xs cursor-pointer"
+                    >
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Visibility Conditions */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">
+              Visibility Conditions
+            </label>
+            <div className="flex items-center justify-between rounded border p-2">
+              <div className="text-[11px] text-muted-foreground">
+                {field.visibility_conditions
+                  ? 'Conditions configured'
+                  : 'No conditions'}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setVisibilityEditorOpen(true)}
+              >
+                Edit Conditions
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+      {visibilityEditorOpen && (
+        <VisibilityConditionsBuilder
+          value={builderValue}
+          onChange={(condition) => {
+            setBuilderValue(condition);
+            const serialized = serializeVisibilityConditions(condition);
+            onFieldChange({ visibility_conditions: serialized });
+          }}
+          stages={stages}
+          excludeFieldId={field.id}
+          open={visibilityEditorOpen}
+          onClose={() => setVisibilityEditorOpen(false)}
+        />
+      )}
+    </>
   );
 };

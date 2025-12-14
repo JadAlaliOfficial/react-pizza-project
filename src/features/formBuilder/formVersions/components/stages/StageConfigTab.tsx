@@ -176,6 +176,7 @@ export const StageConfigTab: React.FC<StageConfigTabProps> = ({ stages, onChange
           stage={editingStage}
           onChange={handleUpdateStage}
           onClose={handleCloseForm}
+          stages={stages}
         />
       )}
     </div>

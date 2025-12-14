@@ -28,7 +28,6 @@ import type {
   InputRule as UiInputRule,
 } from '../types/formVersion.ui-types';
 
-import { isRealId } from '../types/formVersion.ui-types';
 import { generateFakeId } from './fakeId';
 
 // ============================================================================
@@ -102,9 +101,9 @@ function mapFieldToUi(field: Field): UiField {
     placeholder: field.placeholder ?? null,
     helper_text: field.helper_text ?? null,
     default_value: field.default_value ?? null,
-    visibility_condition: field.visibility_condition ?? null,
+    visibility_condition: (field.visibility_condition ?? null) as any,
     visibility_conditions:
-      field.visibility_conditions ?? field.visibility_condition ?? null,
+      (field.visibility_conditions ?? field.visibility_condition ?? null) as any,
     rules: (field.rules || []).map(
       (rule): UiInputRule => ({
         input_rule_id: rule.input_rule_id,
@@ -130,9 +129,9 @@ function mapSectionToUi(section: Section): UiSection {
     is_repeatable: false,
     min_entries: null,
     max_entries: null,
-    visibility_condition: section.visibility_condition ?? null,
+    visibility_condition: (section.visibility_condition ?? null) as any,
     visibility_conditions:
-      section.visibility_conditions ?? section.visibility_condition ?? null,
+      (section.visibility_conditions ?? section.visibility_condition ?? null) as any,
     fields: (section.fields || []).map(mapFieldToUi),
   };
 }
@@ -151,8 +150,8 @@ function mapStageToUi(stage: Stage): UiStage {
     order: 0,
     is_initial: stage.is_initial,
     allow_rejection: false,
-    visibility_condition: stage.visibility_condition ?? null,
-    visibility_conditions: stage.visibility_condition ?? null,
+    visibility_condition: (stage.visibility_condition ?? null) as any,
+    visibility_conditions: (stage.visibility_condition ?? null) as any,
     access_rule: stage.access_rule ?? {
       allowed_users: null,
       allowed_roles: null,
@@ -248,6 +247,18 @@ export function mapFormVersionToUi(formVersion: FormVersion | null): {
 // UI to API Mappers
 // ============================================================================
 
+function normalizeVisibility(input: any): any {
+  if (input === undefined || input === null) return null;
+  if (typeof input === 'string') {
+    try {
+      return JSON.parse(input);
+    } catch {
+      return null;
+    }
+  }
+  return input;
+}
+
 /**
  * Maps UiField to API Field format
  * Strips fake IDs and ensures API compliance
@@ -261,7 +272,7 @@ function mapFieldToApi(field: UiField): Field {
     placeholder: field.placeholder,
     helper_text: field.helper_text,
     default_value: field.default_value,
-    visibility_conditions: field.visibility_conditions,
+    visibility_conditions: normalizeVisibility(field.visibility_conditions),
     rules: field.rules
       .filter((rule) => rule.input_rule_id !== null)
       .map(
@@ -282,21 +293,13 @@ function mapFieldToApi(field: UiField): Field {
  */
 function mapSectionToApi(section: UiSection): Section {
   const apiSection: Section = {
+    id: section.id as number | string,
+    stage_id: section.stage_id as number | string,
     name: section.name,
     order: section.order,
-    visibility_conditions: section.visibility_conditions ?? null,
+    visibility_conditions: normalizeVisibility(section.visibility_conditions),
     fields: section.fields.map(mapFieldToApi),
   };
-
-  // Only include ID if it's a real numeric ID (skip fake IDs)
-  if (isRealId(section.id)) {
-    apiSection.id = section.id;
-  }
-
-  // Only include stage_id if it's a real numeric ID (skip fake IDs)
-  if (isRealId(section.stage_id)) {
-    apiSection.stage_id = section.stage_id;
-  }
 
   return apiSection;
 }
@@ -307,10 +310,12 @@ function mapSectionToApi(section: UiSection): Section {
  */
 function mapStageToApi(stage: UiStage): Stage {
   const apiStage: Stage = {
+    id: stage.id as number | string,
     name: stage.name,
     is_initial: stage.is_initial,
-    visibility_condition:
-      stage.visibility_conditions ?? stage.visibility_condition ?? null,
+    visibility_condition: normalizeVisibility(
+      (stage.visibility_conditions ?? stage.visibility_condition ?? null) as any
+    ),
     sections: stage.sections.map(mapSectionToApi),
     access_rule: stage.access_rule ?? {
       allowed_users: null,
@@ -320,11 +325,6 @@ function mapStageToApi(stage: UiStage): Stage {
       email_field_id: null,
     },
   };
-
-  // Only include ID if it's a real numeric ID (skip fake IDs)
-  if (isRealId(stage.id)) {
-    apiStage.id = stage.id;
-  }
 
   // Only include form_version_id if it's defined
   if (stage.form_version_id !== undefined) {

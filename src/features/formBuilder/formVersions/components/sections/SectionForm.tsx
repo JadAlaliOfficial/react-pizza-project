@@ -17,10 +17,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import type { UiSection } from '../../types/formVersion.ui-types';
+import type { UiSection, UiStage } from '../../types/formVersion.ui-types';
+import type { VisibilityCondition } from '../shared/VisibilityConditionsBuilder';
+import {
+  VisibilityConditionsBuilder,
+  parseVisibilityConditions,
+  serializeVisibilityConditions,
+} from '../shared/VisibilityConditionsBuilder';
 
 // ============================================================================
 // Component Props
@@ -30,6 +35,7 @@ interface SectionFormProps {
   section: UiSection;
   onChange: (section: UiSection) => void;
   onClose: () => void;
+  stages: UiStage[];
 }
 
 // ============================================================================
@@ -46,17 +52,25 @@ interface SectionFormProps {
  * @param onChange - Callback when section is saved
  * @param onClose - Callback to close the dialog
  */
-export const SectionForm: React.FC<SectionFormProps> = ({ section, onChange, onClose }) => {
+export const SectionForm: React.FC<SectionFormProps> = ({ section, onChange, onClose, stages }) => {
   console.debug('[SectionForm] Opening form for section:', section.id);
 
   // Local form state
   const [formData, setFormData] = useState<UiSection>(section);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [visibilityEditorOpen, setVisibilityEditorOpen] = useState<boolean>(false);
+  const [builderValue, setBuilderValue] = useState<VisibilityCondition>(null);
 
   // Sync with prop changes
   useEffect(() => {
     setFormData(section);
   }, [section]);
+
+  useEffect(() => {
+    const raw =
+      formData.visibility_conditions ?? formData.visibility_condition ?? null;
+    setBuilderValue(parseVisibilityConditions(raw));
+  }, [formData.visibility_conditions, formData.visibility_condition]);
 
   /**
    * Validates form data
@@ -99,6 +113,7 @@ export const SectionForm: React.FC<SectionFormProps> = ({ section, onChange, onC
   };
 
   return (
+    <>
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -150,18 +165,21 @@ export const SectionForm: React.FC<SectionFormProps> = ({ section, onChange, onC
 
           {/* Visibility conditions */}
           <div className="space-y-2">
-            <Label htmlFor="visibility-conditions">Visibility Conditions</Label>
-            <Textarea
-              id="visibility-conditions"
-              value={formData.visibility_conditions || ''}
-              onChange={(e) => updateField('visibility_conditions', e.target.value || null)}
-              placeholder="JSON condition (optional)"
-              rows={4}
-              className="font-mono text-sm"
-            />
-            <p className="text-xs text-gray-500">
-              JSON expression to control section visibility (e.g., based on field values)
-            </p>
+            <Label>Visibility Conditions</Label>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="text-xs text-gray-600">
+                {formData.visibility_conditions
+                  ? 'Conditions configured'
+                  : 'No conditions'}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setVisibilityEditorOpen(true)}
+              >
+                Edit Conditions
+              </Button>
+            </div>
           </div>
 
           {/* Field count (read-only info) */}
@@ -188,6 +206,22 @@ export const SectionForm: React.FC<SectionFormProps> = ({ section, onChange, onC
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {/* Visibility Conditions Builder */}
+    {visibilityEditorOpen && (
+      <VisibilityConditionsBuilder
+        value={builderValue}
+        onChange={(condition) => {
+          setBuilderValue(condition);
+          const serialized = serializeVisibilityConditions(condition);
+          updateField('visibility_conditions', serialized);
+        }}
+        stages={stages}
+        open={visibilityEditorOpen}
+        onClose={() => setVisibilityEditorOpen(false)}
+      />
+    )}
+    </>
   );
 };
 

@@ -275,6 +275,7 @@ export const SectionConfigTab: React.FC = () => {
           section={editingSection}
           onChange={handleUpdateSection}
           onClose={handleCloseForm}
+          stages={builder.stages}
         />
       )}
     </div>

@@ -18,10 +18,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import type { UiStage } from '../../types/formVersion.ui-types';
+import type { VisibilityCondition } from '../shared/VisibilityConditionsBuilder';
+import {
+  VisibilityConditionsBuilder,
+  parseVisibilityConditions,
+  serializeVisibilityConditions,
+} from '../shared/VisibilityConditionsBuilder';
 
 // ============================================================================
 // Component Props
@@ -31,6 +36,7 @@ interface StageFormProps {
   stage: UiStage;
   onChange: (stage: UiStage) => void;
   onClose: () => void;
+  stages: UiStage[];
 }
 
 // ============================================================================
@@ -39,25 +45,39 @@ interface StageFormProps {
 
 /**
  * StageForm Component
- * 
+ *
  * Modal dialog for detailed stage editing.
  * Provides full control over stage properties including access rules.
- * 
+ *
  * @param stage - Stage being edited
  * @param onChange - Callback when stage is saved
  * @param onClose - Callback to close the dialog
  */
-export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }) => {
+export const StageForm: React.FC<StageFormProps> = ({
+  stage,
+  onChange,
+  onClose,
+  stages,
+}) => {
   console.debug('[StageForm] Opening form for stage:', stage.id);
 
   // Local form state
   const [formData, setFormData] = useState<UiStage>(stage);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [visibilityEditorOpen, setVisibilityEditorOpen] = useState<boolean>(false);
+  const [builderValue, setBuilderValue] = useState<VisibilityCondition>(null);
 
   // Sync with prop changes
   useEffect(() => {
     setFormData(stage);
   }, [stage]);
+
+  // Initialize builder value when opening editor or when formData changes
+  useEffect(() => {
+    const raw =
+      formData.visibility_conditions ?? formData.visibility_condition ?? null;
+    setBuilderValue(parseVisibilityConditions(raw));
+  }, [formData.visibility_conditions, formData.visibility_condition]);
 
   /**
    * Validates form data
@@ -89,7 +109,10 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
   /**
    * Updates form field
    */
-  const updateField = <K extends keyof UiStage>(field: K, value: UiStage[K]): void => {
+  const updateField = <K extends keyof UiStage>(
+    field: K,
+    value: UiStage[K],
+  ): void => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setValidationError(null);
   };
@@ -97,9 +120,11 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
   /**
    * Updates access rule field
    */
-  const updateAccessRule = <K extends keyof NonNullable<UiStage['access_rule']>>(
+  const updateAccessRule = <
+    K extends keyof NonNullable<UiStage['access_rule']>,
+  >(
     field: K,
-    value: NonNullable<UiStage['access_rule']>[K]
+    value: NonNullable<UiStage['access_rule']>[K],
   ): void => {
     setFormData((prev) => ({
       ...prev,
@@ -117,6 +142,7 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
   };
 
   return (
+    <>
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -162,19 +188,23 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
             />
           </div>
 
+          {/* Visibility conditions */}
           <div className="space-y-2">
-            <Label htmlFor="visibility-conditions">Visibility Conditions</Label>
-            <Textarea
-              id="visibility-conditions"
-              value={formData.visibility_conditions || ''}
-              onChange={(e) => updateField('visibility_conditions', e.target.value || null)}
-              placeholder="JSON condition (optional)"
-              rows={3}
-              className="font-mono text-sm"
-            />
-            <p className="text-xs text-gray-500">
-              JSON expression to control stage visibility
-            </p>
+            <Label>Visibility Conditions</Label>
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="text-xs text-gray-600">
+                {formData.visibility_conditions
+                  ? 'Conditions configured'
+                  : 'No conditions'}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setVisibilityEditorOpen(true)}
+              >
+                Edit Conditions
+              </Button>
+            </div>
           </div>
 
           {/* Access Rule Section */}
@@ -184,14 +214,18 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
             {/* Allow authenticated users */}
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <Label htmlFor="allow-authenticated">Allow All Authenticated Users</Label>
+                <Label htmlFor="allow-authenticated">
+                  Allow All Authenticated Users
+                </Label>
                 <p className="text-sm text-gray-500">
                   Any logged-in user can access this stage
                 </p>
               </div>
               <Switch
                 id="allow-authenticated"
-                checked={formData.access_rule?.allow_authenticated_users || false}
+                checked={
+                  formData.access_rule?.allow_authenticated_users || false
+                }
                 onCheckedChange={(checked) =>
                   updateAccessRule('allow_authenticated_users', checked)
                 }
@@ -204,7 +238,9 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
               <Input
                 id="allowed-roles"
                 value={formData.access_rule?.allowed_roles || ''}
-                onChange={(e) => updateAccessRule('allowed_roles', e.target.value || null)}
+                onChange={(e) =>
+                  updateAccessRule('allowed_roles', e.target.value || null)
+                }
                 placeholder='e.g., "[2, 3]"'
                 className="font-mono text-sm"
               />
@@ -215,11 +251,18 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
 
             {/* Allowed permissions */}
             <div className="space-y-2">
-              <Label htmlFor="allowed-permissions">Allowed Permissions (JSON Array)</Label>
+              <Label htmlFor="allowed-permissions">
+                Allowed Permissions (JSON Array)
+              </Label>
               <Input
                 id="allowed-permissions"
                 value={formData.access_rule?.allowed_permissions || ''}
-                onChange={(e) => updateAccessRule('allowed_permissions', e.target.value || null)}
+                onChange={(e) =>
+                  updateAccessRule(
+                    'allowed_permissions',
+                    e.target.value || null,
+                  )
+                }
                 placeholder='e.g., "[\"view_entries\"]"'
                 className="font-mono text-sm"
               />
@@ -238,7 +281,7 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
                 onChange={(e) =>
                   updateAccessRule(
                     'email_field_id',
-                    e.target.value ? parseInt(e.target.value, 10) : null
+                    e.target.value ? parseInt(e.target.value, 10) : null,
                   )
                 }
                 placeholder="e.g., 2"
@@ -258,5 +301,23 @@ export const StageForm: React.FC<StageFormProps> = ({ stage, onChange, onClose }
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    {/* Visibility Conditions Builder */}
+    {visibilityEditorOpen && (
+      <VisibilityConditionsBuilder
+        value={builderValue}
+        onChange={(condition) => {
+          setBuilderValue(condition);
+          const serialized = serializeVisibilityConditions(condition);
+          // Keep both properties for backward compatibility
+          updateField('visibility_conditions', serialized);
+          updateField('visibility_condition', serialized);
+        }}
+        stages={stages}
+        open={visibilityEditorOpen}
+        onClose={() => setVisibilityEditorOpen(false)}
+      />
+    )}
+    </>
   );
 };
