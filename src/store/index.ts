@@ -34,7 +34,7 @@ import actionsReducer from '../features/formBuilder/actions/store/actionsSlice';
 import fieldTypeFiltersReducer from '../features/formBuilder/fieldTypeFilters/store/fieldTypeFiltersSlice';
 import languagesReducer from '../features/formBuilder/languages/store/languagesSlice';
 import formsReducer from '../features/formBuilder/forms/store/formsSlice';
-import catagoriesReducer from '../features/formBuilder/catagories/store/catagoriesSlice';
+import categoriesReducer from '../features/formBuilder/categories/store/categoriesSlice';
 import translationsReducer from '../features/formBuilder/translations/store/translationsSlice';
 import languagesPreferencesReducer from '../features/formBuilder/languagesPreferences/store/languagesPreferencesSlice';
 import formVersionsReducer from '../features/formBuilder/formVersions/store/formVersionsSlice';
@@ -78,7 +78,7 @@ export const store = configureStore({
     fieldTypeFilters: fieldTypeFiltersReducer,
     languages: languagesReducer,
     forms: formsReducer,
-    catagories: catagoriesReducer,
+    categories: categoriesReducer,
     translations: translationsReducer,
     languagesPreferences: languagesPreferencesReducer,
     formVersion: formVersionsReducer,

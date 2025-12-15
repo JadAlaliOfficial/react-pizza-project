@@ -32,6 +32,7 @@ import type {
   StageTransition,
   ServiceError,
 } from '../types';
+import { createFormVersionByFormId } from '../store/formVersionsSlice';
 
 // ============================================================================
 // useFormVersion Hook
@@ -367,6 +368,35 @@ export const usePublishFormVersion = (): UsePublishFormVersionReturn => {
       error: errors.publish,
     }),
     [publishFormVersion, loading.publish, errors.publish]
+  );
+};
+
+/**
+ * Hook to create a new form version for a given form
+ * Returns a callback function and loading/error states
+ */
+export const useCreateFormVersion = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const loading = useSelector(selectFormVersionLoading);
+  const errors = useSelector(selectFormVersionErrors);
+
+  const createVersion = useCallback(
+    async (formId: number): Promise<FormVersion> => {
+      console.info(`[useCreateFormVersion] Creating version for form ${formId}`);
+      dispatch(clearError('fetch'));
+      const result = await dispatch(createFormVersionByFormId(formId)).unwrap();
+      return result;
+    },
+    [dispatch]
+  );
+
+  return useMemo(
+    () => ({
+      createFormVersion: createVersion,
+      loading: loading.fetch,
+      error: errors.fetch,
+    }),
+    [createVersion, loading.fetch, errors.fetch]
   );
 };
 

@@ -195,7 +195,7 @@ export interface StageTransition {
   to_stage_id: number | null;
   to_complete: boolean;
   label: string;
-  condition: string | null;
+  condition: VisibilityConditions | string | null;
   created_at?: string;
   updated_at?: string;
   actions: TransitionAction[];
@@ -212,7 +212,7 @@ export interface StageTransitionAPI {
   to_stage_id: number | string | null;   // Can be fake ID or null for completion
   to_complete: boolean;
   label: string;
-  condition: string | null;
+  condition: VisibilityConditions | string | null;
   created_at?: string;
   updated_at?: string;
   actions: TransitionActionAPI[];

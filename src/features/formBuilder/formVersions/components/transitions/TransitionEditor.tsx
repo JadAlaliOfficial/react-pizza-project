@@ -6,9 +6,8 @@
  * Includes stage selection, properties, and action management
  */
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -20,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type {
   UiStageTransition,
   UiStage,
@@ -27,6 +27,11 @@ import type {
   ActionType,
 } from '../../types/formVersion.ui-types';
 import { TransitionActionsEditor } from './TransitionActionsEditor';
+import {
+  VisibilityConditionsBuilder,
+  parseVisibilityConditions,
+  serializeVisibilityConditions,
+} from '../shared/VisibilityConditionsBuilder';
 
 // ============================================================================
 // Component Props
@@ -89,6 +94,12 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
   onRemoveAction,
 }) => {
   console.debug('[TransitionEditor] Rendering for transition:', transition.id);
+
+  const [visibilityEditorOpen, setVisibilityEditorOpen] = useState(false);
+  const builderValue = useMemo(
+    () => parseVisibilityConditions(transition.condition as any),
+    [transition.condition],
+  );
 
   /**
    * Updates a field in the transition
@@ -208,16 +219,22 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
 
       {/* Condition */}
       <div className="space-y-1.5">
-        <Label className="text-xs font-medium">Condition (JSON, Optional)</Label>
-        <Textarea
-          value={transition.condition || ''}
-          onChange={(e) => updateField('condition', e.target.value || null)}
-          placeholder='e.g., {"field_id": 5, "operator": "equals", "value": "approved"}'
-          className="min-h-[60px] text-xs font-mono"
-        />
-        <p className="text-[10px] text-muted-foreground">
-          JSON condition that must be met for this transition to be available
-        </p>
+        <Label className="text-xs font-medium">Visibility Conditions</Label>
+        <div className="flex items-center justify-between rounded-lg border p-3">
+          <div className="space-y-0.5">
+            <p className="text-[10px] text-muted-foreground">
+              Define when this transition is available based on field values
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            type="button"
+            onClick={() => setVisibilityEditorOpen(true)}
+          >
+            Edit Conditions
+          </Button>
+        </div>
       </div>
 
       {/* Validation warning */}
@@ -239,6 +256,18 @@ export const TransitionEditor: React.FC<TransitionEditorProps> = ({
           onRemoveAction={onRemoveAction}
         />
       </div>
+      {visibilityEditorOpen && (
+        <VisibilityConditionsBuilder
+          value={builderValue}
+          onChange={(condition) => {
+            const serialized = serializeVisibilityConditions(condition);
+            updateField('condition', serialized as any);
+          }}
+          stages={stages}
+          open={visibilityEditorOpen}
+          onClose={() => setVisibilityEditorOpen(false)}
+        />
+      )}
     </div>
   );
 };

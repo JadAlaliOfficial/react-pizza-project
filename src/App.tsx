@@ -27,13 +27,8 @@ import {
   employmentInformationRoutes,
   schedulePreferencesRoutes,
   dailySchedulesRoutes,
-  fieldTypesRoutes,
-  inputRulesRoutes,
-  actionsRoutes,
   fieldTypeFiltersRoutes,
-  languagesRoutes,
   languagesPreferencesRoutes,
-  catagoriesRoutes,
   formsRoutes,
   translationsRoutes,
   formBuilderRoutes,
@@ -93,27 +88,12 @@ function App() {
               {/* Daily Schedules Management Routes */}
               {dailySchedulesRoutes}
 
-              {/* Field Types Management Routes */}
-              {fieldTypesRoutes}
-
               {/* Field Type Filters Management Routes */}
               {fieldTypeFiltersRoutes}
 
-              {/* Languages Management Routes */}
-              {languagesRoutes}
-
               {/* Languages Preferences Routes */}
               {languagesPreferencesRoutes}
-
-              {/* Categories Management Routes */}
-              {catagoriesRoutes}
-
-              {/* Input Rules Management Routes */}
-              {inputRulesRoutes}
-
-              {/* Actions Management Routes */}
-              {actionsRoutes}
-
+              
               {/* Forms Management Routes */}
               {formsRoutes}
 

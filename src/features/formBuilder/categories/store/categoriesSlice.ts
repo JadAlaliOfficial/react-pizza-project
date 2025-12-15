@@ -534,25 +534,25 @@ export default categoriesSlice.reducer;
  */
 import type { RootState } from '@/store';
 
-const selectCatagoriesState = (state: RootState) => state.catagories;
+const selectcategoriesState = (state: RootState) => state.categories;
 
 export const selectAllCategories = createSelector(
-  [selectCatagoriesState],
-  (catagories): Category[] => catagories.categoryIds.map((id) => catagories.categoriesById[id])
+  [selectcategoriesState],
+  (categories): Category[] => categories.categoryIds.map((id) => categories.categoriesById[id])
 );
 
 /**
  * Select a category by ID
  */
 export const selectCategoryById = createSelector(
-  [selectCatagoriesState, (_: RootState, id: Id) => id],
-  (catagories, id): Category | undefined => catagories.categoriesById[id]
+  [selectcategoriesState, (_: RootState, id: Id) => id],
+  (categories, id): Category | undefined => categories.categoriesById[id]
 );
 
 /**
  * Select currently selected/viewed category
  */
 export const selectSelectedCategory = createSelector(
-  [selectCatagoriesState],
-  (catagories): Category | null => catagories.selectedCategory
+  [selectcategoriesState],
+  (categories): Category | null => categories.selectedCategory
 );

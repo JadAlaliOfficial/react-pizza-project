@@ -199,7 +199,7 @@ function mapStageTransitionToUi(transition: StageTransition): UiStageTransition 
     from_stage_id: transition.from_stage_id,
     to_stage_id: (transition as any).to_stage_id ?? null,
     label: transition.label,
-    condition: transition.condition ?? null,
+    condition: (transition.condition ?? null) as any,
     to_complete: transition.to_complete,
     actions,
   };
@@ -370,7 +370,7 @@ function mapStageTransitionToApi(
     to_complete:
       transition.to_stage_id === null ? true : transition.to_complete,
     label: transition.label,
-    condition: transition.condition ?? null,
+    condition: normalizeVisibility(transition.condition) as any,
     actions,
   };
 

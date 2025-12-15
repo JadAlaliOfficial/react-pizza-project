@@ -23,7 +23,7 @@ import {
   clearSelectedCategory,
   selectAllCategories,
   selectSelectedCategory,
-} from '../store/catagoriesSlice';
+} from '../store/categoriesSlice';
 import type {
   Category,
   CreateCategoryDto,
@@ -47,8 +47,8 @@ export const useListCategories = (autoFetch: boolean = true) => {
 
   // Select state from Redux
   const categories = useSelector(selectAllCategories);
-  const isLoading = useSelector((state: RootState) => state.catagories.isListLoading);
-  const error = useSelector((state: RootState) => state.catagories.listError);
+  const isLoading = useSelector((state: RootState) => state.categories.isListLoading);
+  const error = useSelector((state: RootState) => state.categories.listError);
 
   /**
    * Fetch categories
@@ -114,8 +114,8 @@ export const useGetCategory = (
 
   // Select state from Redux
   const category = useSelector(selectSelectedCategory);
-  const isLoading = useSelector((state: RootState) => state.catagories.isGetLoading);
-  const error = useSelector((state: RootState) => state.catagories.getError);
+  const isLoading = useSelector((state: RootState) => state.categories.isGetLoading);
+  const error = useSelector((state: RootState) => state.categories.getError);
 
   /**
    * Fetch category by ID
@@ -194,9 +194,9 @@ export const useCreateCategory = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   // Select state from Redux
-  const isLoading = useSelector((state: RootState) => state.catagories.isCreateLoading);
-  const error = useSelector((state: RootState) => state.catagories.createError);
-  const successMessage = useSelector((state: RootState) => state.catagories.createSuccess);
+  const isLoading = useSelector((state: RootState) => state.categories.isCreateLoading);
+  const error = useSelector((state: RootState) => state.categories.createError);
+  const successMessage = useSelector((state: RootState) => state.categories.createSuccess);
   const createdCategory = useSelector(selectSelectedCategory); // The newly created category
 
   /**
@@ -265,9 +265,9 @@ export const useUpdateCategory = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   // Select state from Redux
-  const isLoading = useSelector((state: RootState) => state.catagories.isUpdateLoading);
-  const error = useSelector((state: RootState) => state.catagories.updateError);
-  const successMessage = useSelector((state: RootState) => state.catagories.updateSuccess);
+  const isLoading = useSelector((state: RootState) => state.categories.isUpdateLoading);
+  const error = useSelector((state: RootState) => state.categories.updateError);
+  const successMessage = useSelector((state: RootState) => state.categories.updateSuccess);
 
   /**
    * Update an existing category
@@ -334,9 +334,9 @@ export const useAssignFormsToCategory = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   // Select state from Redux
-  const isLoading = useSelector((state: RootState) => state.catagories.isAssignLoading);
-  const error = useSelector((state: RootState) => state.catagories.assignError);
-  const successMessage = useSelector((state: RootState) => state.catagories.assignSuccess);
+  const isLoading = useSelector((state: RootState) => state.categories.isAssignLoading);
+  const error = useSelector((state: RootState) => state.categories.assignError);
+  const successMessage = useSelector((state: RootState) => state.categories.assignSuccess);
 
   /**
    * Assign forms to a category
@@ -402,9 +402,9 @@ export const useUnassignFormsFromCategory = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   // Select state from Redux
-  const isLoading = useSelector((state: RootState) => state.catagories.isUnassignLoading);
-  const error = useSelector((state: RootState) => state.catagories.unassignError);
-  const successMessage = useSelector((state: RootState) => state.catagories.unassignSuccess);
+  const isLoading = useSelector((state: RootState) => state.categories.isUnassignLoading);
+  const error = useSelector((state: RootState) => state.categories.unassignError);
+  const successMessage = useSelector((state: RootState) => state.categories.unassignSuccess);
 
   /**
    * Unassign forms from their categories
@@ -470,9 +470,9 @@ export const useDeleteCategory = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   // Select state from Redux
-  const isLoading = useSelector((state: RootState) => state.catagories.isDeleteLoading);
-  const error = useSelector((state: RootState) => state.catagories.deleteError);
-  const successMessage = useSelector((state: RootState) => state.catagories.deleteSuccess);
+  const isLoading = useSelector((state: RootState) => state.categories.isDeleteLoading);
+  const error = useSelector((state: RootState) => state.categories.deleteError);
+  const successMessage = useSelector((state: RootState) => state.categories.deleteSuccess);
 
   /**
    * Delete a category by ID

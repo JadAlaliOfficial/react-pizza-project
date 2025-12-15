@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Trash2, CheckCircle } from 'lucide-react';
 import type { UiStageTransition } from '../../types/formVersion.ui-types';
 import { isFakeId } from '../../types/formVersion.ui-types';
+import { getActionTypeIcon } from './actionComponentRegistry';
 
 // ============================================================================
 // Component Props
@@ -142,6 +143,17 @@ export const TransitionItem: React.FC<TransitionItemProps> = ({
               </Badge>
             )}
           </div>
+
+          {/* Actions preview */}
+          {hasActions && (
+            <div className="mt-2 flex flex-wrap items-center gap-1">
+              {transition.actions.map((a, idx) => (
+                <Badge key={idx} variant="outline" className="text-[10px]">
+                  {getActionTypeIcon(a.actionType)} {a.actionType}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Actions */}

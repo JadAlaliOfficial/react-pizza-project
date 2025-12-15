@@ -19,6 +19,7 @@ import {
   getFormVersion,
   updateFormVersion,
   publishFormVersion,
+  createFormVersion,
 } from '../services/api';
 
 // ============================================================================
@@ -162,6 +163,37 @@ export const publishFormVersionById = createAsyncThunk<
       const serviceError = error as ServiceError;
       console.error(
         `[FormVersionSlice] Publish failed for ID ${id}:`,
+        serviceError.message
+      );
+      return rejectWithValue(serviceError);
+    }
+  }
+);
+
+/**
+ * Creates a new form version for a given form ID
+ * 
+ * @param formId - Parent form ID
+ * @returns Newly created form version
+ */
+export const createFormVersionByFormId = createAsyncThunk<
+  FormVersion,
+  number,
+  { rejectValue: ServiceError }
+>(
+  'formVersion/createByFormId',
+  async (formId: number, { rejectWithValue }) => {
+    try {
+      console.debug(`[FormVersionSlice] Creating new version for form ${formId}`);
+      const data = await createFormVersion(formId);
+      console.info(
+        `[FormVersionSlice] Created version ${data.id} (#${data.version_number}) for form ${formId}`
+      );
+      return data;
+    } catch (error) {
+      const serviceError = error as ServiceError;
+      console.error(
+        `[FormVersionSlice] Create version failed for form ${formId}:`,
         serviceError.message
       );
       return rejectWithValue(serviceError);
@@ -350,6 +382,17 @@ const formVersionSlice = createSlice({
       state.errors.publish = action.payload || {
         message: 'Failed to publish form version',
       };
+    });
+
+    // ========================================================================
+    // Create Form Version for Form
+    // ========================================================================
+    builder.addCase(createFormVersionByFormId.fulfilled, (state, action) => {
+      // Set newly created version as current for immediate editing
+      state.current = action.payload;
+      state.stages = action.payload.stages || [];
+      state.stageTransitions = action.payload.stage_transitions || [];
+      state.lastFetched = Date.now();
     });
   },
 });

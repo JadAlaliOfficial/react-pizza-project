@@ -174,10 +174,9 @@ export interface ActionResponse {
  * CreateForm DTO for requests (POST)
  */
 export interface CreateFormDto {
-  /** Name of the new form */
   name: string;
-  /** Category for assignment (must exist) */
-  category_id: Id;
+  /** Optional category; if omitted or null, form is without category */
+  category_id?: number | null;
 }
 
 /**
@@ -187,7 +186,7 @@ export interface UpdateFormDto {
   /** New name for the form */
   name: string;
   /** Category for assignment */
-  category_id: Id;
+  category_id: number | null;
 }
 
 /**

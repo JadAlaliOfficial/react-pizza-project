@@ -189,7 +189,7 @@ export interface UiStageTransition {
   from_stage_id: StageIdLike;
   to_stage_id: StageIdLike | null;
   label: string;
-  condition: string | null;
+  condition: VisibilityConditions | string | null;
   to_complete: boolean;
   actions: UiTransitionAction[]; // Changed from string | null to array of action objects
 }

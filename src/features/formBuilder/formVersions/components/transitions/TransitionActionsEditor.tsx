@@ -23,6 +23,9 @@ import {
   getActionConfigComponent,
   getActionTypeIcon,
 } from './actionComponentRegistry';
+import { useActions } from '@/features/formBuilder/actions/hooks/useActions';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 // ============================================================================
 // Component Props
@@ -74,6 +77,14 @@ export const TransitionActionsEditor: React.FC<TransitionActionsEditorProps> = (
   console.debug('[TransitionActionsEditor] Rendering with', actions.length, 'actions');
 
   const [selectedActionType, setSelectedActionType] = React.useState<ActionType | ''>('');
+  const { actions: availableActions, isLoading, error, refetch } = useActions({ autoFetch: true });
+  const actionTypeOptions = React.useMemo<ActionType[]>(
+    () =>
+      availableActions
+        .map((a) => a.name as ActionType)
+        .filter((name, idx, arr) => arr.indexOf(name) === idx),
+    [availableActions]
+  );
 
   /**
    * Handles adding a new action
@@ -177,25 +188,32 @@ export const TransitionActionsEditor: React.FC<TransitionActionsEditorProps> = (
 
       {/* Add Action */}
       <div className="flex gap-2">
-        <Select value={selectedActionType} onValueChange={(val) => setSelectedActionType(val as ActionType)}>
+        <Select
+          value={selectedActionType}
+          onValueChange={(val) => setSelectedActionType(val as ActionType)}
+          disabled={isLoading || !!error}
+        >
           <SelectTrigger className="flex-1 h-9 text-xs">
             <SelectValue placeholder="Select action type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Send Email" className="text-xs">
-              📧 Send Email
-            </SelectItem>
-            <SelectItem value="Send Notification" className="text-xs">
-              🔔 Send Notification
-            </SelectItem>
-            <SelectItem value="Call Webhook" className="text-xs">
-              🔗 Call Webhook
-            </SelectItem>
+            {isLoading && (
+              <div className="flex items-center justify-center py-6 text-muted-foreground">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Loading actions...
+              </div>
+            )}
+            {!isLoading &&
+              actionTypeOptions.map((type) => (
+                <SelectItem key={type} value={type} className="text-xs">
+                  {getActionTypeIcon(type)} {type}
+                </SelectItem>
+              ))}
           </SelectContent>
         </Select>
         <Button
           onClick={handleAddAction}
-          disabled={!selectedActionType}
+          disabled={!selectedActionType || !!error}
           size="sm"
           className="gap-2 h-9"
         >
@@ -203,6 +221,23 @@ export const TransitionActionsEditor: React.FC<TransitionActionsEditorProps> = (
           Add
         </Button>
       </div>
+
+      {/* Error State */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-xs">
+            {error}{' '}
+            <button
+              type="button"
+              onClick={() => refetch(true)}
+              className="underline ml-1"
+            >
+              Retry
+            </button>
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 };

@@ -16,6 +16,7 @@ import type {
   UpdateFormVersionResult,
   PublishFormVersionResult,
 } from '../types';
+import type { ApiSuccessResponse, FormVersion } from '../types';
 import { loadToken } from '../../../auth/utils/tokenStorage';
 import { store } from '@/store';
 
@@ -296,6 +297,40 @@ export const publishFormVersion = async (
   }
 };
 
+/**
+ * Creates a new form version for a given form
+ * 
+ * POST /api/forms/{formId}/versions
+ * 
+ * @param formId - Parent form ID
+ * @returns Newly created form version metadata
+ */
+export const createFormVersion = async (
+  formId: number
+): Promise<FormVersion> => {
+  try {
+    console.info(`[FormVersionService] Creating new form version for form ${formId}`);
+
+    const response = await apiClient.post<ApiSuccessResponse<FormVersion>>(
+      `/forms/${formId}/versions`
+    );
+
+    console.info(
+      `[FormVersionService] Created form version ${response.data.data.id} ` +
+      `(#${response.data.data.version_number}) for form ${formId}`
+    );
+
+    return response.data.data;
+  } catch (error) {
+    const normalizedError = normalizeError(error, 'createFormVersion');
+    console.error(
+      `[FormVersionService] Failed to create form version for form ${formId}:`,
+      normalizedError.message
+    );
+    throw normalizedError;
+  }
+};
+
 // ============================================================================
 // Export Service Object (Alternative API)
 // ============================================================================
@@ -312,6 +347,7 @@ export const formVersionService = {
   getFormVersion,
   updateFormVersion,
   publishFormVersion,
+  createFormVersion,
 };
 
 export default formVersionService;

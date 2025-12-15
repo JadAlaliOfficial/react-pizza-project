@@ -443,18 +443,6 @@ export const AddressInputFieldConfig: React.FC<FieldConfigComponentProps> = ({
                 </div>
               )}
             </div>
-
-            {/* Current JSON Preview */}
-            {hasAnyDefaults && (
-              <div className="p-2 bg-muted/50 rounded border">
-                <p className="text-[9px] font-medium text-muted-foreground mb-1">
-                  Stored as JSON:
-                </p>
-                <pre className="text-[9px] font-mono text-muted-foreground overflow-x-auto">
-                  {field.default_value || '{}'}
-                </pre>
-              </div>
-            )}
           </div>
 
           {/* Visibility Conditions */}
