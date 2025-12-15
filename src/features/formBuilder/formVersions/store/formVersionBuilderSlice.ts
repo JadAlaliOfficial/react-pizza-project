@@ -14,7 +14,7 @@ import {
 import type { RootState } from '@/store';
 import type { ServiceError } from '../types';
 import { buildUpdateFormVersionRequest } from '../utils/formVersion.mappers';
-// import { updateFormVersion } from '../services/api';
+import { updateFormVersion } from '../services/api';
 import type {
   UiStage,
   UiStageTransition,
@@ -329,7 +329,7 @@ export const saveFormVersionDraft = createAsyncThunk<
   { state: RootState; rejectValue: ServiceError }
 >(
   'formVersionBuilder/saveDraft',
-  async (_id: number, { getState, rejectWithValue, dispatch }) => {
+  async (id: number, { getState, rejectWithValue, dispatch }) => {
     try {
       const state = getState();
       const builder = state.formVersionBuilder;
@@ -337,8 +337,8 @@ export const saveFormVersionDraft = createAsyncThunk<
         stages: builder.stages,
         stageTransitions: builder.stageTransitions,
       });
-      console.log('Request:', request);
-      // await updateFormVersion(id, request);
+      // console.log('Request:', request);
+      await updateFormVersion(id, request);
 
       dispatch(markAsSaved());
     } catch (error) {

@@ -263,6 +263,11 @@ export interface UpdateFormVersionRequest {
   stage_transitions: StageTransitionAPI[];
 }
 
+export interface CreateFormVersionRequest {
+  form_id: number;
+  copy_from_current: boolean;
+}
+
 // ============================================================================
 // API Response Types
 // ============================================================================

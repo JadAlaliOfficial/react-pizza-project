@@ -16,7 +16,7 @@ import type {
   UpdateFormVersionResult,
   PublishFormVersionResult,
 } from '../types';
-import type { ApiSuccessResponse, FormVersion } from '../types';
+import type { ApiSuccessResponse, FormVersion, CreateFormVersionRequest } from '../types';
 import { loadToken } from '../../../auth/utils/tokenStorage';
 import { store } from '@/store';
 
@@ -306,13 +306,20 @@ export const publishFormVersion = async (
  * @returns Newly created form version metadata
  */
 export const createFormVersion = async (
-  formId: number
+  formId: number,
+  options?: { copy_from_current?: boolean }
 ): Promise<FormVersion> => {
   try {
     console.info(`[FormVersionService] Creating new form version for form ${formId}`);
 
+    const requestBody: CreateFormVersionRequest = {
+      form_id: formId,
+      copy_from_current: options?.copy_from_current ?? true,
+    };
+
     const response = await apiClient.post<ApiSuccessResponse<FormVersion>>(
-      `/forms/${formId}/versions`
+      `/forms/${formId}/versions`,
+      requestBody
     );
 
     console.info(

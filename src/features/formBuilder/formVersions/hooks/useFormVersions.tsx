@@ -381,10 +381,17 @@ export const useCreateFormVersion = () => {
   const errors = useSelector(selectFormVersionErrors);
 
   const createVersion = useCallback(
-    async (formId: number): Promise<FormVersion> => {
-      console.info(`[useCreateFormVersion] Creating version for form ${formId}`);
+    async (
+      formId: number,
+      options?: { copy_from_current?: boolean }
+    ): Promise<FormVersion> => {
+      console.info(
+        `[useCreateFormVersion] Creating version for form ${formId} (copy_from_current=${options?.copy_from_current ?? true})`
+      );
       dispatch(clearError('fetch'));
-      const result = await dispatch(createFormVersionByFormId(formId)).unwrap();
+      const result = await dispatch(
+        createFormVersionByFormId({ formId, copy_from_current: options?.copy_from_current })
+      ).unwrap();
       return result;
     },
     [dispatch]

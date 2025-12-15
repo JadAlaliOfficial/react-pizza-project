@@ -178,14 +178,14 @@ export const publishFormVersionById = createAsyncThunk<
  */
 export const createFormVersionByFormId = createAsyncThunk<
   FormVersion,
-  number,
+  { formId: number; copy_from_current?: boolean },
   { rejectValue: ServiceError }
 >(
   'formVersion/createByFormId',
-  async (formId: number, { rejectWithValue }) => {
+  async ({ formId, copy_from_current }, { rejectWithValue }) => {
     try {
       console.debug(`[FormVersionSlice] Creating new version for form ${formId}`);
-      const data = await createFormVersion(formId);
+      const data = await createFormVersion(formId, { copy_from_current });
       console.info(
         `[FormVersionSlice] Created version ${data.id} (#${data.version_number}) for form ${formId}`
       );
