@@ -4,6 +4,7 @@ import MainLayout from '@/components/layouts/MainLayout';
 import RoleGuard from '@/components/guards/RoleGuard';
 import FormBuilderPage from '@/features/formBuilder/workspace/pages/FormBuilderPage';
 import {FormVersionBuilderPage} from '@/features/formBuilder/formVersions/pages/FormVersionBuilderPage'
+import EndUserFormPage from '@/features/formBuilder/endUserForms/pages/index'
 
 export const formBuilderRoutes = [
   <>
@@ -28,6 +29,19 @@ export const formBuilderRoutes = [
         <RoleGuard role="super-admin">
           <MainLayout>
             <FormVersionBuilderPage />
+          </MainLayout>
+        </RoleGuard>
+      </ProtectedRoute>
+    }
+  />
+  <Route
+    key="end-user-form"
+    path="/end-user-form/:formVersionId/:languageId"
+    element={
+      <ProtectedRoute>
+        <RoleGuard role="super-admin">
+          <MainLayout>
+            <EndUserFormPage />
           </MainLayout>
         </RoleGuard>
       </ProtectedRoute>

@@ -337,7 +337,7 @@ export const saveFormVersionDraft = createAsyncThunk<
         stages: builder.stages,
         stageTransitions: builder.stageTransitions,
       });
-      // console.log('Request:', request);
+      console.log('Request:', request);
       await updateFormVersion(id, request);
 
       dispatch(markAsSaved());
