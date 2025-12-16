@@ -4,34 +4,105 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshCw, Globe2, FileText } from 'lucide-react';
 import { useTranslationsWorkflow } from '@/features/formBuilder/translations/hooks/useTranslations';
-import { useListForms } from '@/features/formBuilder/forms/hooks/useForms';
+import { useListForms, useGetForm } from '@/features/formBuilder/forms/hooks/useForms';
 import type { FieldTranslation } from '@/features/formBuilder/translations/types';
 
 const TranslationsPage: React.FC = () => {
-  const { forms, isLoading: formsLoading, error: formsError, refetch: refetchForms } = useListForms();
+  // Fetch list of forms (without versions)
+  const {
+    forms = [],
+    isLoading: formsLoading,
+    error: formsError,
+    refetch: refetchForms,
+  } = useListForms();
 
-  const [selectedLanguageId, setSelectedLanguageId] = useState<number | null>(null);
-  const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
-  const [selectedFormVersionId, setSelectedFormVersionId] = useState<number | null>(null);
-
-  const { languages, localizableData, save, errorManagement } = useTranslationsWorkflow(
-    selectedFormVersionId,
-    selectedLanguageId
+  const [selectedLanguageId, setSelectedLanguageId] = useState<number | null>(
+    null,
   );
+  const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
+  const [selectedFormVersionId, setSelectedFormVersionId] = useState<
+    number | null
+  >(null);
+
+  // Fetch full form details including versions when a form is selected
+  const {
+    form: selectedForm,
+    isLoading: formDetailsLoading,
+    error: formDetailsError,
+  } = useGetForm(selectedFormId, !!selectedFormId);
+
+  const { languages, localizableData, save, errorManagement } =
+    useTranslationsWorkflow(selectedFormVersionId, selectedLanguageId);
 
   const [formName, setFormName] = useState<string>('');
-  const [fieldTranslations, setFieldTranslations] = useState<Record<number, FieldTranslation>>({});
+  const [fieldTranslations, setFieldTranslations] = useState<
+    Record<number, FieldTranslation>
+  >({});
 
+  // Get versions from the fetched form details
   const versions = useMemo(() => {
-    const form = forms.find((f) => f.id === selectedFormId);
-    return form ? form.form_versions : [];
-  }, [forms, selectedFormId]);
+    if (!selectedForm || !selectedForm.form_versions) {
+      return [];
+    }
+    return selectedForm.form_versions;
+  }, [selectedForm]);
 
+  // Reset form version when form changes
+  useEffect(() => {
+    setSelectedFormVersionId(null);
+  }, [selectedFormId]);
+
+  // Helper function to detect if a string is JSON
+  const isJSON = (str: string | null): boolean => {
+    if (!str) return false;
+    try {
+      const parsed = JSON.parse(str);
+      return typeof parsed === 'object';
+    } catch {
+      return false;
+    }
+  };
+
+  // Helper function to convert JSON array to comma-separated string
+  const jsonToCommaSeparated = (str: string | null): string => {
+    if (!str) return '';
+    try {
+      const parsed = JSON.parse(str);
+      if (Array.isArray(parsed)) {
+        return parsed.join(', ');
+      }
+      return str;
+    } catch {
+      return str;
+    }
+  };
+
+  // Helper function to convert comma-separated string to JSON array
+  const commaSeparatedToJSON = (str: string): string => {
+    if (!str.trim()) return '';
+    const items = str.split(',').map((item) => item.trim()).filter((item) => item);
+    return JSON.stringify(items);
+  };
+
+  // Populate form name and field translations when localizable data loads
   useEffect(() => {
     if (localizableData.data) {
       setFormName(localizableData.data.form_name || '');
@@ -41,7 +112,9 @@ const TranslationsPage: React.FC = () => {
           field_id: f.field_id,
           label: f.label || '',
           helper_text: f.helper_text || '',
-          default_value: f.default_value || '',
+          default_value: isJSON(f.default_value)
+            ? jsonToCommaSeparated(f.default_value)
+            : f.default_value || '',
         };
       });
       setFieldTranslations(initial);
@@ -55,24 +128,29 @@ const TranslationsPage: React.FC = () => {
   const handleFormChange = useCallback((value: string) => {
     const id = parseInt(value, 10);
     setSelectedFormId(id);
-    setSelectedFormVersionId(null);
   }, []);
 
   const handleFormVersionChange = useCallback((value: string) => {
     setSelectedFormVersionId(parseInt(value, 10));
   }, []);
 
-  const handleFieldChange = useCallback((fieldId: number, key: keyof FieldTranslation, value: string) => {
-    setFieldTranslations((prev) => ({
-      ...prev,
-      [fieldId]: {
-        ...prev[fieldId],
-        [key]: value,
-      },
-    }));
-  }, []);
+  const handleFieldChange = useCallback(
+    (fieldId: number, key: keyof FieldTranslation, value: string) => {
+      setFieldTranslations((prev) => ({
+        ...prev,
+        [fieldId]: {
+          ...prev[fieldId],
+          [key]: value,
+        },
+      }));
+    },
+    [],
+  );
 
-  const canFetch = useMemo(() => !!selectedLanguageId && !!selectedFormVersionId, [selectedLanguageId, selectedFormVersionId]);
+  const canFetch = useMemo(
+    () => !!selectedLanguageId && !!selectedFormVersionId,
+    [selectedLanguageId, selectedFormVersionId],
+  );
 
   const handleRefreshData = useCallback(() => {
     if (canFetch) {
@@ -82,16 +160,53 @@ const TranslationsPage: React.FC = () => {
 
   const handleSave = useCallback(async () => {
     if (!selectedFormVersionId || !selectedLanguageId) return;
+
+    // Convert comma-separated values back to JSON for fields that had JSON in original
+    const processedTranslations = Object.values(fieldTranslations).map((ft) => {
+      const originalField = localizableData.data?.fields.find(
+        (f) => f.field_id === ft.field_id
+      );
+      
+      // Check if original default_value was JSON
+      const wasJSON = isJSON(originalField?.default_value || null);
+      
+      return {
+        ...ft,
+        default_value: wasJSON && ft.default_value
+          ? commaSeparatedToJSON(ft.default_value)
+          : ft.default_value,
+      };
+    });
+
     const payload = {
       form_version_id: selectedFormVersionId,
       language_id: selectedLanguageId,
       form_name: formName,
-      field_translations: Object.values(fieldTranslations),
+      field_translations: processedTranslations,
     };
     await save.save(payload);
-  }, [selectedFormVersionId, selectedLanguageId, formName, fieldTranslations, save]);
+  }, [
+    selectedFormVersionId,
+    selectedLanguageId,
+    formName,
+    fieldTranslations,
+    save,
+    localizableData.data,
+  ]);
 
-  const totalFields = useMemo(() => localizableData.data?.fields.length ?? 0, [localizableData.data]);
+  const totalFields = useMemo(
+    () => localizableData.data?.fields.length ?? 0,
+    [localizableData.data],
+  );
+
+  // Helper function to render original value with formatting
+  const renderOriginalValue = (value: string | null): string => {
+    if (!value) return '(empty)';
+    if (isJSON(value)) {
+      return jsonToCommaSeparated(value);
+    }
+    return value;
+  };
 
   return (
     <ManageLayout
@@ -99,12 +214,28 @@ const TranslationsPage: React.FC = () => {
       subtitle="Translate form versions into selected languages"
       mainButtons={
         <div className="flex gap-2">
-          <Button onClick={() => languages.refetch()} variant="outline" disabled={languages.isLoading} className="gap-2">
-            <Globe2 className={languages.isLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+          <Button
+            onClick={() => languages.refetch()}
+            variant="outline"
+            disabled={languages.isLoading}
+            className="gap-2"
+          >
+            <Globe2
+              className={
+                languages.isLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'
+              }
+            />
             Refresh Languages
           </Button>
-          <Button onClick={() => refetchForms()} variant="outline" disabled={formsLoading} className="gap-2">
-            <RefreshCw className={formsLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+          <Button
+            onClick={() => refetchForms()}
+            variant="outline"
+            disabled={formsLoading}
+            className="gap-2"
+          >
+            <RefreshCw
+              className={formsLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'}
+            />
             Refresh Forms
           </Button>
         </div>
@@ -116,29 +247,52 @@ const TranslationsPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              <CardTitle className="text-lg sm:text-xl">Translation Setup</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">
+                Translation Setup
+              </CardTitle>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {(errorManagement.errors.languages || errorManagement.errors.localizableData || errorManagement.errors.save) && (
+          {(errorManagement.errors.languages ||
+            errorManagement.errors.localizableData ||
+            errorManagement.errors.save) && (
             <Alert variant="destructive" className="mb-4">
               <AlertDescription>
-                {errorManagement.errors.languages?.message || errorManagement.errors.localizableData?.message || errorManagement.errors.save?.message}
+                {errorManagement.errors.languages?.message ||
+                  errorManagement.errors.localizableData?.message ||
+                  errorManagement.errors.save?.message}
               </AlertDescription>
             </Alert>
           )}
 
           {formsError && (
             <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{typeof formsError === 'string' ? formsError : 'Failed to load forms'}</AlertDescription>
+              <AlertDescription>
+                {typeof formsError === 'string'
+                  ? formsError
+                  : 'Failed to load forms'}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {formDetailsError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>
+                {typeof formDetailsError === 'string'
+                  ? formDetailsError
+                  : 'Failed to load form details'}
+              </AlertDescription>
             </Alert>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Language</Label>
-              <Select value={selectedLanguageId?.toString() ?? undefined} onValueChange={handleLanguageChange}>
+              <Select
+                value={selectedLanguageId?.toString() ?? undefined}
+                onValueChange={handleLanguageChange}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
@@ -154,7 +308,10 @@ const TranslationsPage: React.FC = () => {
 
             <div className="space-y-2">
               <Label>Form</Label>
-              <Select value={selectedFormId?.toString() ?? undefined} onValueChange={handleFormChange}>
+              <Select
+                value={selectedFormId?.toString() ?? undefined}
+                onValueChange={handleFormChange}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select form" />
                 </SelectTrigger>
@@ -170,9 +327,21 @@ const TranslationsPage: React.FC = () => {
 
             <div className="space-y-2">
               <Label>Form Version</Label>
-              <Select value={selectedFormVersionId?.toString() ?? undefined} onValueChange={handleFormVersionChange}>
+              <Select
+                value={selectedFormVersionId?.toString() ?? undefined}
+                onValueChange={handleFormVersionChange}
+                disabled={!selectedFormId || formDetailsLoading || versions.length === 0}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select version" />
+                  <SelectValue 
+                    placeholder={
+                      formDetailsLoading 
+                        ? "Loading versions..." 
+                        : versions.length === 0 
+                        ? "No versions available" 
+                        : "Select version"
+                    } 
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {versions.map((v) => (
@@ -186,11 +355,24 @@ const TranslationsPage: React.FC = () => {
           </div>
 
           <div className="mt-6 flex gap-2">
-            <Button onClick={handleRefreshData} variant="outline" disabled={!canFetch || localizableData.isLoading} className="gap-2">
-              <RefreshCw className={localizableData.isLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+            <Button
+              onClick={handleRefreshData}
+              variant="outline"
+              disabled={!canFetch || localizableData.isLoading}
+              className="gap-2"
+            >
+              <RefreshCw
+                className={
+                  localizableData.isLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'
+                }
+              />
               Load Translatable Data
             </Button>
-            <Button onClick={handleSave} disabled={!canFetch || save.isSaving} className="gap-2">
+            <Button
+              onClick={handleSave}
+              disabled={!canFetch || save.isSaving}
+              className="gap-2"
+            >
               {save.isSaving && <RefreshCw className="h-4 w-4 animate-spin" />}
               Save Translations
             </Button>
@@ -198,7 +380,8 @@ const TranslationsPage: React.FC = () => {
 
           {localizableData.isLoading && (
             <div className="flex items-center justify-center py-16 text-muted-foreground">
-              <RefreshCw className="h-5 w-5 mr-2 animate-spin" /> Loading data...
+              <RefreshCw className="h-5 w-5 mr-2 animate-spin" /> Loading
+              data...
             </div>
           )}
 
@@ -206,7 +389,16 @@ const TranslationsPage: React.FC = () => {
             <div className="mt-6 space-y-6">
               <div className="grid gap-2 max-w-xl">
                 <Label>Form Name</Label>
-                <Input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder="Translated form name" />
+                <Input
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  placeholder="Translated form name"
+                />
+                {localizableData.data.form_name && (
+                  <p className="text-xs text-muted-foreground">
+                    Original: {localizableData.data.form_name}
+                  </p>
+                )}
               </div>
 
               <div className="overflow-x-auto">
@@ -220,37 +412,97 @@ const TranslationsPage: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {localizableData.data.fields.map((f) => (
-                      <TableRow key={f.field_id}>
-                        <TableCell className="font-mono text-xs">{f.field_id}</TableCell>
-                        <TableCell>
-                          <Input
-                            value={fieldTranslations[f.field_id]?.label ?? ''}
-                            onChange={(e) => handleFieldChange(f.field_id, 'label', e.target.value)}
-                            placeholder="Label"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={fieldTranslations[f.field_id]?.helper_text ?? ''}
-                            onChange={(e) => handleFieldChange(f.field_id, 'helper_text', e.target.value)}
-                            placeholder="Helper text"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            value={fieldTranslations[f.field_id]?.default_value ?? ''}
-                            onChange={(e) => handleFieldChange(f.field_id, 'default_value', e.target.value)}
-                            placeholder="Default value"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {localizableData.data.fields.map((f) => {
+                      const isDefaultValueJSON = isJSON(f.default_value);
+                      
+                      return (
+                        <TableRow key={f.field_id}>
+                          <TableCell className="font-mono text-xs">
+                            {f.field_id}
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <Input
+                                value={fieldTranslations[f.field_id]?.label ?? ''}
+                                onChange={(e) =>
+                                  handleFieldChange(
+                                    f.field_id,
+                                    'label',
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Translated label"
+                              />
+                              {f.label && (
+                                <p className="text-xs text-muted-foreground">
+                                  Original: {f.label}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <Input
+                                value={
+                                  fieldTranslations[f.field_id]?.helper_text ?? ''
+                                }
+                                onChange={(e) =>
+                                  handleFieldChange(
+                                    f.field_id,
+                                    'helper_text',
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Translated helper text"
+                              />
+                              {f.helper_text && (
+                                <p className="text-xs text-muted-foreground">
+                                  Original: {f.helper_text}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <Input
+                                value={
+                                  fieldTranslations[f.field_id]?.default_value ?? ''
+                                }
+                                onChange={(e) =>
+                                  handleFieldChange(
+                                    f.field_id,
+                                    'default_value',
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder={
+                                  isDefaultValueJSON
+                                    ? "Enter values separated by commas"
+                                    : "Translated default value"
+                                }
+                              />
+                              {f.default_value && (
+                                <p className="text-xs text-muted-foreground">
+                                  Original: {renderOriginalValue(f.default_value)}
+                                  {isDefaultValueJSON && (
+                                    <span className="italic ml-1">
+                                      (enter comma-separated values)
+                                    </span>
+                                  )}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
 
-              <div className="text-sm text-muted-foreground">Total fields: {totalFields}</div>
+              <div className="text-sm text-muted-foreground">
+                Total fields: {totalFields}
+              </div>
             </div>
           )}
         </CardContent>
@@ -260,4 +512,3 @@ const TranslationsPage: React.FC = () => {
 };
 
 export default TranslationsPage;
-
