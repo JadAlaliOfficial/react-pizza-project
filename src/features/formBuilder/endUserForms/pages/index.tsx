@@ -135,6 +135,16 @@ import {
   generateVideoUploadSchema,
   getDefaultVideoUploadValue,
 } from '@/features/formBuilder/endUserForms/components/fields/validation/videoUploadValidation';
+import { PhoneInput } from '@/features/formBuilder/endUserForms/components/fields/PhoneInput';
+import {
+  generatePhoneInputSchema,
+  getDefaultPhoneInputValue,
+} from '@/features/formBuilder/endUserForms/components/fields/validation/phoneInputValidation';
+import { PopupLocationPicker } from '@/features/formBuilder/endUserForms/components/fields/PopUpLocationPicker';
+import {
+  generateLocationPickerSchema,
+  getDefaultLocationPickerValue,
+} from '@/features/formBuilder/endUserForms/components/fields/validation/locationPickerValidation';
 
 const EndUserFormPage: React.FC = () => {
   const { formVersionId, languageId } = useParams<{
@@ -215,7 +225,6 @@ const EndUserFormPage: React.FC = () => {
           schemaShape[`field_${field.field_id}`] =
             generateNumberInputSchema(field);
         }
-
         if (field.field_type === 'Percentage Input') {
           schemaShape[`field_${field.field_id}`] =
             generatePercentageInputSchema(field);
@@ -261,6 +270,14 @@ const EndUserFormPage: React.FC = () => {
         if (field.field_type === 'Video Upload') {
           schemaShape[`field_${field.field_id}`] =
             generateVideoUploadSchema(field);
+        }
+        if (field.field_type === 'Phone Input') {
+          schemaShape[`field_${field.field_id}`] =
+            generatePhoneInputSchema(field);
+        }
+        if (field.field_type === 'Location Picker') {
+          schemaShape[`field_${field.field_id}`] =
+            generateLocationPickerSchema(field);
         }
       });
     });
@@ -449,6 +466,9 @@ const EndUserFormPage: React.FC = () => {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
+    // (optional, only if you actually want them elsewhere)
+    // watch,
+    // setValue,
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     mode: 'onBlur',
@@ -513,17 +533,14 @@ const EndUserFormPage: React.FC = () => {
             defaultValues[`field_${field.field_id}`] =
               getDefaultNumberInputValue(field);
           }
-
           if (field.field_type === 'Email Input') {
             defaultValues[`field_${field.field_id}`] =
               getDefaultEmailInputValue(field);
           }
-
           if (field.field_type === 'Password Input') {
             defaultValues[`field_${field.field_id}`] =
               getDefaultPasswordInputValue(field);
           }
-
           if (field.field_type === 'Text Input') {
             defaultValues[`field_${field.field_id}`] =
               getDefaultTextInputValue(field);
@@ -563,6 +580,14 @@ const EndUserFormPage: React.FC = () => {
           if (field.field_type === 'Video Upload') {
             defaultValues[`field_${field.field_id}`] =
               getDefaultVideoUploadValue(field);
+          }
+          if (field.field_type === 'Phone Input') {
+            defaultValues[`field_${field.field_id}`] =
+              getDefaultPhoneInputValue(field);
+          }
+          if (field.field_type === 'Location Picker') {
+            defaultValues[`field_${field.field_id}`] =
+              getDefaultLocationPickerValue(field);
           }
         });
       });
@@ -1284,6 +1309,56 @@ const EndUserFormPage: React.FC = () => {
                       fieldState: { error },
                     }) => (
                       <VideoUpload
+                        ref={(el) => {
+                          fieldRefs.current[fieldName] = el;
+                        }}
+                        field={field}
+                        value={value}
+                        onChange={onChange}
+                        error={error?.message}
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  />
+                );
+              }
+
+              if (field.field_type === 'Phone Input') {
+                return (
+                  <Controller
+                    key={field.field_id}
+                    name={fieldName as any}
+                    control={control}
+                    render={({
+                      field: { value, onChange },
+                      fieldState: { error },
+                    }) => (
+                      <PhoneInput
+                        ref={(el) => {
+                          fieldRefs.current[fieldName] = el;
+                        }}
+                        field={field}
+                        value={value}
+                        onChange={onChange}
+                        error={error?.message}
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  />
+                );
+              }
+
+              if (field.field_type === 'Location Picker') {
+                return (
+                  <Controller
+                    key={field.field_id}
+                    name={fieldName as any}
+                    control={control}
+                    render={({
+                      field: { value, onChange },
+                      fieldState: { error },
+                    }) => (
+                      <PopupLocationPicker
                         ref={(el) => {
                           fieldRefs.current[fieldName] = el;
                         }}
