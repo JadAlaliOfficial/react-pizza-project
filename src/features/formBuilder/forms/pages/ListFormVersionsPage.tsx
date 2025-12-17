@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, ArrowLeft, Eye, Edit, Send } from 'lucide-react';
+import { Loader2, ArrowLeft, Eye, Edit, Send, Globe } from 'lucide-react';
 
 export const ListFormVersionsPage: React.FC = () => {
   const { formId } = useParams<{ formId: string }>();
@@ -206,6 +206,18 @@ export const ListFormVersionsPage: React.FC = () => {
                         >
                           <Eye className="h-4 w-4" />
                           View
+                        </Button>
+
+                        {/* Translation Action */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/translations/${parsedFormId}/${version.id}`)}
+                          className="gap-1 text-orange-600 hover:text-orange-700"
+                          title="Translate version"
+                        >
+                          <Globe className="h-4 w-4" />
+                          Translate
                         </Button>
 
                         {/* Update Action - Only for draft versions */}

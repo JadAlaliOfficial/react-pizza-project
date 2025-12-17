@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { ManageLayout } from '@/components/layouts/ManageLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,59 +18,36 @@ import { Separator } from '@/components/ui/separator';
 import {
   RefreshCw,
   Globe2,
-  FileText,
   Save,
   Download,
   CheckCircle2,
   AlertCircle,
   Languages,
-  ChevronRight,
 } from 'lucide-react';
 import { useTranslationsWorkflow } from '@/features/formBuilder/translations/hooks/useTranslations';
-import {
-  useListForms,
-  useGetForm,
-} from '@/features/formBuilder/forms/hooks/useForms';
+import { useGetForm } from '@/features/formBuilder/forms/hooks/useForms';
 import type { 
   FieldTranslation,
   LocalizableField 
 } from '@/features/formBuilder/translations/types';
 
 const TranslationsPage: React.FC = () => {
-  const {
-    forms = [],
-    isLoading: formsLoading,
-    error: formsError,
-    refetch: refetchForms,
-  } = useListForms();
+  const { formId, versionId } = useParams<{ formId: string; versionId: string }>();
+  const parsedFormId = formId ? parseInt(formId, 10) : null;
+  const parsedFormVersionId = versionId ? parseInt(versionId, 10) : null;
 
   const [selectedLanguageId, setSelectedLanguageId] = useState<number | null>(null);
-  const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
-  const [selectedFormVersionId, setSelectedFormVersionId] = useState<number | null>(null);
 
   const {
-    form: selectedForm,
-    isLoading: formDetailsLoading,
     error: formDetailsError,
-  } = useGetForm(selectedFormId, !!selectedFormId);
+  } = useGetForm(parsedFormId, !!parsedFormId);
 
   const { languages, localizableData, save, errorManagement } =
-    useTranslationsWorkflow(selectedFormVersionId, selectedLanguageId);
+    useTranslationsWorkflow(parsedFormVersionId, selectedLanguageId);
 
   // Local state for translated values
   const [translatedFormName, setTranslatedFormName] = useState('');
   const [fieldTranslations, setFieldTranslations] = useState<Record<number, FieldTranslation>>({});
-
-  const versions = useMemo(() => {
-    if (!selectedForm || !selectedForm.form_versions) {
-      return [];
-    }
-    return selectedForm.form_versions;
-  }, [selectedForm]);
-
-  useEffect(() => {
-    setSelectedFormVersionId(null);
-  }, [selectedFormId]);
 
   // Populate translated values from nested structure
   useEffect(() => {
@@ -97,15 +75,6 @@ const TranslationsPage: React.FC = () => {
     setSelectedLanguageId(parseInt(value, 10));
   }, []);
 
-  const handleFormChange = useCallback((value: string) => {
-    const id = parseInt(value, 10);
-    setSelectedFormId(id);
-  }, []);
-
-  const handleFormVersionChange = useCallback((value: string) => {
-    setSelectedFormVersionId(parseInt(value, 10));
-  }, []);
-
   const handleFieldChange = useCallback(
     (fieldId: number, key: keyof FieldTranslation, value: string) => {
       setFieldTranslations((prev) => ({
@@ -120,8 +89,8 @@ const TranslationsPage: React.FC = () => {
   );
 
   const canFetch = useMemo(
-    () => !!selectedLanguageId && !!selectedFormVersionId,
-    [selectedLanguageId, selectedFormVersionId]
+    () => !!selectedLanguageId && !!parsedFormVersionId,
+    [selectedLanguageId, parsedFormVersionId]
   );
 
   const handleRefreshData = useCallback(() => {
@@ -131,10 +100,10 @@ const TranslationsPage: React.FC = () => {
   }, [canFetch, localizableData]);
 
   const handleSave = useCallback(async () => {
-    if (!selectedFormVersionId || !selectedLanguageId) return;
+    if (!parsedFormVersionId || !selectedLanguageId) return;
 
     const payload = {
-      form_version_id: selectedFormVersionId,
+      form_version_id: parsedFormVersionId,
       language_id: selectedLanguageId,
       form_name: translatedFormName,
       field_translations: Object.values(fieldTranslations),
@@ -142,7 +111,7 @@ const TranslationsPage: React.FC = () => {
 
     await save.save(payload);
   }, [
-    selectedFormVersionId,
+    parsedFormVersionId,
     selectedLanguageId,
     translatedFormName,
     fieldTranslations,
@@ -189,19 +158,13 @@ const TranslationsPage: React.FC = () => {
             />
             Refresh Languages
           </Button>
-          <Button
-            onClick={() => refetchForms()}
-            variant="outline"
-            size="sm"
-            disabled={formsLoading}
-            className="gap-2"
-          >
-            <RefreshCw className={formsLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
-            Refresh Forms
-          </Button>
         </div>
       }
-      backButton={{ show: false }}
+      backButton={{ 
+        show: true, 
+        to: parsedFormId ? `/list-form-versions/${parsedFormId}` : '/forms',
+        text: 'Back to Versions'
+      }}
     >
       {/* Error Display */}
       {(errorManagement.errors.languages ||
@@ -217,14 +180,6 @@ const TranslationsPage: React.FC = () => {
         </Alert>
       )}
 
-      {formsError && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {typeof formsError === 'string' ? formsError : 'Failed to load forms'}
-          </AlertDescription>
-        </Alert>
-      )}
 
       {formDetailsError && (
         <Alert variant="destructive" className="mb-6">
@@ -262,7 +217,7 @@ const TranslationsPage: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="max-w-md">
             {/* Language Selection */}
             <div className="space-y-2">
               <Label htmlFor="language-select" className="text-sm font-medium">
@@ -283,72 +238,6 @@ const TranslationsPage: React.FC = () => {
                         <span>{lang.name}</span>
                         <Badge variant="outline" className="text-xs">
                           {lang.code}
-                        </Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Form Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="form-select" className="text-sm font-medium">
-                Form
-              </Label>
-              <Select
-                value={selectedFormId?.toString() ?? undefined}
-                onValueChange={handleFormChange}
-              >
-                <SelectTrigger id="form-select" className="w-full">
-                  <SelectValue placeholder="Select form" />
-                </SelectTrigger>
-                <SelectContent>
-                  {forms.map((f) => (
-                    <SelectItem key={f.id} value={f.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4" />
-                        {f.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Form Version Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="version-select" className="text-sm font-medium">
-                Form Version
-              </Label>
-              <Select
-                value={selectedFormVersionId?.toString() ?? undefined}
-                onValueChange={handleFormVersionChange}
-                disabled={
-                  !selectedFormId || formDetailsLoading || versions.length === 0
-                }
-              >
-                <SelectTrigger id="version-select" className="w-full">
-                  <SelectValue
-                    placeholder={
-                      formDetailsLoading
-                        ? 'Loading versions...'
-                        : versions.length === 0
-                          ? 'No versions available'
-                          : 'Select version'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {versions.map((v) => (
-                    <SelectItem key={v.id} value={v.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono">v{v.version_number}</span>
-                        <ChevronRight className="h-3 w-3" />
-                        <Badge
-                          variant={v.status === 'published' ? 'default' : 'secondary'}
-                        >
-                          {v.status}
                         </Badge>
                       </div>
                     </SelectItem>

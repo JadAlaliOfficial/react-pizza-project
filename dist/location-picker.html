@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pick a location</title>
+
+    <!-- Leaflet (CDN) -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      }
+      #app {
+        height: 100%;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+      header {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      input {
+        padding: 8px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        min-width: 240px;
+      }
+      button {
+        padding: 8px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+      }
+      button.primary {
+        border-color: #10b981;
+        background: #10b981;
+        color: #fff;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      #map {
+        height: 100%;
+        width: 100%;
+      }
+      footer {
+        padding: 10px 12px;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+      }
+      .hint {
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <header>
+        <div class="row">
+          <strong>Pick a location</strong>
+          <span class="hint">Click on the map or search coordinates</span>
+        </div>
+        <div class="row">
+          <button id="btnLocate" title="Use your current location">
+            📍 Current
+          </button>
+          <button id="btnClose" title="Close">✖ Close</button>
+        </div>
+      </header>
+
+      <div id="map"></div>
+
+      <footer>
+        <div class="row">
+          <input
+            id="coordInput"
+            placeholder="lat, lng (e.g. 40.7128, -74.0060)"
+            autocomplete="off"
+          />
+          <button id="btnGo">Go</button>
+        </div>
+
+        <div class="row">
+          <div class="mono" id="selectedText">No location selected</div>
+          <button id="btnConfirm" class="primary" disabled>Confirm</button>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // --- Helpers ---
+      function parseQuery() {
+        const url = new URL(window.location.href);
+        const lat = Number(url.searchParams.get("lat"));
+        const lng = Number(url.searchParams.get("lng"));
+        const zoom = Number(url.searchParams.get("zoom"));
+        return {
+          lat: Number.isFinite(lat) ? lat : 40.7128,
+          lng: Number.isFinite(lng) ? lng : -74.006,
+          zoom: Number.isFinite(zoom) ? zoom : 13,
+        };
+      }
+
+      function isValidLatLng(lat, lng) {
+        return (
+          Number.isFinite(lat) &&
+          Number.isFinite(lng) &&
+          lat >= -90 &&
+          lat <= 90 &&
+          lng >= -180 &&
+          lng <= 180
+        );
+      }
+
+      function fmt(lat, lng) {
+        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      }
+
+      // Security: only allow posting back to same origin by default.
+      const ALLOWED_ORIGIN = window.location.origin;
+
+      // If opened by the app, it passes a "source" token.
+      const urlParams = new URL(window.location.href).searchParams;
+      const sourceToken = urlParams.get("source") || "";
+
+      // --- Setup map ---
+      const { lat, lng, zoom } = parseQuery();
+      const map = L.map("map").setView([lat, lng], zoom);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+
+      let marker = null;
+      let selected = null;
+
+      const selectedText = document.getElementById("selectedText");
+      const btnConfirm = document.getElementById("btnConfirm");
+
+      function setSelected(lat, lng) {
+        selected = { lat, lng };
+        selectedText.textContent = `Selected: ${fmt(lat, lng)}`;
+        btnConfirm.disabled = false;
+
+        if (!marker) {
+          marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+          marker.on("dragend", () => {
+            const p = marker.getLatLng();
+            setSelected(p.lat, p.lng);
+          });
+        } else {
+          marker.setLatLng([lat, lng]);
+        }
+      }
+
+      map.on("click", (e) => {
+        setSelected(e.latlng.lat, e.latlng.lng);
+      });
+
+      // --- Controls ---
+      document.getElementById("btnClose").addEventListener("click", () => {
+        window.close();
+      });
+
+      document.getElementById("btnGo").addEventListener("click", () => {
+        const raw = document.getElementById("coordInput").value.trim();
+        const parts = raw.split(",").map((p) => Number(p.trim()));
+        if (parts.length === 2 && isValidLatLng(parts[0], parts[1])) {
+          const [lat, lng] = parts;
+          map.setView([lat, lng], map.getZoom());
+          setSelected(lat, lng);
+        } else {
+          alert("Invalid coordinates. Use: lat, lng");
+        }
+      });
+
+      document
+        .getElementById("coordInput")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter") document.getElementById("btnGo").click();
+        });
+
+      document.getElementById("btnLocate").addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          alert("Geolocation not supported");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            map.setView([lat, lng], 16);
+            setSelected(lat, lng);
+          },
+          () => alert("Unable to access location. Please allow location access."),
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      });
+
+      // --- Confirm -> postMessage back to opener ---
+      btnConfirm.addEventListener("click", () => {
+        if (!selected) return;
+
+        const payload = {
+          type: "LOCATION_PICKER_RESULT",
+          lat: selected.lat,
+          lng: selected.lng,
+          source: sourceToken,
+        };
+
+        // Send to opener if present
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage(payload, ALLOWED_ORIGIN);
+          window.close();
+          return;
+        }
+
+        // If opened in an iframe (optional usage), message parent
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage(payload, ALLOWED_ORIGIN);
+          return;
+        }
+
+        alert("No opener found. Open this page from the app.");
+      });
+    </script>
+  </body>
+</html>

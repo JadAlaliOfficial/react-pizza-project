@@ -7,7 +7,7 @@ import TranslationsPage from '@/features/formBuilder/translations/pages/Translat
 export const translationsRoutes = [
   <Route
     key="translations"
-    path="/translations"
+    path="/translations/:formId/:versionId"
     element={
       <ProtectedRoute>
         <RoleGuard role="super-admin">
