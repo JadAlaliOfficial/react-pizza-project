@@ -1,5 +1,14 @@
 // translations.hooks.ts
 
+/**
+ * React hooks for translations feature.
+ * Provides convenient access to translations state and operations.
+ * 
+ * These hooks abstract Redux complexity and provide a clean API for components.
+ * 
+ * UPDATED: Compatible with nested original/translated structure from API
+ */
+
 import { useCallback, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
@@ -34,6 +43,19 @@ import type {
 // Hook: useTranslationsLanguages
 // ============================================================================
 
+/**
+ * Hook for managing available translation languages.
+ * 
+ * Features:
+ * - Auto-fetch on mount (configurable)
+ * - Loading state tracking
+ * - Error handling
+ * - Manual refetch capability
+ * 
+ * @param options - Configuration options
+ * @param options.autoFetch - Whether to automatically fetch languages on mount (default: true)
+ * @returns Languages data and control methods
+ */
 export const useTranslationsLanguages = (options: { autoFetch?: boolean } = {}) => {
   const { autoFetch = true } = options;
   const dispatch = useDispatch<AppDispatch>();
@@ -77,15 +99,33 @@ export const useTranslationsLanguages = (options: { autoFetch?: boolean } = {}) 
 // Hook: useLocalizableData
 // ============================================================================
 
+/**
+ * Hook for managing localizable data (form name and fields with translations).
+ * 
+ * Features:
+ * - Auto-fetch on mount when params are available
+ * - Caching support (avoids redundant API calls)
+ * - Loading state tracking
+ * - Error handling
+ * - Force refresh capability
+ * 
+ * The returned data now has nested structure:
+ * - data.form_name: { original: string, translated: string }
+ * - data.fields[]: { field_id, original: {...}, translated: {...} }
+ * 
+ * @param formVersionId - Form version ID to fetch data for
+ * @param languageId - Language ID to fetch translations for
+ * @returns Localizable data and control methods
+ */
 export const useLocalizableData = (
   formVersionId: number | null | undefined,
   languageId: number | null | undefined
 ) => {
   const dispatch = useDispatch<AppDispatch>();
 
-  const cacheKey = useMemo<LocalizableDataCacheKey | null>(() => {
+  const cacheKey = useMemo(() => {
     if (formVersionId && languageId) {
-      return `${formVersionId}_${languageId}`;
+      return `${formVersionId}_${languageId}` as LocalizableDataCacheKey;
     }
     return null;
   }, [formVersionId, languageId]);
@@ -93,6 +133,7 @@ export const useLocalizableData = (
   const cachedData = useSelector((state: RootState) =>
     cacheKey ? selectLocalizableDataByKey(state, cacheKey) : undefined
   );
+
   const isLoading = useSelector((state: RootState) => selectIsLoadingLocalizableData(state));
   const error = useSelector((state: RootState) => selectLocalizableDataError(state));
 
@@ -151,6 +192,21 @@ export const useLocalizableData = (
 // Hook: useSaveTranslations
 // ============================================================================
 
+/**
+ * Hook for saving translations.
+ * 
+ * Features:
+ * - Save operation with loading state
+ * - Success/failure tracking
+ * - Error handling
+ * - Status reset capability
+ * 
+ * Note: The save payload expects flat structure for field_translations,
+ * while fetched data has nested original/translated structure.
+ * Use createFieldTranslationFromLocalizable() from types to convert.
+ * 
+ * @returns Save function and operation status
+ */
 export const useSaveTranslations = () => {
   const dispatch = useDispatch<AppDispatch>();
 
@@ -198,6 +254,17 @@ export const useSaveTranslations = () => {
 // Hook: useTranslationsErrorManagement
 // ============================================================================
 
+/**
+ * Hook for centralized error management across all translation operations.
+ * 
+ * Features:
+ * - Access to all error states
+ * - Individual error clearing
+ * - Clear all errors at once
+ * - Check if any errors exist
+ * 
+ * @returns Error states and clearing methods
+ */
 export const useTranslationsErrorManagement = () => {
   const dispatch = useDispatch<AppDispatch>();
 
@@ -257,6 +324,21 @@ export const useTranslationsErrorManagement = () => {
 // Hook: useTranslationsWorkflow
 // ============================================================================
 
+/**
+ * Composite hook that combines all translation hooks for complete workflow.
+ * 
+ * This is a convenience hook that provides access to:
+ * - Available languages
+ * - Localizable data for specific form/language
+ * - Save operations
+ * - Error management
+ * 
+ * Perfect for full-featured translation pages that need everything.
+ * 
+ * @param formVersionId - Form version ID
+ * @param languageId - Language ID
+ * @returns Combined translation workflow interface
+ */
 export const useTranslationsWorkflow = (
   formVersionId: number | null | undefined,
   languageId: number | null | undefined

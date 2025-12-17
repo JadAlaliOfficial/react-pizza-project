@@ -6,6 +6,8 @@
  * 
  * State structure is designed to be scalable with caching for localizable data
  * and granular loading/error states for each operation.
+ * 
+ * UPDATED: Compatible with nested original/translated structure from API
  */
 
 import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
@@ -93,6 +95,10 @@ export const fetchAvailableLanguages = createAsyncThunk<
  * Retrieves the form name and all field data that can be translated.
  * Results are cached in state using a composite key (formVersionId_languageId).
  * 
+ * The data now includes nested original/translated structure:
+ * - form_name: { original: string, translated: string }
+ * - fields[]: { field_id, original: {...}, translated: {...} }
+ * 
  * @param params - Form version ID and language ID
  */
 export const fetchLocalizableData = createAsyncThunk<
@@ -106,14 +112,17 @@ export const fetchLocalizableData = createAsyncThunk<
       console.log(
         `[Translations Slice] Thunk: Fetching localizable data for form_version_id=${params.form_version_id}, language_id=${params.language_id}...`
       );
-      
+
       const data = await fetchLocalizableDataService(params);
       const cacheKey = createCacheKey(params.form_version_id, params.language_id);
-      
+
       console.log(
         `[Translations Slice] Thunk: Successfully fetched localizable data with ${data.fields.length} fields`
       );
-      
+      console.log(
+        `[Translations Slice] Thunk: Form name - Original: "${data.form_name.original}", Translated: "${data.form_name.translated}"`
+      );
+
       return { data, cacheKey };
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to fetch localizable data';
@@ -134,6 +143,9 @@ export const fetchLocalizableData = createAsyncThunk<
  * On success, invalidates the cache for the corresponding localizable data
  * so it will be refetched with updated translations on next access.
  * 
+ * Note: The save payload uses flat structure for field_translations,
+ * while the fetched data has nested original/translated structure.
+ * 
  * @param payload - Translation data including form_version_id, language_id, form_name, and field_translations
  */
 export const saveTranslations = createAsyncThunk<
@@ -147,12 +159,15 @@ export const saveTranslations = createAsyncThunk<
       console.log(
         `[Translations Slice] Thunk: Saving translations for form_version_id=${payload.form_version_id}, language_id=${payload.language_id}...`
       );
-      
+      console.log(
+        `[Translations Slice] Thunk: Form name: "${payload.form_name}", ${payload.field_translations.length} field translations`
+      );
+
       const result = await saveTranslationsService(payload);
       const cacheKey = createCacheKey(payload.form_version_id, payload.language_id);
-      
+
       console.log('[Translations Slice] Thunk: Successfully saved translations:', result.message);
-      
+
       return { message: result.message, cacheKey };
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to save translations';
@@ -237,6 +252,7 @@ const translationsSlice = createSlice({
       state.localizableDataCache = {};
     },
   },
+
   extraReducers: (builder) => {
     // ========================================================================
     // Fetch Available Languages
@@ -282,6 +298,9 @@ const translationsSlice = createSlice({
         const { data, cacheKey } = action.payload;
         console.log(
           `[Translations Slice] Reducer: fetchLocalizableData fulfilled for cache key: ${cacheKey}`
+        );
+        console.log(
+          `[Translations Slice] Reducer: Caching data with ${data.fields.length} fields, form_name: "${data.form_name.translated}"`
         );
         state.loading.localizableData = false;
         state.localizableDataCache[cacheKey] = data;
