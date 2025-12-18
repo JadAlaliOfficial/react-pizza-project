@@ -370,6 +370,7 @@ export const formsService = {
       stage_transition_id: payload.stage_transition_id,
       field_count: payload.field_values.length,
     });
+    console.log('Payload:', payload);
 
     // Check for auth token before making request
     const token = getAuthToken();

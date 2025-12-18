@@ -316,6 +316,7 @@ export const StageForm: React.FC<StageFormProps> = ({
         stages={stages}
         open={visibilityEditorOpen}
         onClose={() => setVisibilityEditorOpen(false)}
+        excludeStageId={stage.id}
       />
     )}
     </>

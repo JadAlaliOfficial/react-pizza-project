@@ -219,6 +219,7 @@ export const SectionForm: React.FC<SectionFormProps> = ({ section, onChange, onC
         stages={stages}
         open={visibilityEditorOpen}
         onClose={() => setVisibilityEditorOpen(false)}
+        excludeSectionId={section.id}
       />
     )}
     </>

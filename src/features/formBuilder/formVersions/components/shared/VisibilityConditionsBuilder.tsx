@@ -381,6 +381,16 @@ interface VisibilityConditionsBuilderProps {
    * Optional: Field ID to exclude from selection (e.g., current field)
    */
   excludeFieldId?: FieldIdLike;
+
+  /**
+   * Optional: Stage ID to exclude from selection (e.g., current stage)
+   */
+  excludeStageId?: string | number;
+
+  /**
+   * Optional: Section ID to exclude from selection (e.g., current section)
+   */
+  excludeSectionId?: string | number;
 }
 
 // ============================================================================
@@ -400,6 +410,8 @@ export const VisibilityConditionsBuilder: React.FC<VisibilityConditionsBuilderPr
   open = true,
   onClose,
   excludeFieldId,
+  excludeStageId,
+  excludeSectionId,
 }) => {
   // ========================================================================
   // State
@@ -420,7 +432,17 @@ export const VisibilityConditionsBuilder: React.FC<VisibilityConditionsBuilderPr
     const fields: FieldOption[] = [];
     
     stages.forEach((stage) => {
+      // Exclude specified stage if provided
+      if (excludeStageId && stage.id === excludeStageId) {
+        return;
+      }
+
       stage.sections.forEach((section) => {
+        // Exclude specified section if provided
+        if (excludeSectionId && section.id === excludeSectionId) {
+          return;
+        }
+
         section.fields.forEach((field) => {
           // Exclude specified field if provided
           if (excludeFieldId && field.id === excludeFieldId) {
@@ -439,7 +461,7 @@ export const VisibilityConditionsBuilder: React.FC<VisibilityConditionsBuilderPr
     });
     
     return fields;
-  }, [stages, excludeFieldId]);
+  }, [stages, excludeFieldId, excludeStageId, excludeSectionId]);
 
   // ========================================================================
   // Initialize state from value

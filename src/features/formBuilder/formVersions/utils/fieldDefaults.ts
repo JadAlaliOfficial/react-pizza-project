@@ -44,18 +44,18 @@ const FIELD_TYPE_DEFAULTS: Record<number, Partial<UiField>> = {
     default_value: null,
   },
 
-  // TextArea (ID: 4)
+  // Phone Input (ID: 4)
   4: {
-    label: 'Description',
-    placeholder: 'Enter detailed description...',
+    label: 'Phone Number',
+    placeholder: '+1 (555) 000-0000',
     helper_text: null,
     default_value: null,
   },
 
-  // Select Dropdown (ID: 5)
+  // TextArea (ID: 5)
   5: {
-    label: 'Select Option',
-    placeholder: 'Choose an option...',
+    label: 'Description',
+    placeholder: 'Enter detailed description...',
     helper_text: null,
     default_value: null,
   },
@@ -95,13 +95,29 @@ const FIELD_TYPE_DEFAULTS: Record<number, Partial<UiField>> = {
   // Radio Group (ID: 10)
   10: {
     label: 'Radio Options',
-    placeholder: null,
+    placeholder: JSON.stringify(['Option 1', 'Option 2']),
     helper_text: 'Select one option',
     default_value: null,
   },
 
-  // File Upload (ID: 11)
+  // Dropdown Select (ID: 11)
   11: {
+    label: 'Select Option',
+    placeholder: JSON.stringify(['Option 1', 'Option 2', 'Option 3']),
+    helper_text: null,
+    default_value: null,
+  },
+
+  // Multi Select (ID: 12)
+  12: {
+    label: 'Select Multiple',
+    placeholder: JSON.stringify(['Option 1', 'Option 2', 'Option 3']),
+    helper_text: 'Select all that apply',
+    default_value: null,
+  },
+
+  // File Upload (ID: 13)
+  13: {
     label: 'Upload File',
     placeholder: null,
     helper_text: 'Maximum file size: 10MB',
@@ -109,7 +125,6 @@ const FIELD_TYPE_DEFAULTS: Record<number, Partial<UiField>> = {
   },
 
   // Add more field types here as needed...
-  // 12-27: Define defaults for remaining field types
 };
 
 // ============================================================================

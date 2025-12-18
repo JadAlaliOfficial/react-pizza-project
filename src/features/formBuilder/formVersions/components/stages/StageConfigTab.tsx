@@ -68,6 +68,22 @@ export const StageConfigTab: React.FC<StageConfigTabProps> = ({ stages, onChange
       sections: [],
     };
 
+    // Auto-create a default section for the new stage
+    const defaultSection: any = {
+      id: generateFakeId(),
+      stage_id: newStage.id,
+      name: 'Section 1',
+      description: null,
+      order: 1,
+      is_repeatable: false,
+      min_entries: null,
+      max_entries: null,
+      visibility_condition: null,
+      visibility_conditions: null,
+      fields: [],
+    };
+    newStage.sections.push(defaultSection);
+
     onChange([...stages, newStage]);
     console.info('[StageConfigTab] Created stage:', newStage.id);
   };

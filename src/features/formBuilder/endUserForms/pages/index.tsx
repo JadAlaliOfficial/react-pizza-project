@@ -81,10 +81,10 @@ export default function FormPage() {
   // ================================
 
   const handleSuccess = (data: any) => {
-    console.log('Form submitted successfully:', data);
+    // console.log('Form submitted successfully:', data);
     
     // Show success message or redirect
-    navigate('/dashboard');
+    console.log('done ...');
   };
 
   const handleError = (error: any) => {
