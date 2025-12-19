@@ -2,14 +2,24 @@
  * ================================
  * CURRENCY INPUT COMPONENT
  * ================================
- * Production-ready Currency Input field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules (required, min, max, between)
- * - Automatic thousand separators
- * - Decimal place formatting
- * - Currency symbol display
- * - Conflict resolution for min/max/between rules
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Currency Input field component.
+ *
+ * Responsibilities:
+ * - Render currency input with symbol and formatting
+ * - Apply thousand separators and decimal formatting
+ * - Emit numeric value changes via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for display formatting (raw while editing, formatted on blur)
  */
 
 import React, { useEffect, useState, forwardRef } from 'react';
@@ -26,15 +36,47 @@ import {
   cleanCurrencyInput,
 } from './validation/currencyInputValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedCurrencyConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      placeholder: '0.00',
+      ariaSuffix: ' - حقل مبلغ العملة',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      placeholder: '0,00',
+      ariaSuffix: ' - campo de importe de moneda',
+    };
+  }
+
+  // English (default)
+  return {
+    placeholder: '0.00',
+    ariaSuffix: ' - currency amount field',
+  };
+};
+
+// ================================
+// COMPONENT
+// ================================
+
 /**
  * CurrencyInput Component
- * 
- * Renders a currency input with symbol, thousand separators, and validation
- * Integrates with form systems via onChange callback
- * Supports forwardRef for scrolling to errors
- * 
+ *
+ * Renders a currency input with symbol, thousand separators, and validation.
+ * Integrates with form systems via onChange callback.
+ * Supports forwardRef for scrolling to errors.
+ *
  * @example
- * ```tsx
+ * ```
  * <CurrencyInput
  *   ref={currencyRef}
  *   field={fieldData}
@@ -54,19 +96,18 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
       disabled = false,
       className,
       currencySymbol = DEFAULT_CURRENCY_FORMAT.symbol,
+      languageId,
     },
-    ref
+    ref,
   ) => {
-    console.debug('[CurrencyInput] Rendering for field:', field.field_id);
-
-    // State for display value (raw input during editing, formatted when not focused)
     const [displayValue, setDisplayValue] = useState<string>('');
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
-    // Initialize with default value or current value
+    const { placeholder: localizedPlaceholder, ariaSuffix } =
+      getLocalizedCurrencyConfig(languageId);
+
     useEffect(() => {
       if (isFocused) {
-        // Don't update while user is typing
         return;
       }
 
@@ -74,13 +115,15 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
 
       if (typeof value === 'number' && !isNaN(value)) {
         initialValue = value;
-      } else if (field.current_value && typeof field.current_value === 'number') {
+      } else if (
+        field.current_value &&
+        typeof field.current_value === 'number'
+      ) {
         initialValue = field.current_value;
       } else {
         initialValue = getDefaultCurrencyInputValue(field);
       }
 
-      // Format and display
       if (initialValue !== 0 || field.default_value !== null) {
         setDisplayValue(formatCurrency(initialValue));
       } else {
@@ -88,22 +131,15 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
       }
     }, [field, value, isFocused]);
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    /**
-     * Handle input change - allow free typing
-     */
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const input = e.target.value;
-
-      // Clean input but keep it flexible
       const cleaned = cleanCurrencyInput(input, displayValue);
 
-      // Update display value immediately (no formatting while typing)
       setDisplayValue(cleaned);
 
-      // Parse and send numeric value to parent
       if (cleaned === '' || cleaned === '.') {
         onChange(0);
       } else {
@@ -112,18 +148,8 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
           onChange(numericValue);
         }
       }
-
-      console.debug('[CurrencyInput] Value changed:', {
-        fieldId: field.field_id,
-        input,
-        cleaned,
-        numeric: cleaned ? parseCurrency(cleaned) : 0,
-      });
     };
 
-    /**
-     * Format with thousand separators on blur
-     */
     const handleBlur = () => {
       setIsFocused(false);
 
@@ -139,20 +165,15 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
       }
     };
 
-    /**
-     * Remove formatting on focus for easier editing
-     */
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(true);
 
       if (displayValue) {
         const numericValue = parseCurrency(displayValue);
         if (!isNaN(numericValue)) {
-          // Show raw number without commas for editing
           const rawValue = numericValue.toString();
           setDisplayValue(rawValue);
-          
-          // Select all after a tiny delay to ensure value is updated
+
           setTimeout(() => {
             e.target.select();
           }, 0);
@@ -160,14 +181,10 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
       }
     };
 
-    /**
-     * Handle key press - allow only valid characters
-     */
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
       const key = e.key;
       const currentValue = displayValue;
 
-      // Allow: digits, dot (only one), backspace, delete, arrows, tab
       if (
         !/[0-9.]/.test(key) &&
         key !== 'Backspace' &&
@@ -180,34 +197,32 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
         return;
       }
 
-      // Prevent multiple dots
       if (key === '.' && currentValue.includes('.')) {
         e.preventDefault();
         return;
       }
 
-      // Prevent more than 2 decimal places
       const dotIndex = currentValue.indexOf('.');
       if (dotIndex !== -1) {
-        const cursorPosition = (e.target as HTMLInputElement).selectionStart || 0;
+        const cursorPosition =
+          (e.target as HTMLInputElement).selectionStart || 0;
         const afterDot = currentValue.substring(dotIndex + 1);
-        
-        // If cursor is after dot and we already have 2 decimals, prevent typing
-        if (cursorPosition > dotIndex && afterDot.length >= 2 && /[0-9]/.test(key)) {
+
+        if (
+          cursorPosition > dotIndex &&
+          afterDot.length >= 2 &&
+          /[0-9]/.test(key)
+        ) {
           e.preventDefault();
         }
       }
     };
 
-    // Generate unique ID for accessibility
     const currencyInputId = `currency-input-${field.field_id}`;
-
-    // Get placeholder
-    const placeholder = field.placeholder || '0.00';
+    const placeholder = field.placeholder || localizedPlaceholder;
 
     return (
       <div ref={ref} className={cn('space-y-3', className)}>
-        {/* Field Label with Icon */}
         <div className="flex items-center gap-2">
           <DollarSign className="h-4 w-4 text-emerald-500" />
           <Label htmlFor={currencyInputId} className="text-sm font-medium">
@@ -216,14 +231,11 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
           </Label>
         </div>
 
-        {/* Currency Input */}
         <div className="relative">
-          {/* Currency Symbol */}
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-lg pointer-events-none z-10">
             {currencySymbol}
           </span>
 
-          {/* Input Field */}
           <Input
             id={currencyInputId}
             type="text"
@@ -238,22 +250,21 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
             className={cn(
               'h-11 pl-10 pr-4 text-right text-lg font-semibold',
               'border-emerald-200 focus:border-emerald-500',
-              error && 'border-destructive focus-visible:ring-destructive'
+              error && 'border-destructive focus-visible:ring-destructive',
             )}
-            aria-label={field.label}
+            aria-label={`${field.label}${ariaSuffix}`}
             aria-required={isRequired}
             aria-invalid={!!error}
             aria-describedby={
               error
                 ? `${currencyInputId}-error`
                 : field.helper_text
-                ? `${currencyInputId}-description`
-                : undefined
+                  ? `${currencyInputId}-description`
+                  : undefined
             }
           />
         </div>
 
-        {/* Helper Text */}
         {field.helper_text && !error && (
           <p
             id={`${currencyInputId}-description`}
@@ -263,7 +274,6 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
           </p>
         )}
 
-        {/* Error Message */}
         {error && (
           <p
             id={`${currencyInputId}-error`}
@@ -275,7 +285,7 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 CurrencyInput.displayName = 'CurrencyInput';

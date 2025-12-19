@@ -2,13 +2,23 @@
  * ================================
  * RATING COMPONENT
  * ================================
- * Production-ready Rating field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Interactive star rating (5-star scale)
- * - Hover preview
- * - Click to select
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Rating field component.
+ *
+ * Responsibilities:
+ * - Render interactive star rating
+ * - Emit value changes via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
  */
 
 import { useEffect, useState, forwardRef } from 'react';
@@ -21,13 +31,41 @@ import {
   clampRating,
 } from './validation/ratingValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedRatingConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      clearText: 'مسح التقييم',
+      ariaSuffix: ' - حقل تقييم بالنجوم',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      clearText: 'Borrar calificación',
+      ariaSuffix: ' - campo de valoración con estrellas',
+    };
+  }
+
+  // English (default)
+  return {
+    clearText: 'Clear rating',
+    ariaSuffix: ' - star rating field',
+  };
+};
+
 /**
  * Rating Component
- * 
+ *
  * Renders an interactive star rating field
  * Integrates with form systems via onChange callback
  * Supports forwardRef for scrolling to errors
- * 
+ *
  * @example
  * ```
  * <Rating
@@ -40,77 +78,64 @@ import {
  * ```
  */
 export const Rating = forwardRef<HTMLDivElement, RatingProps>(
-  ({ field, value, onChange, error, disabled = false, className, maxStars = 5 }, ref) => {
-    console.debug('[Rating] Rendering for field:', field.field_id);
-
-    // State for current rating and hover state
+  (
+    { field, value, onChange, error, disabled = false, className, maxStars = 5, languageId },
+    ref,
+  ) => {
     const [localValue, setLocalValue] = useState<number>(() => {
       if (typeof value === 'number') return clampRating(value, maxStars);
-      
+
       if (field.current_value && typeof field.current_value === 'number') {
         return clampRating(field.current_value, maxStars);
       }
-      
+
       return getDefaultRatingValue(field);
     });
 
     const [hoveredStar, setHoveredStar] = useState<number | null>(null);
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Update local value when external value changes
+    const { clearText, ariaSuffix } = getLocalizedRatingConfig(languageId);
+
     useEffect(() => {
       if (typeof value === 'number') {
         setLocalValue(clampRating(value, maxStars));
       }
     }, [value, maxStars]);
 
-    /**
-     * Handle star click
-     */
     const handleStarClick = (starNumber: number) => {
       if (disabled) return;
 
-      // If clicking the same star that's already selected, deselect it (set to 0)
       const newValue = localValue === starNumber ? 0 : starNumber;
-      
+
       setLocalValue(newValue);
       onChange(newValue);
-
-      console.debug('[Rating] Rating changed:', {
-        fieldId: field.field_id,
-        rating: newValue,
-      });
     };
 
-    /**
-     * Handle star hover
-     */
     const handleStarHover = (starNumber: number) => {
       if (disabled) return;
       setHoveredStar(starNumber);
     };
 
-    /**
-     * Handle mouse leave
-     */
     const handleMouseLeave = () => {
       setHoveredStar(null);
     };
 
-    // Generate unique ID for accessibility
     const ratingId = `rating-${field.field_id}`;
-
-    // Determine which stars should be filled
     const displayValue = hoveredStar !== null ? hoveredStar : localValue;
 
     return (
-      <div ref={ref} className={cn('space-y-2', className)}>
+      <div
+        ref={ref}
+        className={cn('space-y-2', className)}
+        aria-label={`${field.label}${ariaSuffix}`}
+      >
         {/* Field Label with Icon */}
         <div className="flex items-center gap-2">
           <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
-          <Label className="text-sm font-medium">
+          <Label className="text-sm font-medium" id={ratingId}>
             {field.label}
             {isRequired && <span className="text-destructive ml-1">*</span>}
           </Label>
@@ -140,7 +165,7 @@ export const Rating = forwardRef<HTMLDivElement, RatingProps>(
                   className={cn(
                     'transition-transform',
                     !disabled && 'hover:scale-110 cursor-pointer',
-                    disabled && 'cursor-not-allowed opacity-50'
+                    disabled && 'cursor-not-allowed opacity-50',
                   )}
                   aria-label={`Rate ${starNumber} out of ${maxStars} stars`}
                   role="radio"
@@ -152,7 +177,7 @@ export const Rating = forwardRef<HTMLDivElement, RatingProps>(
                       isFilled
                         ? 'text-amber-500 fill-amber-500'
                         : 'text-gray-300 fill-gray-100',
-                      error && 'text-destructive fill-destructive/20'
+                      error && 'text-destructive fill-destructive/20',
                     )}
                   />
                 </button>
@@ -173,7 +198,7 @@ export const Rating = forwardRef<HTMLDivElement, RatingProps>(
               }}
               className="text-xs text-muted-foreground hover:text-foreground underline"
             >
-              Clear rating
+              {clearText}
             </button>
           )}
         </div>
@@ -191,7 +216,7 @@ export const Rating = forwardRef<HTMLDivElement, RatingProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Rating.displayName = 'Rating';

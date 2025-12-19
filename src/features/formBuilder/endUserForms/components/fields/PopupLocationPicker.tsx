@@ -1,3 +1,27 @@
+/**
+ * ================================
+ * POPUP LOCATION PICKER COMPONENT
+ * ================================
+ *
+ * Production-ready Popup Location Picker field component.
+ *
+ * Responsibilities:
+ * - Render location picker with map popup
+ * - Handle geolocation
+ * - Emit location coordinates via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
+ */
+
 import * as React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -42,6 +66,74 @@ function parseCoordsText(text: string): LocationCoords | null {
   return { lat, lng };
 }
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedLocationPickerConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      selectedBadge: 'تم الاختيار ✓',
+      pickOnMap: 'اختيار من الخريطة',
+      currentLocation: 'الموقع الحالي',
+      currentLocationTitle: 'الحصول على الموقع الحالي',
+      remove: 'إزالة',
+      removeTitle: 'إزالة الموقع',
+      manualPlaceholder: 'أدخل الإحداثيات (مثال: 40.7128, -74.006)',
+      apply: 'تطبيق',
+      selectedLocationLabel: 'الموقع المحدد',
+      copy: 'نسخ',
+      viewMap: 'عرض الخريطة',
+      copyTitle: 'نسخ الإحداثيات',
+      viewMapTitle: 'عرض الموقع على الخريطة',
+      ariaSuffix: ' - محدد الموقع على الخريطة',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      selectedBadge: 'Seleccionado ✓',
+      pickOnMap: 'Elegir en el mapa',
+      currentLocation: 'Ubicación actual',
+      currentLocationTitle: 'Obtener ubicación actual',
+      remove: 'Eliminar',
+      removeTitle: 'Eliminar ubicación',
+      manualPlaceholder: 'Ingresa coordenadas (ej.: 40.7128, -74.006)',
+      apply: 'Aplicar',
+      selectedLocationLabel: 'Ubicación seleccionada',
+      copy: 'Copiar',
+      viewMap: 'Ver mapa',
+      copyTitle: 'Copiar coordenadas',
+      viewMapTitle: 'Ver ubicación en el mapa',
+      ariaSuffix: ' - selector de ubicación en mapa',
+    };
+  }
+
+  // English (default)
+  return {
+    selectedBadge: 'Selected ✓',
+    pickOnMap: 'Pick on map',
+    currentLocation: 'Current location',
+    currentLocationTitle: 'Get current location',
+    remove: 'Remove',
+    removeTitle: 'Remove location',
+    manualPlaceholder: 'Enter coordinates (e.g., 40.7128, -74.006)',
+    apply: 'Apply',
+    selectedLocationLabel: 'Selected Location',
+    copy: 'Copy',
+    viewMap: 'View Map',
+    copyTitle: 'Copy coordinates',
+    viewMapTitle: 'View location on map',
+    ariaSuffix: ' - map location picker',
+  };
+};
+
+// ================================
+// COMPONENT
+// ================================
+
 export const PopupLocationPicker = React.forwardRef<
   HTMLDivElement,
   LocationPickerProps
@@ -55,6 +147,7 @@ export const PopupLocationPicker = React.forwardRef<
       disabled = false,
       className,
       defaultLocation = { lat: 40.7128, lng: -74.006 }, // NYC
+      languageId,
     },
     ref,
   ) => {
@@ -67,9 +160,27 @@ export const PopupLocationPicker = React.forwardRef<
     const [isLoadingGeolocation, setIsLoadingGeolocation] =
       React.useState(false);
 
+    const {
+      selectedBadge,
+      pickOnMap,
+      currentLocation,
+      currentLocationTitle,
+      remove,
+      removeTitle,
+      manualPlaceholder,
+      apply,
+      selectedLocationLabel,
+      copy,
+      viewMap,
+      copyTitle,
+      viewMapTitle,
+      ariaSuffix,
+    } = getLocalizedLocationPickerConfig(languageId);
+
     // token to make sure we only accept messages from the popup we opened
     const sourceToken = React.useMemo(
-      () => (crypto.randomUUID?.() ?? String(Date.now())) + '_' + field.field_id,
+      () =>
+        (crypto.randomUUID?.() ?? String(Date.now())) + '_' + field.field_id,
       [field.field_id],
     );
 
@@ -173,21 +284,30 @@ export const PopupLocationPicker = React.forwardRef<
 
     const handleCopyCoordinates = () => {
       if (!location) return;
-      navigator.clipboard.writeText(formatCoordinates(location.lat, location.lng));
+      navigator.clipboard.writeText(
+        formatCoordinates(location.lat, location.lng),
+      );
     };
 
     const handleOpenExternal = () => {
       if (!location) return;
-      window.open(getOpenStreetMapUrl(location.lat, location.lng), '_blank');
+      window.open(
+        getOpenStreetMapUrl(location.lat, location.lng),
+        '_blank',
+      );
     };
 
     const handleRemove = () => {
       setLocation(null);
-      onChange(null as any); // keep compat with your current form usage
+      onChange(null as any); // keep compat with current form usage
     };
 
     return (
-      <div ref={ref} className={cn('space-y-3', className)}>
+      <div
+        ref={ref}
+        className={cn('space-y-3', className)}
+        aria-label={`${field.label}${ariaSuffix}`}
+      >
         {/* Label */}
         <div className="flex items-center justify-between">
           <Label className="text-sm font-medium flex items-center gap-2">
@@ -196,7 +316,9 @@ export const PopupLocationPicker = React.forwardRef<
             {isRequired && <span className="text-destructive ml-1">*</span>}
           </Label>
 
-          {location && <Badge className="bg-emerald-500">Selected ✓</Badge>}
+          {location && (
+            <Badge className="bg-emerald-500">{selectedBadge}</Badge>
+          )}
         </div>
 
         {/* Actions row */}
@@ -208,7 +330,7 @@ export const PopupLocationPicker = React.forwardRef<
             className="h-9"
           >
             <MapPin className="h-4 w-4 mr-2" />
-            Pick on map
+            {pickOnMap}
           </Button>
 
           <Button
@@ -217,14 +339,14 @@ export const PopupLocationPicker = React.forwardRef<
             onClick={handleGetCurrentLocation}
             disabled={disabled || isLoadingGeolocation}
             className="h-9"
-            title="Get current location"
+            title={currentLocationTitle}
           >
             {isLoadingGeolocation ? (
               <Loader className="h-4 w-4 animate-spin mr-2" />
             ) : (
               <Navigation className="h-4 w-4 mr-2" />
             )}
-            Current location
+            {currentLocation}
           </Button>
 
           {location && (
@@ -234,10 +356,10 @@ export const PopupLocationPicker = React.forwardRef<
               onClick={handleRemove}
               disabled={disabled}
               className="h-9"
-              title="Remove location"
+              title={removeTitle}
             >
               <Trash2 className="h-4 w-4 text-destructive mr-2" />
-              Remove
+              {remove}
             </Button>
           )}
         </div>
@@ -245,7 +367,7 @@ export const PopupLocationPicker = React.forwardRef<
         {/* Manual coords input */}
         <div className="flex gap-2">
           <Input
-            placeholder="Enter coordinates (e.g., 40.7128, -74.006)"
+            placeholder={manualPlaceholder}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
@@ -264,7 +386,7 @@ export const PopupLocationPicker = React.forwardRef<
             disabled={disabled || !parseCoordsText(input)}
             className="h-9"
           >
-            Apply
+            {apply}
           </Button>
         </div>
 
@@ -274,7 +396,7 @@ export const PopupLocationPicker = React.forwardRef<
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 space-y-1">
                 <p className="text-xs font-medium text-muted-foreground">
-                  Selected Location
+                  {selectedLocationLabel}
                 </p>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-3 w-3 text-emerald-600 shrink-0" />
@@ -300,9 +422,10 @@ export const PopupLocationPicker = React.forwardRef<
                 onClick={handleCopyCoordinates}
                 disabled={disabled}
                 className="text-xs h-8"
+                title={copyTitle}
               >
                 <Copy className="h-3 w-3 mr-1" />
-                Copy
+                {copy}
               </Button>
 
               <Button
@@ -312,9 +435,10 @@ export const PopupLocationPicker = React.forwardRef<
                 onClick={handleOpenExternal}
                 disabled={disabled}
                 className="text-xs h-8"
+                title={viewMapTitle}
               >
                 <ExternalLink className="h-3 w-3 mr-1" />
-                View Map
+                {viewMap}
               </Button>
             </div>
           </div>

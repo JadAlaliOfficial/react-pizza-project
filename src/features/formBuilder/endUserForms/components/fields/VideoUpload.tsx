@@ -2,35 +2,90 @@
  * ================================
  * VIDEO UPLOAD COMPONENT
  * ================================
- * Production-ready Video Upload field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Drag and drop upload
- * - Video preview with player
- * - File size and type validation
- * - Progress indicator placeholder
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Video Upload field component.
+ *
+ * Responsibilities:
+ * - Render video upload area
+ * - Emit file via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
  */
 
 import React, { useEffect, useState, useRef, forwardRef } from 'react';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Video as VideoIcon, Upload, Play, Trash2, FileVideo } from 'lucide-react';
+import {
+  Video as VideoIcon,
+  Upload,
+  Play,
+  Trash2,
+  FileVideo,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { VideoUploadProps, VideoMetadata } from './types/videoUploadField.types';
+import type {
+  VideoUploadProps,
+  VideoMetadata,
+} from './types/videoUploadField.types';
 import {
   getAcceptedFileTypes,
   getMaxFileSizeDisplay,
   formatFileSize,
 } from './validation/videoUploadValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedVideoUploadConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      dragPrompt: 'اسحب وأسقط الفيديو هنا، أو انقر للاختيار',
+      dropPrompt: 'إسقاط الفيديو هنا',
+      removeTitle: 'إزالة الفيديو',
+      previewLabel: 'معاينة الفيديو',
+      ariaSuffix: ' - حقل رفع الفيديو',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      dragPrompt: 'Arrastra y suelta el video aquí o haz clic para buscar',
+      dropPrompt: 'Suelta el video aquí',
+      removeTitle: 'Eliminar video',
+      previewLabel: 'Vista previa del video',
+      ariaSuffix: ' - campo de carga de video',
+    };
+  }
+
+  // English (default)
+  return {
+    dragPrompt: 'Drag and drop video here, or click to browse',
+    dropPrompt: 'Drop video here',
+    removeTitle: 'Remove video',
+    previewLabel: 'Video Preview',
+    ariaSuffix: ' - video upload field',
+  };
+};
+
 /**
  * VideoUpload Component
- * 
+ *
  * Renders a video upload field with preview
  * Integrates with form systems via onChange callback
  * Supports forwardRef for scrolling to errors
- * 
+ *
  * @example
  * ```
  * <VideoUpload
@@ -43,29 +98,32 @@ import {
  * ```
  */
 export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[VideoUpload] Rendering for field:', field.field_id);
-
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
-    
-    const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(null);
+
+    const [videoMetadata, setVideoMetadata] =
+      useState<VideoMetadata | null>(null);
     const [isDragging, setIsDragging] = useState<boolean>(false);
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Get accepted file types and max size
     const acceptedTypes = getAcceptedFileTypes(field);
     const maxSizeDisplay = getMaxFileSizeDisplay(field);
 
-    /**
-     * Load video metadata when file changes
-     */
+    const {
+      dragPrompt,
+      dropPrompt,
+      removeTitle,
+      previewLabel,
+      ariaSuffix,
+    } = getLocalizedVideoUploadConfig(languageId);
+
     useEffect(() => {
       if (value && value instanceof File) {
         const videoUrl = URL.createObjectURL(value);
-        
+
         setVideoMetadata({
           name: value.name,
           size: value.size,
@@ -73,16 +131,12 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
           url: videoUrl,
         });
 
-        // Clean up object URL on unmount
         return () => URL.revokeObjectURL(videoUrl);
       } else {
         setVideoMetadata(null);
       }
     }, [value]);
 
-    /**
-     * Handle file selection
-     */
     const handleFileChange = (file: File | null) => {
       onChange(file);
 
@@ -93,17 +147,11 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
       });
     };
 
-    /**
-     * Handle file input change
-     */
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0] || null;
       handleFileChange(file);
     };
 
-    /**
-     * Handle drag over
-     */
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
@@ -112,18 +160,12 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
       }
     };
 
-    /**
-     * Handle drag leave
-     */
     const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(false);
     };
 
-    /**
-     * Handle drop
-     */
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       e.stopPropagation();
@@ -137,36 +179,35 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
       }
     };
 
-    /**
-     * Open file picker
-     */
     const handleClick = () => {
       if (!disabled) {
         fileInputRef.current?.click();
       }
     };
 
-    /**
-     * Remove video
-     */
     const handleRemove = (e: React.MouseEvent) => {
       e.stopPropagation();
       handleFileChange(null);
-      
-      // Reset file input
+
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     };
 
-    // Generate unique ID for accessibility
     const videoUploadId = `video-upload-${field.field_id}`;
 
     return (
-      <div ref={ref} className={cn('space-y-2', className)}>
+      <div
+        ref={ref}
+        className={cn('space-y-2', className)}
+        aria-label={`${field.label}${ariaSuffix}`}
+      >
         {/* Field Label with Icon */}
         <div className="flex items-center justify-between">
-          <Label htmlFor={videoUploadId} className="text-sm font-medium flex items-center gap-2">
+          <Label
+            htmlFor={videoUploadId}
+            className="text-sm font-medium flex items-center gap-2"
+          >
             <VideoIcon className="h-4 w-4 text-purple-500" />
             {field.label}
             {isRequired && <span className="text-destructive ml-1">*</span>}
@@ -189,9 +230,11 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
           className={cn(
             'border-2 border-dashed rounded-md transition-colors cursor-pointer',
             isDragging && 'border-purple-500 bg-purple-50',
-            !isDragging && !error && 'border-purple-300 bg-purple-50/30 hover:bg-purple-50/50',
+            !isDragging &&
+              !error &&
+              'border-purple-300 bg-purple-50/30 hover:bg-purple-50/50',
             error && 'border-destructive bg-destructive/5',
-            disabled && 'opacity-60 cursor-not-allowed'
+            disabled && 'opacity-60 cursor-not-allowed',
           )}
         >
           {/* Hidden File Input */}
@@ -210,8 +253,8 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
               error
                 ? `${videoUploadId}-error`
                 : field.helper_text
-                ? `${videoUploadId}-description`
-                : undefined
+                  ? `${videoUploadId}-description`
+                  : undefined
             }
           />
 
@@ -244,7 +287,7 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
                       </p>
                     </div>
                   </div>
-                  
+
                   {!disabled && (
                     <Button
                       type="button"
@@ -252,7 +295,7 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
                       size="sm"
                       onClick={handleRemove}
                       className="shrink-0 h-8 w-8 p-0"
-                      title="Remove video"
+                      title={removeTitle}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -266,7 +309,9 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
               <div className="aspect-video bg-gradient-to-br from-purple-900 to-indigo-900 rounded-t-md flex items-center justify-center relative">
                 <div className="text-center">
                   <Play className="h-16 w-16 text-white/40 mx-auto mb-2" />
-                  <p className="text-white/60 text-sm font-medium">Video Preview</p>
+                  <p className="text-white/60 text-sm font-medium">
+                    {previewLabel}
+                  </p>
                 </div>
                 {/* Fake Video Controls */}
                 <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-2 flex items-center gap-2">
@@ -285,9 +330,7 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
                 <div className="flex flex-col items-center gap-2">
                   <Upload className="h-6 w-6 text-purple-400" />
                   <p className="text-sm text-muted-foreground">
-                    {isDragging
-                      ? 'Drop video here'
-                      : 'Drag and drop video here, or click to browse'}
+                    {isDragging ? dropPrompt : dragPrompt}
                   </p>
                   {maxSizeDisplay && (
                     <p className="text-xs text-muted-foreground/70">
@@ -322,7 +365,7 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 VideoUpload.displayName = 'VideoUpload';

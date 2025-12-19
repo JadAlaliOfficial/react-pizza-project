@@ -41,8 +41,7 @@ import formVersionsReducer from '../features/formBuilder/formVersions/store/form
 import formVersionBuilderReducer from '../features/formBuilder/formVersions/store/formVersionBuilderSlice';
 import formStructureReducer from '../features/formBuilder/endUserForms/store/formStructure.slice';
 import submitInitialFormReducer from '../features/formBuilder/endUserForms/store/submitInitialForm.slice';
-
-
+import formRuntimeReducer from '../features/formBuilder/endUserForms/store/formRuntime.slice';
 
 export const store = configureStore({
   reducer: {
@@ -87,6 +86,7 @@ export const store = configureStore({
     formVersionBuilder: formVersionBuilderReducer,
     formStructure: formStructureReducer,
     submitInitialForm: submitInitialFormReducer,
+    formRuntime: formRuntimeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -51,6 +51,7 @@ export interface LocationPickerProps {
    * Whether the field is disabled
    */
   disabled?: boolean;
+  languageId?: number;
   
   /**
    * Additional CSS classes

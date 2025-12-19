@@ -86,6 +86,11 @@ export interface FieldRendererProps {
    * Optional CSS class name for container
    */
   className?: string;
+
+  /**
+   * Current language ID
+   */
+  languageId?: number;
 }
 
 // ================================
@@ -123,6 +128,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   disabled = false,
   isVisible,
   direction,
+  languageId,
   onChange,
   onBlur,
   className,
@@ -143,6 +149,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
     touched,
     disabled,
     direction,
+    languageId,
     onChange,
     onBlur,
   };
@@ -165,23 +172,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
  * 
  * Prevents re-renders when parent re-renders but field props haven't changed
  */
-export const MemoizedFieldRenderer = React.memo(
-  FieldRenderer,
-  (prevProps, nextProps) => {
-    // Custom comparison function for memo
-    // Only re-render if these props change
-    return (
-      prevProps.field.field_id === nextProps.field.field_id &&
-      prevProps.value === nextProps.value &&
-      prevProps.error === nextProps.error &&
-      prevProps.touched === nextProps.touched &&
-      prevProps.disabled === nextProps.disabled &&
-      prevProps.isVisible === nextProps.isVisible &&
-      prevProps.direction === nextProps.direction
-      // onChange and onBlur are stable references from useCallback, so we don't compare them
-    );
-  }
-);
+export const MemoizedFieldRenderer = React.memo(FieldRenderer);
 
 // Set display name for debugging
 MemoizedFieldRenderer.displayName = 'MemoizedFieldRenderer';
@@ -248,6 +239,11 @@ export interface FieldListRendererProps {
    * Optional field wrapper class name
    */
   fieldClassName?: string;
+
+  /**
+   * Language ID for localization
+   */
+  languageId?: number;
 }
 
 /**
@@ -278,6 +274,7 @@ export const FieldListRenderer: React.FC<FieldListRendererProps> = ({
   isFieldVisible,
   disabled = false,
   direction,
+  languageId,
   onChange,
   onBlur,
   containerClassName,
@@ -295,6 +292,7 @@ export const FieldListRenderer: React.FC<FieldListRendererProps> = ({
           disabled={disabled}
           isVisible={isFieldVisible(field.field_id)}
           direction={direction}
+          languageId={languageId}
           onChange={onChange}
           onBlur={onBlur}
           className={fieldClassName}

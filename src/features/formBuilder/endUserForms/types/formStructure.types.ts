@@ -1,12 +1,48 @@
 // src/features/forms/types.ts
 
+import type { JsonValue } from '@/features/formBuilder/endUserForms/types/submitInitialForm.types';
+
+/**
+ * Visibility operators supported by backend.
+ * (Includes optional legacy aliases for safety.)
+ */
+export type VisibilityOperator =
+  // Backend canonical
+  | 'filled'
+  | 'empty'
+  | 'equals'
+  | 'not_equals'
+  | 'greater_than'
+  | 'less_than'
+  | 'greater_or_equal'
+  | 'less_or_equal'
+  | 'contains'
+  | 'not_contains'
+  | 'starts_with'
+  | 'ends_with'
+  | 'in'
+  | 'not_in'
+  // Optional legacy aliases (if older data exists)
+  | 'not_empty'
+  | 'greater_than_or_equal'
+  | 'less_than_or_equal'
+  // Optional symbol aliases (if you ever support them)
+  | '=='
+  | '==='
+  | '!='
+  | '!=='
+  | '>'
+  | '>='
+  | '<'
+  | '<=';
+
 /**
  * Base visibility condition for a single field check
  */
 export interface SimpleVisibilityCondition {
   field_id: number;
-  operator: string;
-  value: string | number | null;
+  operator: VisibilityOperator;
+  value: JsonValue;
 }
 
 /**
@@ -34,7 +70,7 @@ export type FieldVisibilityCondition = VisibilityConditionWrapper | null;
  * Rule properties - varies by rule type
  * Using index signature for flexibility while maintaining type safety
  */
-export type RuleProps = 
+export type RuleProps =
   | { value?: number | string }
   | { min?: number; max?: number }
   | { date?: string }
@@ -44,7 +80,14 @@ export type RuleProps =
   | { values?: string[] }
   | { comparevalue?: string }
   | { pattern?: string }
-  | { width?: number; height?: number; minwidth?: number; maxwidth?: number; minheight?: number; maxheight?: number }
+  | {
+      width?: number;
+      height?: number;
+      minwidth?: number;
+      maxwidth?: number;
+      minheight?: number;
+      maxheight?: number;
+    }
   | null;
 
 /**
@@ -73,12 +116,12 @@ export interface AddressValue {
 /**
  * Field default value - highly variable based on field type
  */
-export type FieldDefaultValue = 
-  | string 
-  | number 
-  | boolean 
-  | AddressValue 
-  | string[] 
+export type FieldDefaultValue =
+  | string
+  | number
+  | boolean
+  | AddressValue
+  | string[]
   | null;
 
 /**
@@ -128,11 +171,9 @@ export interface TransitionAction {
 }
 
 /**
- * Transition condition (similar to visibility condition)
+ * Transition condition (same shape as visibility wrapper)
  */
-export interface TransitionCondition {
-  show_when: SimpleVisibilityCondition | ComplexVisibilityCondition | null;
-}
+export type TransitionCondition = VisibilityConditionWrapper;
 
 /**
  * Available transition between stages
@@ -195,22 +236,4 @@ export interface ApiError {
   status: number;
   message: string;
   data?: any;
-}
-
-/**
- * Type guard to check if visibility condition is complex
- */
-export function isComplexVisibilityCondition(
-  condition: SimpleVisibilityCondition | ComplexVisibilityCondition
-): condition is ComplexVisibilityCondition {
-  return 'logic' in condition && 'conditions' in condition;
-}
-
-/**
- * Type guard to check if visibility condition is simple
- */
-export function isSimpleVisibilityCondition(
-  condition: SimpleVisibilityCondition | ComplexVisibilityCondition
-): condition is SimpleVisibilityCondition {
-  return 'field_id' in condition && 'operator' in condition;
 }

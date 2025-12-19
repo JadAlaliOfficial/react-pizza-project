@@ -2,13 +2,24 @@
  * ================================
  * MULTI-SELECT COMPONENT
  * ================================
- * Production-ready Multi-Select field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Checkbox list for multiple selections
- * - Options parsed from placeholder JSON
- * - Default selections support
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Multi-Select field component.
+ *
+ * Responsibilities:
+ * - Render checkbox list for multiple selections
+ * - Emit array of selected values via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled checkbox behavior
+ * - Options parsed from field.placeholder (JSON format)
  */
 
 import { useEffect, useState, forwardRef } from 'react';
@@ -22,13 +33,51 @@ import {
   parseMultiSelectOptions,
 } from './validation/multiSelectValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedMultiSelectConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      noOptionsText: 'لا توجد خيارات متاحة لهذا الحقل متعدد الاختيارات',
+      selectedSingular: 'عنصر محدد',
+      selectedPlural: 'عناصر محددة',
+      ariaSuffix: ' - حقل اختيار متعدد',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      noOptionsText: 'No hay opciones disponibles para este campo de selección múltiple',
+      selectedSingular: 'elemento seleccionado',
+      selectedPlural: 'elementos seleccionados',
+      ariaSuffix: ' - campo de selección múltiple',
+    };
+  }
+
+  // English (default)
+  return {
+    noOptionsText: 'No options available for this multi-select field',
+    selectedSingular: 'item selected',
+    selectedPlural: 'items selected',
+    ariaSuffix: ' - multi-select field',
+  };
+};
+
+// ================================
+// COMPONENT
+// ================================
+
 /**
  * MultiSelect Component
- * 
- * Renders a multi-select field with checkboxes for each option
- * Integrates with form systems via onChange callback
- * Supports forwardRef for scrolling to errors
- * 
+ *
+ * Renders a multi-select field with checkboxes for each option.
+ * Integrates with form systems via onChange callback.
+ * Supports forwardRef for scrolling to errors.
+ *
  * @example
  * ```
  * <MultiSelect
@@ -41,70 +90,56 @@ import {
  * ```
  */
 export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[MultiSelect] Rendering for field:', field.field_id);
-
-    // Parse options from placeholder
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const options = parseMultiSelectOptions(field);
 
-    // Initialize with default value or current value
     const [localValue, setLocalValue] = useState<string[]>(() => {
       if (value && Array.isArray(value)) return value;
-      
+
       if (field.current_value && Array.isArray(field.current_value)) {
-        // Validate current values are in options
-        return field.current_value.filter((val: any) => 
-          typeof val === 'string' && options.includes(val)
+        return field.current_value.filter(
+          (val: any) => typeof val === 'string' && options.includes(val),
         );
       }
-      
+
       return getDefaultMultiSelectValue(field);
     });
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Update local value when external value changes
+    const {
+      noOptionsText,
+      selectedSingular,
+      selectedPlural,
+      ariaSuffix,
+    } = getLocalizedMultiSelectConfig(languageId);
+
     useEffect(() => {
       if (value !== undefined && Array.isArray(value)) {
         setLocalValue(value);
       }
     }, [value]);
 
-    /**
-     * Handle checkbox change for an option
-     */
     const handleOptionChange = (optionValue: string, checked: boolean) => {
       let newValue: string[];
 
       if (checked) {
-        // Add option to selected values
         newValue = [...localValue, optionValue];
       } else {
-        // Remove option from selected values
         newValue = localValue.filter((val) => val !== optionValue);
       }
 
       setLocalValue(newValue);
       onChange(newValue);
-
-      console.debug('[MultiSelect] Selection changed:', {
-        fieldId: field.field_id,
-        selectedValues: newValue,
-      });
     };
 
-    /**
-     * Check if an option is selected
-     */
     const isOptionSelected = (optionValue: string): boolean => {
       return localValue.includes(optionValue);
     };
 
-    // Generate unique ID for accessibility
     const multiSelectId = `multi-select-${field.field_id}`;
 
-    // If no options, show warning
     if (options.length === 0) {
       return (
         <div ref={ref} className={cn('space-y-2', className)}>
@@ -114,7 +149,7 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
           </Label>
           <div className="p-3 border border-yellow-300 bg-yellow-50 rounded-md">
             <p className="text-xs text-yellow-800">
-              No options available for this multi-select field
+              {noOptionsText}
             </p>
           </div>
         </div>
@@ -123,23 +158,22 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
 
     return (
       <div ref={ref} className={cn('space-y-3', className)}>
-        {/* Field Label with Icon */}
         <div className="flex items-center gap-2">
           <CheckSquare className="h-4 w-4 text-indigo-500" />
-          <Label className="text-sm font-medium">
+          <Label className="text-sm font-medium" id={multiSelectId}>
             {field.label}
             {isRequired && <span className="text-destructive ml-1">*</span>}
           </Label>
         </div>
 
-        {/* Checkbox Options */}
         <div
           className={cn(
             'space-y-3 p-4 border rounded-lg',
-            error ? 'border-destructive bg-destructive/5' : 'bg-muted/30'
+            error ? 'border-destructive bg-destructive/5' : 'bg-muted/30',
           )}
           role="group"
           aria-labelledby={multiSelectId}
+          aria-label={`${field.label}${ariaSuffix}`}
           aria-required={isRequired}
           aria-invalid={!!error}
         >
@@ -148,7 +182,10 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
             const checked = isOptionSelected(option);
 
             return (
-              <div key={`${option}-${index}`} className="flex items-start space-x-3">
+              <div
+                key={`${option}-${index}`}
+                className="flex items-start space-x-3"
+              >
                 <Checkbox
                   id={optionId}
                   checked={checked}
@@ -157,10 +194,7 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
                     handleOptionChange(option, isChecked);
                   }}
                   disabled={disabled}
-                  className={cn(
-                    'mt-0.5',
-                    error && 'border-destructive'
-                  )}
+                  className={cn('mt-0.5', error && 'border-destructive')}
                 />
                 <Label
                   htmlFor={optionId}
@@ -173,19 +207,17 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
           })}
         </div>
 
-        {/* Selection Count */}
         {localValue.length > 0 && !error && (
           <p className="text-xs text-muted-foreground">
-            {localValue.length} {localValue.length === 1 ? 'item' : 'items'} selected
+            {localValue.length}{' '}
+            {localValue.length === 1 ? selectedSingular : selectedPlural}
           </p>
         )}
 
-        {/* Helper Text */}
         {field.helper_text && !error && (
           <p className="text-xs text-muted-foreground">{field.helper_text}</p>
         )}
 
-        {/* Error Message */}
         {error && (
           <p className="text-xs text-destructive font-medium" role="alert">
             {error}
@@ -193,7 +225,7 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 MultiSelect.displayName = 'MultiSelect';

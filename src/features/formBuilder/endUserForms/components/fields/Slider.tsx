@@ -2,13 +2,23 @@
  * ================================
  * SLIDER COMPONENT
  * ================================
- * Production-ready Slider field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Range slider with live value display
- * - Min/max bounds from rules
- * - Integer vs decimal support
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Slider field component.
+ *
+ * Responsibilities:
+ * - Render range slider
+ * - Emit numeric value via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
  */
 
 import { useEffect, useState, forwardRef } from 'react';
@@ -24,13 +34,41 @@ import {
   getSliderStep,
 } from './validation/sliderValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedSliderConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      helperInline: 'اسحب للتعديل',
+      ariaSuffix: ' - حقل منزلق للقيم',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      helperInline: 'Arrastra para ajustar',
+      ariaSuffix: ' - campo de control deslizante',
+    };
+  }
+
+  // English (default)
+  return {
+    helperInline: 'Drag to adjust',
+    ariaSuffix: ' - slider field',
+  };
+};
+
 /**
  * Slider Component
- * 
+ *
  * Renders a range slider with live value display
  * Integrates with form systems via onChange callback
  * Supports forwardRef for scrolling to errors
- * 
+ *
  * @example
  * ```
  * <Slider
@@ -43,56 +81,48 @@ import {
  * ```
  */
 export const Slider = forwardRef<HTMLDivElement, SliderProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[Slider] Rendering for field:', field.field_id);
-
-    // Get slider configuration from rules
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const minValue = getSliderMin(field);
     const maxValue = getSliderMax(field);
     const step = getSliderStep(field);
 
-    // Initialize with default value or current value
     const [localValue, setLocalValue] = useState<number>(() => {
       if (typeof value === 'number' && !isNaN(value)) {
         return value;
       }
-      
+
       if (field.current_value && typeof field.current_value === 'number') {
         return field.current_value;
       }
-      
+
       return getDefaultSliderValue(field);
     });
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Update local value when external value changes
+    const { helperInline, ariaSuffix } = getLocalizedSliderConfig(languageId);
+
     useEffect(() => {
       if (typeof value === 'number' && !isNaN(value)) {
         setLocalValue(value);
       }
     }, [value]);
 
-    /**
-     * Handle slider value change
-     */
     const handleValueChange = (newValue: number[]) => {
       const val = newValue[0];
       setLocalValue(val);
       onChange(val);
-
-      console.debug('[Slider] Value changed:', {
-        fieldId: field.field_id,
-        value: val,
-      });
     };
 
-    // Generate unique ID for accessibility
     const sliderId = `slider-${field.field_id}`;
 
     return (
-      <div ref={ref} className={cn('space-y-3', className)}>
+      <div
+        ref={ref}
+        className={cn('space-y-3', className)}
+        aria-label={`${field.label}${ariaSuffix}`}
+      >
         {/* Field Label with Icon */}
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-indigo-500" />
@@ -106,16 +136,20 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
         <div className="space-y-3 px-1">
           {/* Value Display */}
           <div className="flex items-center justify-center">
-            <div className={cn(
-              'px-4 py-2 border rounded-lg',
-              error 
-                ? 'bg-destructive/5 border-destructive' 
-                : 'bg-indigo-50 border-indigo-200'
-            )}>
-              <span className={cn(
-                'text-2xl font-bold',
-                error ? 'text-destructive' : 'text-indigo-600'
-              )}>
+            <div
+              className={cn(
+                'px-4 py-2 border rounded-lg',
+                error
+                  ? 'bg-destructive/5 border-destructive'
+                  : 'bg-indigo-50 border-indigo-200',
+              )}
+            >
+              <span
+                className={cn(
+                  'text-2xl font-bold',
+                  error ? 'text-destructive' : 'text-indigo-600',
+                )}
+              >
                 {step === 1 ? localValue : localValue.toFixed(1)}
               </span>
             </div>
@@ -131,7 +165,10 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
               max={maxValue}
               step={step}
               disabled={disabled}
-              className={cn('w-full', error && '[&_[role=slider]]:border-destructive')}
+              className={cn(
+                'w-full',
+                error && '[&_[role=slider]]:border-destructive',
+              )}
               aria-label={field.label}
               aria-required={isRequired}
               aria-invalid={!!error}
@@ -139,14 +176,14 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
                 error
                   ? `${sliderId}-error`
                   : field.helper_text
-                  ? `${sliderId}-description`
-                  : undefined
+                    ? `${sliderId}-description`
+                    : undefined
               }
             />
             {/* Min/Max Labels */}
             <div className="flex justify-between text-xs text-muted-foreground mt-2">
               <span className="font-medium">{minValue}</span>
-              <span className="text-[10px] italic">Drag to adjust</span>
+              <span className="text-[10px] italic">{helperInline}</span>
               <span className="font-medium">{maxValue}</span>
             </div>
           </div>
@@ -174,7 +211,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Slider.displayName = 'Slider';

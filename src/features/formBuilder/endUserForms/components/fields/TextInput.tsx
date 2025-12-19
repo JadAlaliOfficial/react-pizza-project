@@ -2,14 +2,23 @@
  * ================================
  * TEXT INPUT COMPONENT
  * ================================
- * Production-ready Text Input field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Length validation (min, max, between)
- * - Pattern validation (alpha, alpha_num, alpha_dash, regex)
- * - Starts with / ends with validation
- * - Same / different field comparison (handled at form level)
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Text Input field component.
+ *
+ * Responsibilities:
+ * - Render text input
+ * - Emit value via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
  */
 
 import React, { useEffect, useState, forwardRef } from 'react';
@@ -41,9 +50,7 @@ import {
  * ```
  */
 export const TextInput = forwardRef<HTMLDivElement, TextInputProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[TextInput] Rendering for field:', field.field_id);
-
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     // Initialize with default value or current value
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value) return value;
@@ -55,6 +62,33 @@ export const TextInput = forwardRef<HTMLDivElement, TextInputProps>(
       return getDefaultTextInputValue(field);
     });
 
+    // Helper: get localized strings
+    const getLocalizedText = () => {
+      if (languageId === 2) {
+        return {
+          placeholder: 'أدخل النص...',
+          rulesLabel: 'قاعدة',
+          rulesLabelPlural: 'قواعد',
+        };
+      }
+
+      if (languageId === 3) {
+        return {
+          placeholder: 'Ingresa texto...',
+          rulesLabel: 'regla',
+          rulesLabelPlural: 'reglas',
+        };
+      }
+
+      return {
+        placeholder: 'Enter text...',
+        rulesLabel: 'rule',
+        rulesLabelPlural: 'rules',
+      };
+    };
+
+    const { placeholder, rulesLabel, rulesLabelPlural } = getLocalizedText();
+
     // Check if field is required
     const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
@@ -63,7 +97,7 @@ export const TextInput = forwardRef<HTMLDivElement, TextInputProps>(
       if (value !== undefined) {
         setLocalValue(value || '');
       }
-    }, [value]);
+    }, [value, field.field_id]);
 
     /**
      * Handle input change
@@ -72,22 +106,24 @@ export const TextInput = forwardRef<HTMLDivElement, TextInputProps>(
       const newValue = e.target.value;
       setLocalValue(newValue);
       onChange(newValue);
-
-      console.debug('[TextInput] Value changed:', {
-        fieldId: field.field_id,
-        value: newValue,
-        length: newValue.length,
-      });
     };
 
     // Generate unique ID for accessibility
     const textInputId = `text-input-${field.field_id}`;
 
-    // Get placeholder
-    const placeholder = field.placeholder || 'Enter text...';
+    // Get placeholder (localized if no custom placeholder passed from field)
+    const effectivePlaceholder =
+      field.placeholder ||
+      placeholder;
 
     // Count rules (excluding unique which is server-side)
     const ruleCount = field.rules?.filter((rule) => rule.rule_name !== 'unique').length || 0;
+
+    // Localized rules count label
+    const rulesCountLabel =
+      ruleCount === 1
+        ? `${ruleCount} ${rulesLabel}`
+        : `${ruleCount} ${rulesLabelPlural}`;
 
     return (
       <div ref={ref} className={cn('space-y-2', className)}>
@@ -100,7 +136,7 @@ export const TextInput = forwardRef<HTMLDivElement, TextInputProps>(
           </Label>
           {ruleCount > 0 && (
             <span className="text-xs text-muted-foreground">
-              ({ruleCount} rule{ruleCount !== 1 ? 's' : ''})
+              ({rulesCountLabel})
             </span>
           )}
         </div>
@@ -111,7 +147,7 @@ export const TextInput = forwardRef<HTMLDivElement, TextInputProps>(
           type="text"
           value={localValue}
           onChange={handleInputChange}
-          placeholder={placeholder}
+          placeholder={effectivePlaceholder}
           disabled={disabled}
           className={cn(
             'h-10',

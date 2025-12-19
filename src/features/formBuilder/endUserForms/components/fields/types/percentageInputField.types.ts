@@ -41,6 +41,7 @@ export interface PercentageInputProps {
    * Whether the field is disabled
    */
   disabled?: boolean;
+  languageId?: number;
   
   /**
    * Additional CSS classes

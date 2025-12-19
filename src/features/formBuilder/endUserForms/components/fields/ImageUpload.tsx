@@ -2,15 +2,26 @@
  * ================================
  * IMAGE UPLOAD COMPONENT
  * ================================
- * Production-ready Image Upload field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Drag and drop support
- * - Image preview with dimensions display
- * - File type validation (MIME types)
- * - File size validation (min/max)
- * - Dimension validation (width, height, min/max)
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Image Upload field component.
+ *
+ * Responsibilities:
+ * - Render image upload area with drag-and-drop support
+ * - Display image preview with dimensions
+ * - Emit File object changes via onChange callback
+ * - Display validation errors from parent
+ * - Apply file type, size, and dimension constraints from field rules
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for drag/drop UI, preview URL, and dimensions
+ * - Automatic cleanup of preview URLs on unmount
  */
 
 import React, { useEffect, useState, useRef, forwardRef } from 'react';
@@ -27,13 +38,54 @@ import {
   getReadableDimensions,
 } from './validation/imageUploadValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedImageUploadConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      mainText: 'اسحب وأفلت الصورة هنا، أو ',
+      browseText: 'تصفح',
+      maxPrefix: 'الحد الأقصى: ',
+      removeButton: 'إزالة الصورة',
+      ariaSuffix: ' - حقل رفع الصورة',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      mainText: 'Arrastra y suelta la imagen aquí, o ',
+      browseText: 'explorar',
+      maxPrefix: 'Máx.: ',
+      removeButton: 'Eliminar imagen',
+      ariaSuffix: ' - campo de carga de imágenes',
+    };
+  }
+
+  // English (default)
+  return {
+    mainText: 'Drag and drop image here, or ',
+    browseText: 'browse',
+    maxPrefix: 'Max: ',
+    removeButton: 'Remove Image',
+    ariaSuffix: ' - image upload field',
+  };
+};
+
+// ================================
+// COMPONENT
+// ================================
+
 /**
  * ImageUpload Component
- * 
- * Renders an image upload area with drag-and-drop, preview, and validation
- * Integrates with form systems via onChange callback
- * Supports forwardRef for scrolling to errors
- * 
+ *
+ * Renders an image upload area with drag-and-drop, preview, and validation.
+ * Integrates with form systems via onChange callback.
+ * Supports forwardRef for scrolling to errors.
+ *
  * @example
  * ```
  * <ImageUpload
@@ -46,30 +98,41 @@ import {
  * ```
  */
 export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[ImageUpload] Rendering for field:', field.field_id);
-
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [selectedFile, setSelectedFile] = useState<File | null>(value || null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(
+      value || null,
+    );
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+    const [imageDimensions, setImageDimensions] = useState<{
+      width: number;
+      height: number;
+    } | null>(null);
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Get accepted MIME types
     const acceptedTypes = getAcceptedMimeTypes(field.rules || []);
 
-    // Get file size limits
-    const maxSizeRule = field.rules?.find((rule) => rule.rule_name === 'max_file_size');
+    const maxSizeRule = field.rules?.find(
+      (rule) => rule.rule_name === 'max_file_size',
+    );
     const maxSize = (maxSizeRule?.rule_props as { maxsize?: number })?.maxsize;
 
-    // Get dimension requirements
-    const dimensionsRule = field.rules?.find((rule) => rule.rule_name === 'dimensions');
+    const dimensionsRule = field.rules?.find(
+      (rule) => rule.rule_name === 'dimensions',
+    );
     const dimensionReqs = dimensionsRule?.rule_props as any;
 
-    // Update local file when external value changes
+    const {
+      mainText,
+      browseText,
+      maxPrefix,
+      removeButton,
+      ariaSuffix,
+    } = getLocalizedImageUploadConfig(languageId);
+
     useEffect(() => {
       if (value instanceof File) {
         setSelectedFile(value);
@@ -81,48 +144,28 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
       }
     }, [value]);
 
-    /**
-     * Create preview URL for image
-     */
     const createPreview = async (file: File) => {
-      // Revoke old preview URL
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
       }
 
-      // Create new preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
 
-      // Get image dimensions
       try {
         const dims = await getImageDimensions(file);
         setImageDimensions(dims);
-      } catch (error) {
-        console.error('[ImageUpload] Failed to get image dimensions:', error);
+      } catch {
         setImageDimensions(null);
       }
     };
 
-    /**
-     * Handle file selection
-     */
     const handleFileSelect = (file: File) => {
       setSelectedFile(file);
       onChange(file);
       createPreview(file);
-
-      console.debug('[ImageUpload] Image selected:', {
-        fieldId: field.field_id,
-        fileName: file.name,
-        fileSize: getFileSizeInKB(file),
-        fileType: file.type,
-      });
     };
 
-    /**
-     * Handle file input change
-     */
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
@@ -130,9 +173,6 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
       }
     };
 
-    /**
-     * Handle drag events
-     */
     const handleDragEnter = (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -165,9 +205,6 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
       }
     };
 
-    /**
-     * Handle remove image
-     */
     const handleRemoveImage = () => {
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl);
@@ -181,14 +218,10 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
       }
     };
 
-    /**
-     * Trigger file input click
-     */
     const handleBrowseClick = () => {
       fileInputRef.current?.click();
     };
 
-    // Cleanup preview URL on unmount
     useEffect(() => {
       return () => {
         if (previewUrl) {
@@ -197,12 +230,10 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
       };
     }, [previewUrl]);
 
-    // Generate unique ID for accessibility
     const imageUploadId = `image-upload-${field.field_id}`;
 
     return (
       <div ref={ref} className={cn('space-y-3', className)}>
-        {/* Field Label with Icon */}
         <div className="flex items-center gap-2">
           <ImageIcon className="h-4 w-4 text-pink-500" />
           <Label htmlFor={imageUploadId} className="text-sm font-medium">
@@ -211,23 +242,21 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
           </Label>
         </div>
 
-        {/* Upload Area */}
         <div
           className={cn(
             'border-2 border-dashed rounded-lg transition-colors overflow-hidden',
             isDragging
               ? 'border-pink-500 bg-pink-50'
               : error
-              ? 'border-destructive bg-destructive/5'
-              : 'border-pink-300 bg-pink-50/30',
-            disabled && 'opacity-50 cursor-not-allowed'
+                ? 'border-destructive bg-destructive/5'
+                : 'border-pink-300 bg-pink-50/30',
+            disabled && 'opacity-50 cursor-not-allowed',
           )}
           onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          {/* Image Preview or Placeholder */}
           <div className="aspect-video bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center relative">
             {previewUrl ? (
               <>
@@ -252,25 +281,25 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
             )}
           </div>
 
-          {/* Upload Button Area */}
           <div className="p-4 text-center border-t border-pink-200">
             <div className="flex flex-col items-center gap-2">
               <Upload className="h-6 w-6 text-pink-400" />
               <div>
                 <p className="text-sm text-muted-foreground mb-1">
-                  Drag and drop image here, or{' '}
+                  {mainText}
                   <button
                     type="button"
                     onClick={handleBrowseClick}
                     disabled={disabled}
                     className="text-pink-600 hover:text-pink-700 font-medium underline"
                   >
-                    browse
+                    {browseText}
                   </button>
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {maxSize && `Max: ${formatFileSize(maxSize)}`}
-                  {dimensionReqs && ` • ${getReadableDimensions(dimensionReqs)}`}
+                  {maxSize && `${maxPrefix}${formatFileSize(maxSize)}`}
+                  {dimensionReqs &&
+                    ` • ${getReadableDimensions(dimensionReqs)}`}
                 </p>
               </div>
               {selectedFile && (
@@ -283,13 +312,12 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
                   className="mt-2"
                 >
                   <X className="h-4 w-4 mr-1" />
-                  Remove Image
+                  {removeButton}
                 </Button>
               )}
             </div>
           </div>
 
-          {/* Hidden File Input */}
           <input
             ref={fileInputRef}
             id={imageUploadId}
@@ -298,13 +326,12 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
             onChange={handleFileInputChange}
             disabled={disabled}
             className="hidden"
-            aria-label={field.label}
+            aria-label={`${field.label}${ariaSuffix}`}
             aria-required={isRequired}
             aria-invalid={!!error}
           />
         </div>
 
-        {/* File Info */}
         {selectedFile && (
           <div className="text-xs text-muted-foreground">
             <span className="font-medium">{selectedFile.name}</span> •{' '}
@@ -312,12 +339,10 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
           </div>
         )}
 
-        {/* Helper Text */}
         {field.helper_text && !error && (
           <p className="text-xs text-muted-foreground">{field.helper_text}</p>
         )}
 
-        {/* Error Message */}
         {error && (
           <p className="text-xs text-destructive font-medium" role="alert">
             {error}
@@ -325,7 +350,7 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 ImageUpload.displayName = 'ImageUpload';

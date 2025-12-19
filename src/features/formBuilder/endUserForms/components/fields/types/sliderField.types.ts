@@ -41,6 +41,7 @@ export interface SliderProps {
    * Whether the field is disabled
    */
   disabled?: boolean;
+  languageId?: number;
   
   /**
    * Additional CSS classes

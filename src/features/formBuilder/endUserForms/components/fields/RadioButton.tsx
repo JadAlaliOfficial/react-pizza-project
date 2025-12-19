@@ -2,13 +2,23 @@
  * ================================
  * RADIO BUTTON COMPONENT
  * ================================
- * Production-ready Radio Button field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Radio group for single selection
- * - Options parsed from placeholder JSON
- * - Default selection support
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Radio Button field component.
+ *
+ * Responsibilities:
+ * - Render radio button group for single selection
+ * - Emit changes via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
  */
 
 import { useEffect, useState, forwardRef } from 'react';
@@ -22,47 +32,63 @@ import {
   parseRadioButtonOptions,
 } from './validation/radioButtonValidation';
 
-/**
- * RadioButton Component
- * 
- * Renders a radio button group for single selection
- * Integrates with form systems via onChange callback
- * Supports forwardRef for scrolling to errors
- * 
- * @example
- * ```
- * <RadioButton
- *   ref={radioRef}
- *   field={fieldData}
- *   value={selectedValue}
- *   onChange={(newValue) => setValue(newValue)}
- *   error={errors.radio?.message}
- * />
- * ```
- */
-export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[RadioButton] Rendering for field:', field.field_id);
+// ================================
+// LOCALIZATION
+// ================================
 
+const getLocalizedRadioConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      noOptionsText: 'لا توجد خيارات متاحة لهذا الحقل من نوع زر الاختيار',
+      ariaSuffix: ' - مجموعة أزرار اختيار',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      noOptionsText:
+        'No hay opciones disponibles para este campo de botón de opción',
+      ariaSuffix: ' - grupo de botones de opción',
+    };
+  }
+
+  // English (default)
+  return {
+    noOptionsText: 'No options available for this radio button field',
+    ariaSuffix: ' - radio button group',
+  };
+};
+
+// ================================
+// COMPONENT
+// ================================
+
+export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     // Parse options from placeholder
     const options = parseRadioButtonOptions(field);
+
+    const { noOptionsText, ariaSuffix } = getLocalizedRadioConfig(languageId);
 
     // Initialize with default value or current value
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value) return value;
-      
+
       if (field.current_value && typeof field.current_value === 'string') {
         // Validate current value is in options
         if (options.includes(field.current_value)) {
           return field.current_value;
         }
       }
-      
+
       return getDefaultRadioButtonValue(field);
     });
 
     // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
     // Update local value when external value changes
     useEffect(() => {
@@ -77,11 +103,6 @@ export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
     const handleValueChange = (newValue: string) => {
       setLocalValue(newValue);
       onChange(newValue);
-
-      console.debug('[RadioButton] Selection changed:', {
-        fieldId: field.field_id,
-        selectedValue: newValue,
-      });
     };
 
     // Generate unique ID for accessibility
@@ -97,7 +118,7 @@ export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
           </Label>
           <div className="p-3 border border-yellow-300 bg-yellow-50 rounded-md">
             <p className="text-xs text-yellow-800">
-              No options available for this radio button field
+              {noOptionsText}
             </p>
           </div>
         </div>
@@ -109,7 +130,7 @@ export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
         {/* Field Label with Icon */}
         <div className="flex items-center gap-2">
           <Circle className="h-4 w-4 text-cyan-500" />
-          <Label className="text-sm font-medium">
+          <Label className="text-sm font-medium" id={radioGroupId}>
             {field.label}
             {isRequired && <span className="text-destructive ml-1">*</span>}
           </Label>
@@ -120,8 +141,11 @@ export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
           value={localValue}
           onValueChange={handleValueChange}
           disabled={disabled}
-          className={cn(error && 'border border-destructive rounded-lg p-3 bg-destructive/5')}
+          className={cn(
+            error && 'border border-destructive rounded-lg p-3 bg-destructive/5',
+          )}
           aria-labelledby={radioGroupId}
+          aria-label={`${field.label}${ariaSuffix}`}
           aria-required={isRequired}
           aria-invalid={!!error}
         >
@@ -130,13 +154,14 @@ export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
               const optionId = `${radioGroupId}-option-${index}`;
 
               return (
-                <div key={`${option}-${index}`} className="flex items-center space-x-3">
+                <div
+                  key={`${option}-${index}`}
+                  className="flex items-center space-x-3"
+                >
                   <RadioGroupItem
                     value={option}
                     id={optionId}
-                    className={cn(
-                      error && 'border-destructive'
-                    )}
+                    className={cn(error && 'border-destructive')}
                   />
                   <Label
                     htmlFor={optionId}
@@ -163,7 +188,7 @@ export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 RadioButton.displayName = 'RadioButton';

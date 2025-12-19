@@ -2,13 +2,24 @@
  * ================================
  * NUMBER INPUT COMPONENT
  * ================================
- * Production-ready Number Input field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Integer vs numeric handling (numeric takes priority)
- * - Min/max validation with conflict resolution
- * - Same/different cross-field validation (at form level)
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Number Input field component.
+ *
+ * Responsibilities:
+ * - Render number input with integer/decimal support
+ * - Emit numeric value changes via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for display value (allows flexible input during editing)
+ * - Step value determined by field rules (integer vs numeric)
  */
 
 import React, { useEffect, useState, forwardRef } from 'react';
@@ -22,13 +33,42 @@ import {
   getStepValue,
 } from './validation/numberInputValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedNumberConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      placeholder: '٠',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      placeholder: '0',
+    };
+  }
+
+  // English (default)
+  return {
+    placeholder: '0',
+  };
+};
+
+// ================================
+// COMPONENT
+// ================================
+
 /**
  * NumberInput Component
- * 
- * Renders a number input with validation
- * Integrates with form systems via onChange callback
- * Supports forwardRef for scrolling to errors
- * 
+ *
+ * Renders a number input with validation.
+ * Integrates with form systems via onChange callback.
+ * Supports forwardRef for scrolling to errors.
+ *
  * @example
  * ```
  * <NumberInput
@@ -41,17 +81,12 @@ import {
  * ```
  */
 export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[NumberInput] Rendering for field:', field.field_id);
-
-    // State for display value (string during editing, number when not focused)
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const [displayValue, setDisplayValue] = useState<string>('');
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
-    // Initialize with default value or current value
     useEffect(() => {
       if (isFocused) {
-        // Don't update while user is typing
         return;
       }
 
@@ -59,7 +94,10 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
 
       if (typeof value === 'number' && !isNaN(value)) {
         initialValue = value;
-      } else if (field.current_value && typeof field.current_value === 'number') {
+      } else if (
+        field.current_value &&
+        typeof field.current_value === 'number'
+      ) {
         initialValue = field.current_value;
       } else {
         initialValue = getDefaultNumberInputValue(field);
@@ -68,23 +106,22 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
       setDisplayValue(initialValue.toString());
     }, [field, value, isFocused]);
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Get step value (1 for integer, any for decimal)
     const step = getStepValue(field);
 
-    /**
-     * Handle input change - allow free typing
-     */
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const input = e.target.value;
 
-      // Allow empty, numbers, decimal point, and negative sign
-      if (input === '' || input === '.' || input === '-' || /^-?\d*\.?\d*$/.test(input)) {
+      if (
+        input === '' ||
+        input === '.' ||
+        input === '-' ||
+        /^-?\d*\.?\d*$/.test(input)
+      ) {
         setDisplayValue(input);
 
-        // Parse and send numeric value to parent
         if (input === '' || input === '.' || input === '-') {
           onChange(0);
         } else {
@@ -94,17 +131,8 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
           }
         }
       }
-
-      console.debug('[NumberInput] Value changed:', {
-        fieldId: field.field_id,
-        input,
-        numeric: input ? parseFloat(input) : 0,
-      });
     };
 
-    /**
-     * Handle blur - format value
-     */
     const handleBlur = () => {
       setIsFocused(false);
 
@@ -119,33 +147,28 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
       }
     };
 
-    /**
-     * Handle focus
-     */
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(true);
-      // Select all for easy replacement
       setTimeout(() => {
         e.target.select();
       }, 0);
     };
 
-    // Generate unique ID for accessibility
     const numberInputId = `number-input-${field.field_id}`;
-
-    // Get placeholder
-    const placeholder = field.placeholder || '0';
+    const { placeholder: localizedPlaceholder } = getLocalizedNumberConfig(languageId);
+    const placeholder = field.placeholder || localizedPlaceholder;
 
     return (
       <div ref={ref} className={cn('space-y-2', className)}>
-        {/* Field Label with Icon */}
-        <Label htmlFor={numberInputId} className="text-sm font-medium flex items-center gap-2">
+        <Label
+          htmlFor={numberInputId}
+          className="text-sm font-medium flex items-center gap-2"
+        >
           <Hash className="h-4 w-4 text-green-500" />
           {field.label}
           {isRequired && <span className="text-destructive ml-1">*</span>}
         </Label>
 
-        {/* Number Input */}
         <Input
           id={numberInputId}
           type="number"
@@ -158,7 +181,7 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
           disabled={disabled}
           className={cn(
             'h-10',
-            error && 'border-destructive focus-visible:ring-destructive'
+            error && 'border-destructive focus-visible:ring-destructive',
           )}
           aria-label={field.label}
           aria-required={isRequired}
@@ -167,12 +190,11 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
             error
               ? `${numberInputId}-error`
               : field.helper_text
-              ? `${numberInputId}-description`
-              : undefined
+                ? `${numberInputId}-description`
+                : undefined
           }
         />
 
-        {/* Helper Text */}
         {field.helper_text && !error && (
           <p
             id={`${numberInputId}-description`}
@@ -182,7 +204,6 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
           </p>
         )}
 
-        {/* Error Message */}
         {error && (
           <p
             id={`${numberInputId}-error`}
@@ -194,7 +215,7 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 NumberInput.displayName = 'NumberInput';

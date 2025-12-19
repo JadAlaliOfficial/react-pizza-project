@@ -2,14 +2,24 @@
  * ================================
  * FILE UPLOAD COMPONENT
  * ================================
- * Production-ready File Upload field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Drag and drop support
- * - File type validation (MIME types with wildcard support)
- * - File size validation (min/max)
- * - Preview of selected file
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready File Upload field component.
+ *
+ * Responsibilities:
+ * - Render file upload area with drag-and-drop support
+ * - Emit File object changes via onChange callback
+ * - Display validation errors from parent
+ * - Apply file type and size constraints from field rules
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for drag/drop UI and file preview
  */
 
 import React, { useEffect, useState, useRef, forwardRef } from 'react';
@@ -25,13 +35,54 @@ import {
   getFileSizeInKB,
 } from './validation/fileUploadValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedFileUploadConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      mainText: 'اسحب وأفلت الملف هنا، أو ',
+      browseText: 'تصفح',
+      acceptedPrefix: 'الأنواع المسموح بها: ',
+      maxPrefix: 'الحد الأقصى: ',
+      ariaSuffix: ' - حقل رفع الملف',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      mainText: 'Arrastra y suelta el archivo aquí, o ',
+      browseText: 'explorar',
+      acceptedPrefix: 'Aceptados: ',
+      maxPrefix: 'Máx.: ',
+      ariaSuffix: ' - campo de carga de archivos',
+    };
+  }
+
+  // English (default)
+  return {
+    mainText: 'Drag and drop file here, or ',
+    browseText: 'browse',
+    acceptedPrefix: 'Accepted: ',
+    maxPrefix: 'Max: ',
+    ariaSuffix: ' - file upload field',
+  };
+};
+
+// ================================
+// COMPONENT
+// ================================
+
 /**
  * FileUpload Component
- * 
- * Renders a file upload area with drag-and-drop and file validation
- * Integrates with form systems via onChange callback
- * Supports forwardRef for scrolling to errors
- * 
+ *
+ * Renders a file upload area with drag-and-drop and file validation.
+ * Integrates with form systems via onChange callback.
+ * Supports forwardRef for scrolling to errors.
+ *
  * @example
  * ```
  * <FileUpload
@@ -44,29 +95,39 @@ import {
  * ```
  */
 export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[FileUpload] Rendering for field:', field.field_id);
-
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [selectedFile, setSelectedFile] = useState<File | null>(value || null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(
+      value || null,
+    );
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Get accepted MIME types
     const acceptedTypes = getAcceptedMimeTypes(field.rules || []);
-    
-    // Get MIME types for display
-    const mimeTypesRule = field.rules?.find((rule) => rule.rule_name === 'mimetypes');
-    const mimeTypes = (mimeTypesRule?.rule_props as { types?: string[] })?.types || [];
-    const readableTypes = mimeTypes.length > 0 ? getReadableFileTypes(mimeTypes) : 'All files';
 
-    // Get file size limits
-    const maxSizeRule = field.rules?.find((rule) => rule.rule_name === 'max_file_size');
+    const mimeTypesRule = field.rules?.find(
+      (rule) => rule.rule_name === 'mimetypes',
+    );
+    const mimeTypes =
+      (mimeTypesRule?.rule_props as { types?: string[] })?.types || [];
+    const readableTypes =
+      mimeTypes.length > 0 ? getReadableFileTypes(mimeTypes) : 'All files';
+
+    const maxSizeRule = field.rules?.find(
+      (rule) => rule.rule_name === 'max_file_size',
+    );
     const maxSize = (maxSizeRule?.rule_props as { maxsize?: number })?.maxsize;
 
-    // Update local file when external value changes
+    const {
+      mainText,
+      browseText,
+      acceptedPrefix,
+      maxPrefix,
+      ariaSuffix,
+    } = getLocalizedFileUploadConfig(languageId);
+
     useEffect(() => {
       if (value instanceof File) {
         setSelectedFile(value);
@@ -75,24 +136,11 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       }
     }, [value]);
 
-    /**
-     * Handle file selection
-     */
     const handleFileSelect = (file: File) => {
       setSelectedFile(file);
       onChange(file);
-
-      console.debug('[FileUpload] File selected:', {
-        fieldId: field.field_id,
-        fileName: file.name,
-        fileSize: getFileSizeInKB(file),
-        fileType: file.type,
-      });
     };
 
-    /**
-     * Handle file input change
-     */
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
@@ -100,9 +148,6 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       }
     };
 
-    /**
-     * Handle drag events
-     */
     const handleDragEnter = (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -135,9 +180,6 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       }
     };
 
-    /**
-     * Handle remove file
-     */
     const handleRemoveFile = () => {
       setSelectedFile(null);
       onChange(null);
@@ -146,19 +188,14 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       }
     };
 
-    /**
-     * Trigger file input click
-     */
     const handleBrowseClick = () => {
       fileInputRef.current?.click();
     };
 
-    // Generate unique ID for accessibility
     const fileUploadId = `file-upload-${field.field_id}`;
 
     return (
       <div ref={ref} className={cn('space-y-3', className)}>
-        {/* Field Label with Icon */}
         <div className="flex items-center gap-2">
           <Upload className="h-4 w-4 text-violet-500" />
           <Label htmlFor={fileUploadId} className="text-sm font-medium">
@@ -167,7 +204,6 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
           </Label>
         </div>
 
-        {/* Upload Area */}
         {!selectedFile ? (
           <div
             className={cn(
@@ -175,9 +211,9 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
               isDragging
                 ? 'border-violet-500 bg-violet-50'
                 : error
-                ? 'border-destructive bg-destructive/5'
-                : 'border-violet-300 bg-violet-50/30',
-              disabled && 'opacity-50 cursor-not-allowed'
+                  ? 'border-destructive bg-destructive/5'
+                  : 'border-violet-300 bg-violet-50/30',
+              disabled && 'opacity-50 cursor-not-allowed',
             )}
             onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}
@@ -188,24 +224,24 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
               <Upload className="h-10 w-10 text-violet-400" />
               <div>
                 <p className="text-sm text-muted-foreground mb-1">
-                  Drag and drop file here, or{' '}
+                  {mainText}
                   <button
                     type="button"
                     onClick={handleBrowseClick}
                     disabled={disabled}
                     className="text-violet-600 hover:text-violet-700 font-medium underline"
                   >
-                    browse
+                    {browseText}
                   </button>
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Accepted: {readableTypes}
-                  {maxSize && ` • Max: ${formatFileSize(maxSize)}`}
+                  {acceptedPrefix}
+                  {readableTypes}
+                  {maxSize && ` • ${maxPrefix}${formatFileSize(maxSize)}`}
                 </p>
               </div>
             </div>
 
-            {/* Hidden File Input */}
             <input
               ref={fileInputRef}
               id={fileUploadId}
@@ -214,13 +250,12 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
               onChange={handleFileInputChange}
               disabled={disabled}
               className="hidden"
-              aria-label={field.label}
+              aria-label={`${field.label}${ariaSuffix}`}
               aria-required={isRequired}
               aria-invalid={!!error}
             />
           </div>
         ) : (
-          /* Selected File Preview */
           <div className="border-2 border-green-300 bg-green-50/30 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
@@ -230,7 +265,8 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
                   {selectedFile.name}
                 </p>
                 <p className="text-xs text-green-700">
-                  {formatFileSize(getFileSizeInKB(selectedFile))} • {selectedFile.type || 'Unknown type'}
+                  {formatFileSize(getFileSizeInKB(selectedFile))} •{' '}
+                  {selectedFile.type || 'Unknown type'}
                 </p>
               </div>
               <Button
@@ -247,12 +283,10 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
           </div>
         )}
 
-        {/* Helper Text */}
         {field.helper_text && !error && (
           <p className="text-xs text-muted-foreground">{field.helper_text}</p>
         )}
 
-        {/* Error Message */}
         {error && (
           <p className="text-xs text-destructive font-medium" role="alert">
             {error}
@@ -260,7 +294,7 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 FileUpload.displayName = 'FileUpload';

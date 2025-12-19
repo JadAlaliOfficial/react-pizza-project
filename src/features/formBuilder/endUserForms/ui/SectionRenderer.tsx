@@ -112,6 +112,11 @@ export interface SectionRendererProps {
    * Whether to show section even if it has no visible fields
    */
   showEmptySections?: boolean;
+
+  /**
+   * Language ID (1=English, 2=Arabic, 3=Spanish)
+   */
+  languageId?: number;
 }
 
 // ================================
@@ -152,6 +157,7 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
   fieldsContainerClassName,
   fieldClassName,
   showEmptySections = false,
+  languageId,
 }) => {
   // Don't render if section is not visible
   if (!isVisible) {
@@ -205,6 +211,7 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
           onBlur={onBlur}
           containerClassName={fieldsContainerClassName || 'space-y-6'}
           fieldClassName={fieldClassName}
+          languageId={languageId}
         />
       ) : (
         // Empty section message (only shown if showEmptySections is true)
@@ -225,19 +232,7 @@ export const SectionRenderer: React.FC<SectionRendererProps> = ({
 /**
  * Memoized version of SectionRenderer for performance optimization
  */
-export const MemoizedSectionRenderer = React.memo(
-  SectionRenderer,
-  (prevProps, nextProps) => {
-    // Only re-render if these props change
-    return (
-      prevProps.section.section_id === nextProps.section.section_id &&
-      prevProps.isVisible === nextProps.isVisible &&
-      prevProps.disabled === nextProps.disabled &&
-      prevProps.direction === nextProps.direction
-      // Field state changes are handled by individual field memoization
-    );
-  },
-);
+export const MemoizedSectionRenderer = React.memo(SectionRenderer);
 
 MemoizedSectionRenderer.displayName = 'MemoizedSectionRenderer';
 
@@ -328,6 +323,11 @@ export interface SectionListRendererProps {
    * Whether to show empty sections
    */
   showEmptySections?: boolean;
+
+  /**
+   * Language ID (1=English, 2=Arabic, 3=Spanish)
+   */
+  languageId?: number;
 }
 
 /**
@@ -365,6 +365,7 @@ export const SectionListRenderer: React.FC<SectionListRendererProps> = ({
   fieldsContainerClassName,
   fieldClassName,
   showEmptySections = false,
+  languageId,
 }) => {
   // Sort sections by section_order (not order)
   const sortedSections = [...sections].sort(
@@ -391,6 +392,7 @@ export const SectionListRenderer: React.FC<SectionListRendererProps> = ({
           fieldsContainerClassName={fieldsContainerClassName}
           fieldClassName={fieldClassName}
           showEmptySections={showEmptySections}
+          languageId={languageId}
         />
       ))}
     </div>
@@ -451,6 +453,7 @@ export const CompactSectionRenderer: React.FC<SectionRendererProps> = (
         onBlur={props.onBlur}
         containerClassName={props.fieldsContainerClassName || 'space-y-6'}
         fieldClassName={props.fieldClassName}
+        languageId={props.languageId}
       />
     </div>
   );

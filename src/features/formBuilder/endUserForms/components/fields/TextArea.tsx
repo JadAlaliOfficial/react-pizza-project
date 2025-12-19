@@ -2,13 +2,23 @@
  * ================================
  * TEXT AREA COMPONENT
  * ================================
- * Production-ready Text Area field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Multi-line text input with auto-resize
- * - Character counter
- * - Comprehensive validation (alpha, regex, JSON, etc.)
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Text Area field component.
+ *
+ * Responsibilities:
+ * - Render multi-line text input
+ * - Emit value via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
  */
 
 import React, { useEffect, useState, forwardRef } from 'react';
@@ -22,13 +32,41 @@ import {
   getCharacterCountInfo,
 } from './validation/textAreaValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedTextAreaConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      placeholder: 'أدخل نصك هنا...',
+      ariaSuffix: ' - حقل نص متعدد الأسطر',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      placeholder: 'Escribe tu texto aquí...',
+      ariaSuffix: ' - campo de texto multilínea',
+    };
+  }
+
+  // English (default)
+  return {
+    placeholder: 'Enter your text here...',
+    ariaSuffix: ' - multi-line text field',
+  };
+};
+
 /**
  * TextArea Component
- * 
+ *
  * Renders a multi-line text input area
  * Integrates with form systems via onChange callback
  * Supports forwardRef for scrolling to errors
- * 
+ *
  * @example
  * ```
  * <TextArea
@@ -51,74 +89,71 @@ export const TextArea = forwardRef<HTMLDivElement, TextAreaProps>(
       disabled = false,
       className,
       rows = 4,
+      languageId,
     },
-    ref
+    ref,
   ) => {
-    console.debug('[TextArea] Rendering for field:', field.field_id);
-
     // Initialize with default value or current value
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value !== null && value !== undefined) {
         return String(value);
       }
-      
+
       if (field.current_value !== null && field.current_value !== undefined) {
         return String(field.current_value);
       }
-      
+
       return getDefaultTextAreaValue(field);
     });
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Check if max length exists for character counter
     const maxRule = field.rules?.find((rule) => rule.rule_name === 'max');
-    const betweenRule = field.rules?.find((rule) => rule.rule_name === 'between');
+    const betweenRule = field.rules?.find(
+      (rule) => rule.rule_name === 'between',
+    );
     const hasMaxLength = !!(maxRule || betweenRule);
 
-    // Update local value when external value changes
     useEffect(() => {
       if (value !== null && value !== undefined) {
         setLocalValue(String(value));
       }
     }, [value]);
 
-    /**
-     * Handle text area value change
-     */
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const newValue = e.target.value;
       setLocalValue(newValue);
       onChange(newValue);
-
-      console.debug('[TextArea] Value changed:', {
-        fieldId: field.field_id,
-        length: newValue.length,
-      });
     };
 
-    // Generate unique ID for accessibility
     const textAreaId = `textarea-${field.field_id}`;
 
-    // Get placeholder
-    const placeholder = field.placeholder || 'Enter your text here...';
+    const { placeholder: localizedPlaceholder, ariaSuffix } =
+      getLocalizedTextAreaConfig(languageId);
+    const placeholder = field.placeholder || localizedPlaceholder;
 
-    // Get character count info
     const characterCountInfo = hasMaxLength
       ? getCharacterCountInfo(localValue, field)
       : null;
 
     return (
-      <div ref={ref} className={cn('space-y-2', className)}>
+      <div
+        ref={ref}
+        className={cn('space-y-2', className)}
+        aria-label={`${field.label}${ariaSuffix}`}
+      >
         {/* Field Label with Icon */}
         <div className="flex items-center justify-between">
-          <Label htmlFor={textAreaId} className="text-sm font-medium flex items-center gap-2">
+          <Label
+            htmlFor={textAreaId}
+            className="text-sm font-medium flex items-center gap-2"
+          >
             <AlignLeft className="h-4 w-4 text-orange-500" />
             {field.label}
             {isRequired && <span className="text-destructive ml-1">*</span>}
           </Label>
-          
+
           {/* Character Counter */}
           {characterCountInfo && (
             <span className="text-xs text-muted-foreground font-mono">
@@ -137,7 +172,7 @@ export const TextArea = forwardRef<HTMLDivElement, TextAreaProps>(
           rows={rows}
           className={cn(
             'min-h-[100px] resize-y',
-            error && 'border-destructive focus-visible:ring-destructive'
+            error && 'border-destructive focus-visible:ring-destructive',
           )}
           aria-label={field.label}
           aria-required={isRequired}
@@ -146,8 +181,8 @@ export const TextArea = forwardRef<HTMLDivElement, TextAreaProps>(
             error
               ? `${textAreaId}-error`
               : field.helper_text
-              ? `${textAreaId}-description`
-              : undefined
+                ? `${textAreaId}-description`
+                : undefined
           }
         />
 
@@ -173,7 +208,7 @@ export const TextArea = forwardRef<HTMLDivElement, TextAreaProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 TextArea.displayName = 'TextArea';

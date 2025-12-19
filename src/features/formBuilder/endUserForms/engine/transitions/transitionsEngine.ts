@@ -2,7 +2,8 @@
  * ================================
  * TRANSITIONS ENGINE
  * ================================
- * Responsible for resolving available form stage transitions
+ *
+ * Responsible for resolving available form stage transitions.
  *
  * Key Responsibilities:
  * - Extract available transitions from form structure
@@ -10,12 +11,29 @@
  * - Resolve which transitions are currently actionable
  * - Provide submit button metadata (label, disabled state)
  * - Handle transition-to-completion logic
+ * - Determine default transition selection with clear priority rules
  *
- * Architecture Notes:
+ * Architecture Decisions:
  * - Uses visibilityEngine for condition evaluation
  * - Does NOT contain UI logic
  * - Returns transition metadata for UI consumption
  * - Integrates with form submission flow
+ * - Pure functions with no side effects
+ * - No debug logging (production-ready)
+ *
+ * Default Transition Selection:
+ * Priority order (highest to lowest):
+ * 1. Completion transitions (to_complete = true) - score: 100
+ * 2. Forward progression (Next, Continue, Proceed, Submit) - score: 80
+ * 3. Save/Draft actions - score: 60
+ * 4. Backward navigation (Back, Previous, Return) - score: 50
+ * 5. All others - score: 40
+ *
+ * Multiple Transitions Behavior:
+ * - All visible transitions are available
+ * - Primary transition is highest priority visible transition
+ * - Submit button uses primary transition by default
+ * - User can override by selecting a different transition
  */
 
 import type { FormTransition } from '@/features/formBuilder/endUserForms/types/formStructure.types';
@@ -24,6 +42,7 @@ import type {
   SubmitButtonState,
 } from '@/features/formBuilder/endUserForms/types/runtime.types';
 import { evaluateVisibilityCondition } from '../visibility/visibilityEngine';
+import type { JsonValue } from '@/features/formBuilder/endUserForms/types/submitInitialForm.types';
 
 // ================================
 // TYPES
@@ -53,21 +72,28 @@ export interface TransitionsResolutionResult {
  */
 const evaluateTransitionCondition = (
   condition: FormTransition['condition'],
-  formValues: Record<number, any>,
+  formValues: Record<number, JsonValue>
 ): boolean => {
-  // No condition = always visible
   if (!condition || !condition.show_when) {
     return true;
   }
 
-  // Delegate to visibility engine (conditions use same structure)
-  // Wrap in the expected structure
+  const runtimeFieldValues: Record<number, { fieldId: number; value: JsonValue; error: string | null; touched: boolean; isValid: boolean }> = {};
+  Object.entries(formValues).forEach(([fieldId, value]) => {
+    runtimeFieldValues[Number(fieldId)] = {
+      fieldId: Number(fieldId),
+      value,
+      error: null,
+      touched: false,
+      isValid: true,
+    };
+  });
+
   const visibilityResult = evaluateVisibilityCondition(
     { show_when: condition.show_when },
-    formValues,
+    runtimeFieldValues
   );
 
-  // Extract boolean from VisibilityResult
   return visibilityResult.isVisible;
 };
 
@@ -76,21 +102,19 @@ const evaluateTransitionCondition = (
  * Higher priority = shown first / used as primary
  *
  * Priority rules:
- * 1. Transitions to completion (submit/finish) = highest
+ * 1. Transitions to completion (submit/finish) = highest priority
  * 2. Named forward transitions (Next, Continue, etc.)
- * 3. Named backward transitions (Previous, Back, etc.)
- * 4. Others
+ * 3. Save/draft transitions
+ * 4. Named backward transitions (Previous, Back, etc.)
+ * 5. Others
  */
 const calculateTransitionPriority = (transition: FormTransition): number => {
-  // Completion transitions are highest priority
   if (transition.to_complete) {
     return 100;
   }
 
-  // Check label keywords for priority hints
   const label = transition.label.toLowerCase();
 
-  // Forward progression keywords
   if (
     label.includes('next') ||
     label.includes('continue') ||
@@ -100,7 +124,10 @@ const calculateTransitionPriority = (transition: FormTransition): number => {
     return 80;
   }
 
-  // Backward navigation keywords
+  if (label.includes('save') || label.includes('draft')) {
+    return 60;
+  }
+
   if (
     label.includes('back') ||
     label.includes('previous') ||
@@ -109,12 +136,6 @@ const calculateTransitionPriority = (transition: FormTransition): number => {
     return 50;
   }
 
-  // Save/draft keywords
-  if (label.includes('save') || label.includes('draft')) {
-    return 60;
-  }
-
-  // Default priority
   return 40;
 };
 
@@ -128,19 +149,11 @@ const calculateTransitionPriority = (transition: FormTransition): number => {
  */
 const resolveTransition = (
   transition: FormTransition,
-  formValues: Record<number, any>,
-  isFormValid: boolean,
+  formValues: Record<number, JsonValue>,
+  isFormValid: boolean
 ): ResolvedTransition => {
-  // Evaluate visibility condition
-  const isVisible = evaluateTransitionCondition(
-    transition.condition,
-    formValues,
-  );
+  const isVisible = evaluateTransitionCondition(transition.condition, formValues);
 
-  // Determine if disabled
-  // Transition is disabled if:
-  // 1. It's not visible (shouldn't happen in UI, but defensive)
-  // 2. Form validation fails for completion transitions
   const isDisabled = !isVisible || (transition.to_complete && !isFormValid);
 
   return {
@@ -161,6 +174,12 @@ const resolveTransition = (
 /**
  * Resolve all available transitions for current form state
  *
+ * This is the core function that determines:
+ * - Which transitions are visible
+ * - Which transitions are disabled
+ * - Which transition is the primary/default
+ * - Submit button state and label
+ *
  * @param availableTransitions - Transitions from API response
  * @param formValues - Current form field values (keyed by field_id)
  * @param isFormValid - Whether form passes validation
@@ -168,33 +187,27 @@ const resolveTransition = (
  */
 export const resolveTransitions = (
   availableTransitions: FormTransition[],
-  formValues: Record<number, any>,
-  isFormValid: boolean,
+  formValues: Record<number, JsonValue>,
+  isFormValid: boolean
 ): TransitionsResolutionResult => {
-  // Resolve each transition
   const resolvedTransitions = availableTransitions.map((transition) =>
-    resolveTransition(transition, formValues, isFormValid),
+    resolveTransition(transition, formValues, isFormValid)
   );
 
-  // Filter to only visible transitions
   const visibleTransitions = resolvedTransitions.filter((t) => t.isVisible);
 
-  // Sort by priority (highest first)
-  // Note: We temporarily add priority for sorting, but it's not in the ResolvedTransition type
   const sortedTransitions = [...visibleTransitions].sort((a, b) => {
     const aPriority = calculateTransitionPriority(
-      availableTransitions.find((t) => t.transition_id === a.transitionId)!,
+      availableTransitions.find((t) => t.transition_id === a.transitionId)!
     );
     const bPriority = calculateTransitionPriority(
-      availableTransitions.find((t) => t.transition_id === b.transitionId)!,
+      availableTransitions.find((t) => t.transition_id === b.transitionId)!
     );
     return bPriority - aPriority;
   });
 
-  // Primary transition is the highest priority visible transition
   const primaryTransition = sortedTransitions[0] || null;
 
-  // Generate submit button state
   const submitButtonState: SubmitButtonState = {
     availableTransitions: sortedTransitions,
     canSubmit: primaryTransition ? !primaryTransition.isDisabled : false,
@@ -226,15 +239,11 @@ export const resolveTransitions = (
  */
 export const getSubmitButtonState = (
   availableTransitions: FormTransition[],
-  formValues: Record<number, any>,
+  formValues: Record<number, JsonValue>,
   isFormValid: boolean,
-  isSubmitting: boolean = false,
+  isSubmitting: boolean = false
 ): SubmitButtonState => {
-  const result = resolveTransitions(
-    availableTransitions,
-    formValues,
-    isFormValid,
-  );
+  const result = resolveTransitions(availableTransitions, formValues, isFormValid);
 
   return {
     ...result.submitButtonState,
@@ -253,14 +262,10 @@ export const getSubmitButtonState = (
  */
 export const getPrimaryTransition = (
   availableTransitions: FormTransition[],
-  formValues: Record<number, any>,
-  isFormValid: boolean,
+  formValues: Record<number, JsonValue>,
+  isFormValid: boolean
 ): ResolvedTransition | null => {
-  const result = resolveTransitions(
-    availableTransitions,
-    formValues,
-    isFormValid,
-  );
+  const result = resolveTransitions(availableTransitions, formValues, isFormValid);
   return result.primaryTransition;
 };
 
@@ -269,10 +274,10 @@ export const getPrimaryTransition = (
  * Useful for determining if this is the final stage
  *
  * @param availableTransitions - Transitions from API
- * @returns True if any visible transition leads to completion
+ * @returns True if any transition leads to completion
  */
 export const hasCompletionTransition = (
-  availableTransitions: FormTransition[],
+  availableTransitions: FormTransition[]
 ): boolean => {
   return availableTransitions.some((t) => t.to_complete);
 };
@@ -288,14 +293,10 @@ export const hasCompletionTransition = (
  */
 export const getVisibleTransitionLabels = (
   availableTransitions: FormTransition[],
-  formValues: Record<number, any>,
-  isFormValid: boolean,
+  formValues: Record<number, JsonValue>,
+  isFormValid: boolean
 ): string[] => {
-  const result = resolveTransitions(
-    availableTransitions,
-    formValues,
-    isFormValid,
-  );
+  const result = resolveTransitions(availableTransitions, formValues, isFormValid);
   return result.availableTransitions.map((t) => t.label);
 };
 
@@ -313,11 +314,9 @@ export const getVisibleTransitionLabels = (
  */
 export const findTransitionById = (
   availableTransitions: FormTransition[],
-  transitionId: number,
+  transitionId: number
 ): FormTransition | null => {
-  return (
-    availableTransitions.find((t) => t.transition_id === transitionId) || null
-  );
+  return availableTransitions.find((t) => t.transition_id === transitionId) || null;
 };
 
 /**
@@ -331,14 +330,11 @@ export const findTransitionById = (
  */
 export const validateTransitionExecution = (
   transition: FormTransition,
-  formValues: Record<number, any>,
-  isFormValid: boolean,
+  formValues: Record<number, JsonValue>,
+  isFormValid: boolean
 ): { valid: boolean; reason?: string } => {
-  // Check visibility condition
-  const isVisible = evaluateTransitionCondition(
-    transition.condition,
-    formValues,
-  );
+  const isVisible = evaluateTransitionCondition(transition.condition, formValues);
+
   if (!isVisible) {
     return {
       valid: false,
@@ -346,7 +342,6 @@ export const validateTransitionExecution = (
     };
   }
 
-  // Check validation for completion transitions
   if (transition.to_complete && !isFormValid) {
     return {
       valid: false,
@@ -355,35 +350,4 @@ export const validateTransitionExecution = (
   }
 
   return { valid: true };
-};
-
-// ================================
-// DEBUG UTILITIES
-// ================================
-
-/**
- * Log transition resolution for debugging
- * Only logs in development mode
- *
- * @param result - Transition resolution result
- */
-export const debugTransitions = (result: TransitionsResolutionResult): void => {
-  if (process.env.NODE_ENV !== 'development') {
-    return;
-  }
-
-  console.group('[TransitionsEngine] Resolution Result');
-  console.log('Available Transitions:', result.availableTransitions.length);
-  console.log('Primary Transition:', result.primaryTransition?.label || 'None');
-  console.log('Submit Button:', result.submitButtonState);
-  console.log('Has Multiple:', result.hasMultipleTransitions);
-
-  result.availableTransitions.forEach((t, index) => {
-    console.log(`  ${index + 1}. [${t.transitionId}] ${t.label}`, {
-      disabled: t.isDisabled,
-      toComplete: t.isComplete,
-    });
-  });
-
-  console.groupEnd();
 };

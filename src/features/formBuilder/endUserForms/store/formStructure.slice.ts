@@ -129,7 +129,7 @@ const formStructureSlice = createSlice({
       .addCase(fetchFormStructure.fulfilled, (state, action: PayloadAction<FormStructureData>) => {
         console.debug('[formStructureSlice] fetchFormStructure fulfilled');
         state.status = 'succeeded';
-        state.data = action.payload;
+        state.data = action.payload as any;
         state.error = null;
         state.lastFetchedAt = Date.now();
       })

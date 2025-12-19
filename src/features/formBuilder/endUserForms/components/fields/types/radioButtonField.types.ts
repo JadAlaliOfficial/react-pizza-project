@@ -41,6 +41,7 @@ export interface RadioButtonProps {
    * Whether the field is disabled
    */
   disabled?: boolean;
+  languageId?: number;
   
   /**
    * Additional CSS classes

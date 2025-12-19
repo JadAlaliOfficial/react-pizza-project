@@ -41,6 +41,7 @@ export interface CheckboxInputProps {
    * Whether the field is disabled
    */
   disabled?: boolean;
+  languageId?: number;
   
   /**
    * Additional CSS classes

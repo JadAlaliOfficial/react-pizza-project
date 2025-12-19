@@ -7,25 +7,27 @@
  *
  * Key Responsibilities:
  * - Integrate with immutable hooks (useFormStructure, useSubmitInitialStage)
- * - Manage runtime form state (field values, touched, errors)
+ * - Manage runtime form state (field values, errors - SINGLE SOURCE)
  * - Orchestrate visibility, validation, and transitions engines
  * - Provide unified API for UI components
- * - Handle form submission flow
- * - Apply hidden field policy during submission
+ * - Handle form submission flow with hidden field policy
  *
  * Architecture Decisions:
- * - UI components should ONLY use this hook (not individual engines)
+ * - UI components ONLY use this hook (not individual engines)
  * - All business logic delegated to engines (visibility, validation, transitions)
+ * - Errors stored ONLY in RuntimeFieldValues (single source of truth)
  * - Field values stored by field_id for O(1) lookups
- * - Validation runs on blur by default, optionally on change
+ * - Validation runs on blur by default
  * - Visibility recalculated on every field value change
+ * - Cross-field validation triggers revalidation of dependent fields
  * - Immutable hooks are never modified, only consumed
  *
  * Data Flow:
  * 1. Fetch form structure via useFormStructure (immutable)
- * 2. Initialize field values from default_value
+ * 2. Initialize field values from default_value or current_value
  * 3. User changes field → update value → recalculate visibility → validate
- * 4. User submits → validate all → resolve transitions → submit via useSubmitInitialStage
+ * 4. Cross-field changes → revalidate dependent fields
+ * 5. User submits → validate all → resolve transitions → submit via useSubmitInitialStage
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -47,14 +49,15 @@ import type {
   LanguageConfig,
   UseRuntimeFormReturn,
 } from '../types/runtime.types';
-// Import as regular imports (not type imports) for runtime values
 import {
   LANGUAGE_MAP,
-  ACTIVE_HIDDEN_FIELD_POLICY,
-  HiddenFieldPolicy,
 } from '../types/runtime.types';
 import { buildVisibilityMap } from '../engine/visibility/visibilityEngine';
-import { validateField as engineValidateField } from '../engine/validation/validationEngine';
+import {
+  validateField as engineValidateField,
+  hasCrossFieldRules,
+  getCrossFieldDependencies,
+} from '../engine/validation/validationEngine';
 import { resolveTransitions } from '../engine/transitions/transitionsEngine';
 
 // ================================
@@ -70,40 +73,131 @@ export interface UseRuntimeFormParams {
 // ================================
 // INITIALIZATION HELPERS
 // ================================
-
 /**
  * Extract default value from field configuration
+ * Priority: current_value > default_value > type-specific default
+ *
+ * Normalizes API shapes to runtime shapes:
+ * - Checkbox/Toggle Switch: 0/1 -> boolean
+ * - Multi_Select: array (default [])
+ * - Address Input / Location Picker: object (default empty object shape)
+ * - Upload/Signature/Password: always null
  */
 const getFieldDefaultValue = (field: FormField): JsonValue => {
+  // 1) Priority: current_value first
   if (field.current_value !== null && field.current_value !== undefined) {
-    return field.current_value as JsonValue;
-  }
-  if (field.default_value !== null && field.default_value !== undefined) {
-    return field.default_value as JsonValue;
+    return normalizeByType(field, field.current_value as JsonValue);
   }
 
-  // Type-specific defaults
-  switch (field.field_type) {
-    case 'checkbox':
-    case 'toggle_switch':
-      return false;
-    case 'multi_select':
-      return [];
-    case 'number_input':
-    case 'currency_input':
-    case 'percentage_input':
-      return 0;
-    default:
-      return '';
+  // 2) Then default_value (if present)
+  if (field.default_value !== null && field.default_value !== undefined) {
+    return normalizeByType(field, field.default_value as JsonValue);
   }
+
+  // 3) Finally type-specific fallback
+  return fallbackByType(field);
+};
+
+const normalizeByType = (field: FormField, raw: JsonValue): JsonValue => {
+  const type = String(field.field_type || '').trim();
+
+  switch (type) {
+    case 'Checkbox':
+    case 'Toggle Switch': {
+      // API uses 0/1 sometimes; also tolerate true/false
+      if (raw === 1 || raw === '1') return true;
+      if (raw === 0 || raw === '0') return false;
+      return Boolean(raw);
+    }
+
+    case 'Multi_Select': {
+      // Ensure array
+      return Array.isArray(raw) ? raw : [];
+    }
+
+    case 'Address Input': {
+      // Ensure object with expected keys (best-effort)
+      const obj =
+        raw && typeof raw === 'object' && !Array.isArray(raw)
+          ? (raw as any)
+          : {};
+      return {
+        street: obj.street ?? '',
+        city: obj.city ?? '',
+        state: obj.state ?? '',
+        postal_code: obj.postal_code ?? '',
+        country: obj.country ?? '',
+      };
+    }
+
+    case 'Location Picker': {
+      const obj =
+        raw && typeof raw === 'object' && !Array.isArray(raw)
+          ? (raw as any)
+          : {};
+      return {
+        lat: typeof obj.lat === 'number' ? obj.lat : null,
+        lng: typeof obj.lng === 'number' ? obj.lng : null,
+        address: typeof obj.address === 'string' ? obj.address : '',
+      };
+    }
+
+    default:
+      return raw;
+  }
+};
+
+const fallbackByType = (field: FormField): JsonValue => {
+  const type = String(field.field_type || '').trim();
+
+  // Always no defaults (as you said)
+  switch (type) {
+    case 'Document Upload':
+    case 'File Upload':
+    case 'Image Upload':
+    case 'Video Upload':
+    case 'Password Input':
+    case 'Signature Pad':
+      return null;
+  }
+
+  // Special structured types
+  switch (type) {
+    case 'Multi_Select':
+      return [];
+    case 'Address Input':
+      return { street: '', city: '', state: '', postal_code: '', country: '' };
+    case 'Location Picker':
+      return { lat: null, lng: null, address: '' };
+  }
+
+  // Boolean types (API is 0/1, runtime wants boolean)
+  switch (type) {
+    case 'Checkbox':
+    case 'Toggle Switch':
+      return false;
+  }
+
+  // Numeric types
+  switch (type) {
+    case 'Currency Input':
+    case 'Number Input':
+    case 'Percentage Input':
+    case 'Slider':
+    case 'Rating':
+      return 0;
+  }
+
+  // Everything else is string-ish by default
+  return '';
 };
 
 /**
  * Initialize runtime field values from form structure
+ * Sets up initial state with default values and empty errors
  */
 const initializeFieldValues = (allFields: FormField[]): RuntimeFieldValues => {
   const fieldValues: RuntimeFieldValues = {};
-
   allFields.forEach((field) => {
     fieldValues[field.field_id] = {
       fieldId: field.field_id,
@@ -113,7 +207,6 @@ const initializeFieldValues = (allFields: FormField[]): RuntimeFieldValues => {
       isValid: true,
     };
   });
-
   return fieldValues;
 };
 
@@ -122,12 +215,35 @@ const initializeFieldValues = (allFields: FormField[]): RuntimeFieldValues => {
  */
 const extractAllFields = (sections: FormSection[]): FormField[] => {
   const fields: FormField[] = [];
-
   sections.forEach((section) => {
     fields.push(...section.fields);
   });
-
   return fields;
+};
+
+/**
+ * Build a map of field dependencies for cross-field validation
+ * Key: field_id that others depend on
+ * Value: array of field_ids that need revalidation when key field changes
+ */
+const buildDependencyMap = (
+  allFields: FormField[],
+): Record<number, number[]> => {
+  const dependencyMap: Record<number, number[]> = {};
+
+  allFields.forEach((field) => {
+    if (hasCrossFieldRules(field)) {
+      const dependencies = getCrossFieldDependencies(field);
+      dependencies.forEach((dependsOnFieldId) => {
+        if (!dependencyMap[dependsOnFieldId]) {
+          dependencyMap[dependsOnFieldId] = [];
+        }
+        dependencyMap[dependsOnFieldId].push(field.field_id);
+      });
+    }
+  });
+
+  return dependencyMap;
 };
 
 // ================================
@@ -136,7 +252,6 @@ const extractAllFields = (sections: FormSection[]): FormField[] => {
 
 export const useRuntimeForm = ({
   formVersionId,
-  recordId,
   languageId = 1,
 }: UseRuntimeFormParams): UseRuntimeFormReturn => {
   // ================================
@@ -154,45 +269,64 @@ export const useRuntimeForm = ({
   // RUNTIME STATE
   // ================================
 
+  /**
+   * Single source of truth for field values and errors
+   * Each field contains: value, error, touched, isValid
+   */
   const [fieldValues, setFieldValues] = useState<RuntimeFieldValues>({});
-  const [validationState, setValidationState] = useState<FormValidationState>({
-    isValid: true,
-    isValidating: false,
-    fieldErrors: {},
-    globalErrors: [],
-  });
+
+  /**
+   * Selected transition ID (user can override default)
+   */
   const [selectedTransitionId, setSelectedTransitionId] = useState<
     number | null
   >(null);
 
-  // Language configuration
+  /**
+   * Language configuration
+   */
   const languageConfig: LanguageConfig = LANGUAGE_MAP[languageId];
 
   // ================================
   // DERIVED DATA
   // ================================
 
-  // Extract all fields (flattened from sections)
+  /**
+   * Extract all fields (flattened from sections)
+   */
   const allFields = useMemo(() => {
     if (!formStructure?.stage?.sections) return [];
     return extractAllFields(formStructure.stage.sections);
   }, [formStructure]);
 
-  // Extract all transitions
+  /**
+   * Extract all transitions
+   */
   const availableTransitions = useMemo(() => {
     return formStructure?.available_transitions || [];
   }, [formStructure]);
+
+  /**
+   * Build cross-field dependency map
+   * Maps field_id → fields that depend on it
+   */
+  const dependencyMap = useMemo(() => {
+    return buildDependencyMap(allFields);
+  }, [allFields]);
 
   // ================================
   // VISIBILITY ENGINE
   // ================================
 
+  /**
+   * Build visibility map for all entities (fields, sections, transitions)
+   * Recalculated whenever field values change
+   */
   const visibilityMap: VisibilityMap = useMemo(() => {
     if (!formStructure?.stage) {
       return { fields: {}, sections: {}, transitions: {} };
     }
 
-    // Build visibility map using the engine
     return buildVisibilityMap(
       allFields,
       formStructure.stage.sections,
@@ -206,7 +340,8 @@ export const useRuntimeForm = ({
   // ================================
 
   /**
-   * Validate a single field
+   * Validate a single field using the validation engine
+   * Passes all field values for cross-field validation support
    */
   const validateField = useCallback(
     async (fieldId: number): Promise<FieldValidationResult> => {
@@ -228,8 +363,7 @@ export const useRuntimeForm = ({
         };
       }
 
-      // Use validation engine
-      const result = engineValidateField(field, fieldValue.value);
+      const result = engineValidateField(field, fieldValue.value, fieldValues);
 
       return {
         fieldId,
@@ -242,12 +376,12 @@ export const useRuntimeForm = ({
 
   /**
    * Validate entire form
+   * Only validates visible fields
    */
   const validateForm = useCallback(async (): Promise<FormValidationResult> => {
     const fieldResults: Record<number, FieldValidationResult> = {};
     let isValid = true;
 
-    // Only validate visible fields
     const visibleFields = allFields.filter(
       (field) => visibilityMap.fields[field.field_id] !== false,
     );
@@ -255,7 +389,6 @@ export const useRuntimeForm = ({
     for (const field of visibleFields) {
       const result = await validateField(field.field_id);
       fieldResults[field.field_id] = result;
-
       if (!result.isValid) {
         isValid = false;
       }
@@ -272,25 +405,61 @@ export const useRuntimeForm = ({
   // TRANSITIONS ENGINE
   // ================================
 
+  /**
+   * Resolve submit button state from transitions engine
+   * Recalculated when field values or form validity changes
+   */
   const submitButtonState = useMemo(() => {
-    const valueMap: Record<number, any> = {};
+    const valueMap: Record<number, JsonValue> = {};
     Object.entries(fieldValues).forEach(([fieldId, fieldValue]) => {
       valueMap[Number(fieldId)] = fieldValue.value;
     });
 
+    const isFormValid = Object.values(fieldValues).every((fv) => fv.isValid);
+
     const result = resolveTransitions(
       availableTransitions,
       valueMap,
-      validationState.isValid,
+      isFormValid,
     );
 
     return result.submitButtonState;
-  }, [availableTransitions, fieldValues, validationState.isValid]);
+  }, [availableTransitions, fieldValues]);
+
+  // ================================
+  // VALIDATION STATE (DERIVED)
+  // ================================
+
+  /**
+   * Compute validation state from field values (single source of truth)
+   * This is derived state, not stored separately
+   */
+  const validationState: FormValidationState = useMemo(() => {
+    const fieldErrors: Record<number, string> = {};
+    let isValid = true;
+
+    Object.entries(fieldValues).forEach(([fieldId, fieldValue]) => {
+      if (fieldValue.error) {
+        fieldErrors[Number(fieldId)] = fieldValue.error;
+        isValid = false;
+      }
+    });
+
+    return {
+      isValid,
+      isValidating: false,
+      fieldErrors,
+      globalErrors: [],
+    };
+  }, [fieldValues]);
 
   // ================================
   // FIELD OPERATIONS
   // ================================
 
+  /**
+   * Get field value by ID
+   */
   const getFieldValue = useCallback(
     (fieldId: number): JsonValue => {
       return fieldValues[fieldId]?.value ?? null;
@@ -298,21 +467,57 @@ export const useRuntimeForm = ({
     [fieldValues],
   );
 
-  const setFieldValue = useCallback((fieldId: number, value: JsonValue) => {
-    setFieldValues((prev) => ({
-      ...prev,
-      [fieldId]: {
-        ...prev[fieldId],
-        fieldId,
-        value,
-        isValid: true, // Reset validation on change
-      },
-    }));
+  /**
+   * Set field value and trigger cross-field revalidation if needed
+   */
+  const setFieldValue = useCallback(
+    async (fieldId: number, value: JsonValue) => {
+      console.log(`[useRuntimeForm] setFieldValue called for field ${fieldId}:`, value);
+      setFieldValues((prev) => {
+        const newState = {
+          ...prev,
+          [fieldId]: {
+            ...prev[fieldId],
+            fieldId,
+            value,
+            error: null,
+            isValid: true,
+          },
+        };
+        console.log(`[useRuntimeForm] New fieldValues state for field ${fieldId}:`, newState[fieldId]);
+        return newState;
+      });
 
-    // Validate on change if configured
-    // For now, we'll validate on blur only
-  }, []);
+      // Revalidate dependent fields (cross-field validation)
+      const dependentFieldIds = dependencyMap[fieldId] || [];
+      if (dependentFieldIds.length > 0) {
+        setTimeout(async () => {
+          for (const dependentFieldId of dependentFieldIds) {
+            const dependentField = allFields.find(
+              (f) => f.field_id === dependentFieldId,
+            );
+            if (dependentField && fieldValues[dependentFieldId]?.touched) {
+              const result = await validateField(dependentFieldId);
+              setFieldValues((prev) => ({
+                ...prev,
+                [dependentFieldId]: {
+                  ...prev[dependentFieldId],
+                  error: result.errors[0] || null,
+                  isValid: result.isValid,
+                },
+              }));
+            }
+          }
+        }, 0);
+      }
+    },
+    [dependencyMap, allFields, fieldValues, validateField],
+  );
 
+  /**
+   * Mark field as touched and validate it
+   * Called on blur
+   */
   const setFieldTouched = useCallback(
     async (fieldId: number) => {
       setFieldValues((prev) => ({
@@ -323,7 +528,6 @@ export const useRuntimeForm = ({
         },
       }));
 
-      // Validate on blur
       const result = await validateField(fieldId);
 
       setFieldValues((prev) => ({
@@ -334,19 +538,13 @@ export const useRuntimeForm = ({
           isValid: result.isValid,
         },
       }));
-
-      // Update validation state
-      setValidationState((prev) => ({
-        ...prev,
-        fieldErrors: {
-          ...prev.fieldErrors,
-          [fieldId]: result.errors[0] || '',
-        },
-      }));
     },
     [validateField],
   );
 
+  /**
+   * Get field error (single source of truth)
+   */
   const getFieldError = useCallback(
     (fieldId: number): string | null => {
       return fieldValues[fieldId]?.error ?? null;
@@ -384,7 +582,15 @@ export const useRuntimeForm = ({
   // ================================
 
   /**
-   * Apply hidden field policy to form values before submission
+   * Build the payload to submit to the backend.
+   *
+   * Behavior:
+   * - Visible fields: INCLUDED with their current values
+   * - Hidden fields: ALWAYS IGNORED (not submitted), even if they currently have values
+   *
+   * Rationale:
+   * - Prevents stale/previous values from hidden fields from being sent unintentionally
+   * - Keeps submission strictly aligned with what the user can currently see/edit
    */
   const applyHiddenFieldPolicy = useCallback(
     (values: RuntimeFieldValues): Record<number, JsonValue> => {
@@ -394,71 +600,52 @@ export const useRuntimeForm = ({
         const fieldId = Number(fieldIdStr);
         const isVisible = visibilityMap.fields[fieldId] !== false;
 
-        if (isVisible) {
-          // Always include visible fields
-          submissionValues[fieldId] = fieldValue.value;
-        } else {
-          // Apply policy for hidden fields
-          switch (ACTIVE_HIDDEN_FIELD_POLICY) {
-            case HiddenFieldPolicy.PRESERVE:
-              // Include hidden field with current value
-              submissionValues[fieldId] = fieldValue.value;
-              break;
+        // Hidden fields are always ignored (never submitted)
+        if (!isVisible) return;
 
-            case HiddenFieldPolicy.CLEAR:
-              // Exclude hidden field from submission
-              break;
-
-            case HiddenFieldPolicy.DEFAULT:
-              // Include hidden field with default value
-              const field = allFields.find((f) => f.field_id === fieldId);
-              if (field) {
-                submissionValues[fieldId] = getFieldDefaultValue(field);
-              }
-              break;
-          }
-        }
+        // Visible fields are submitted with their current runtime value
+        submissionValues[fieldId] = fieldValue.value;
       });
 
       return submissionValues;
     },
-    [visibilityMap, allFields],
+    [visibilityMap],
   );
 
+  /**
+   * Handle form submission
+   *
+   * Flow:
+   * 1. Validate all visible fields
+   * 2. Mark all fields as touched to show errors
+   * 3. Stop if validation fails
+   * 4. Resolve transition to execute (selected or default)
+   * 5. Apply hidden field policy
+   * 6. Submit via immutable hook
+   */
   const handleSubmit = useCallback(async () => {
-    // Validate entire form first
-    setValidationState((prev) => ({ ...prev, isValidating: true }));
-
     const validationResult = await validateForm();
 
-    setValidationState({
-      isValid: validationResult.isValid,
-      isValidating: false,
-      fieldErrors: Object.entries(validationResult.fieldResults).reduce(
-        (acc, [fieldId, result]) => {
-          acc[Number(fieldId)] = result.errors[0] || '';
-          return acc;
-        },
-        {} as Record<number, string>,
-      ),
-      globalErrors: validationResult.globalErrors,
-    });
-
-    // Mark all fields as touched to show errors
     setFieldValues((prev) => {
       const updated = { ...prev };
-      Object.keys(updated).forEach((fieldId) => {
-        updated[Number(fieldId)].touched = true;
-      });
+      Object.entries(validationResult.fieldResults).forEach(
+        ([fieldId, result]) => {
+          const id = Number(fieldId);
+          updated[id] = {
+            ...updated[id],
+            touched: true,
+            error: result.errors[0] || null,
+            isValid: result.isValid,
+          };
+        },
+      );
       return updated;
     });
 
     if (!validationResult.isValid) {
-      console.warn('[useRuntimeForm] Form validation failed');
       return;
     }
 
-    // Get transition to execute
     const transitionId =
       selectedTransitionId || submitButtonState.selectedTransitionId;
     if (!transitionId) {
@@ -466,10 +653,8 @@ export const useRuntimeForm = ({
       return;
     }
 
-    // Apply hidden field policy
     const submissionValues = applyHiddenFieldPolicy(fieldValues);
 
-    // Convert to API format: array of field_values
     const fieldValuesArray = Object.entries(submissionValues).map(
       ([fieldId, value]) => ({
         field_id: Number(fieldId),
@@ -477,22 +662,19 @@ export const useRuntimeForm = ({
       }),
     );
 
-    // Submit via immutable hook
     try {
       await submitForm({
         form_version_id: formVersionId,
         stage_transition_id: transitionId,
         field_values: fieldValuesArray,
       });
-
-      console.log('[useRuntimeForm] Form submitted successfully');
+      console.log('[useRuntimeForm] Form submitted successfully:', {
+        formVersionId,
+        transitionId,
+        fieldValuesArray,
+      });
     } catch (error) {
       console.error('[useRuntimeForm] Form submission failed:', error);
-
-      setValidationState((prev) => ({
-        ...prev,
-        globalErrors: ['Submission failed. Please try again.'],
-      }));
     }
   }, [
     validateForm,
@@ -502,7 +684,6 @@ export const useRuntimeForm = ({
     applyHiddenFieldPolicy,
     submitForm,
     formVersionId,
-    recordId,
   ]);
 
   // ================================
@@ -525,6 +706,9 @@ export const useRuntimeForm = ({
   // INITIALIZATION
   // ================================
 
+  /**
+   * Initialize field values when form structure loads
+   */
   useEffect(() => {
     if (allFields.length > 0 && Object.keys(fieldValues).length === 0) {
       const initialized = initializeFieldValues(allFields);
@@ -545,36 +729,24 @@ export const useRuntimeForm = ({
   };
 
   return {
-    // State
     formState,
     visibilityMap,
     validationState,
-
-    // Field operations
     getFieldValue,
     setFieldValue,
     setFieldTouched,
     getFieldError,
-
-    // Visibility queries
     isFieldVisible,
     isSectionVisible,
     isTransitionVisible,
-
-    // Validation
     validateField,
     validateForm,
-
-    // Transitions
     submitButtonState,
     selectTransition: setSelectedTransitionId,
-
-    // Form submission
     handleSubmit,
-
-    // Form state
     isFormValid,
     isFormDirty,
     canSubmit,
+    languageId,
   };
 };

@@ -59,6 +59,10 @@ export interface AddressInputProps {
   disabled?: boolean;
   
   /**
+   * Current language ID
+   */
+  languageId?: number;
+  /**
    * Additional CSS classes
    */
   className?: string;

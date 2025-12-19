@@ -2,13 +2,23 @@
  * ================================
  * CHECKBOX INPUT COMPONENT
  * ================================
- * Production-ready Checkbox field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Proper styling matching preview component
- * - Required checkbox validation (must be checked if required)
- * - Accessibility support
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Checkbox field component.
+ *
+ * Responsibilities:
+ * - Render single checkbox with label
+ * - Emit boolean value changes via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
  */
 
 import { useEffect, useState, forwardRef } from 'react';
@@ -21,13 +31,42 @@ import {
   convertAPIValueToCheckbox,
 } from './validation/checkboxValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedCheckboxConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      ariaDescriptionSuffix: ' - خانة اختيار',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      ariaDescriptionSuffix: ' - casilla de verificación',
+    };
+  }
+
+  // English (default)
+  return {
+    ariaDescriptionSuffix: ' - checkbox',
+  };
+};
+
+// ================================
+// COMPONENT
+// ================================
+
 /**
  * CheckboxInput Component
- * 
- * Renders a single checkbox with label and validation
- * Integrates with form systems via onChange callback
- * Supports forwardRef for scrolling to errors
- * 
+ *
+ * Renders a single checkbox with label and validation.
+ * Integrates with form systems via onChange callback.
+ * Supports forwardRef for scrolling to errors.
+ *
  * @example
  * ```
  * <CheckboxInput
@@ -40,13 +79,10 @@ import {
  * ```
  */
 export const CheckboxInput = forwardRef<HTMLDivElement, CheckboxInputProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[CheckboxInput] Rendering for field:', field.field_id);
-
-    // Initialize with default value or current value
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const [localValue, setLocalValue] = useState<boolean>(() => {
       if (typeof value === 'boolean') return value;
-      
+
       if (field.current_value !== null && field.current_value !== undefined) {
         const currentVal = field.current_value;
         if (
@@ -57,46 +93,37 @@ export const CheckboxInput = forwardRef<HTMLDivElement, CheckboxInputProps>(
           return convertAPIValueToCheckbox(currentVal);
         }
       }
-      
+
       return getDefaultCheckboxValue(field);
     });
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const { ariaDescriptionSuffix } = getLocalizedCheckboxConfig(languageId);
 
-    // Update local value when external value changes
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+
     useEffect(() => {
       if (typeof value === 'boolean') {
         setLocalValue(value);
       }
     }, [value]);
 
-    /**
-     * Handle checkbox change
-     */
     const handleChange = (checked: boolean) => {
       setLocalValue(checked);
       onChange(checked);
-
-      console.debug('[CheckboxInput] Checkbox changed:', {
-        fieldId: field.field_id,
-        checked,
-      });
     };
 
-    // Generate unique ID for accessibility
     const checkboxId = `checkbox-${field.field_id}`;
 
     return (
       <div ref={ref} className={cn('space-y-2', className)}>
-        {/* Checkbox with Label */}
         <div className="flex items-start space-x-3">
-          {/* Required Indicator */}
           {isRequired && (
-            <span className="text-destructive text-sm font-medium pt-0.5">*</span>
+            <span className="text-destructive text-sm font-medium pt-0.5">
+              *
+            </span>
           )}
 
-          {/* Checkbox */}
           <Checkbox
             id={checkboxId}
             checked={localValue}
@@ -105,27 +132,30 @@ export const CheckboxInput = forwardRef<HTMLDivElement, CheckboxInputProps>(
             aria-required={isRequired}
             aria-invalid={!!error}
             aria-describedby={
-              error ? `${checkboxId}-error` : field.helper_text ? `${checkboxId}-description` : undefined
+              error
+                ? `${checkboxId}-error`
+                : field.helper_text
+                  ? `${checkboxId}-description`
+                  : undefined
             }
+            aria-label={`${field.label}${ariaDescriptionSuffix}`}
             className={cn(
               'mt-0.5',
-              error && 'border-destructive data-[state=checked]:bg-destructive'
+              error && 'border-destructive data-[state=checked]:bg-destructive',
             )}
           />
 
-          {/* Label */}
           <div className="flex-1 space-y-1">
             <Label
               htmlFor={checkboxId}
               className={cn(
                 'text-sm font-medium cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-                error && 'text-destructive'
+                error && 'text-destructive',
               )}
             >
               {field.label}
             </Label>
 
-            {/* Helper Text */}
             {field.helper_text && !error && (
               <p
                 id={`${checkboxId}-description`}
@@ -135,7 +165,6 @@ export const CheckboxInput = forwardRef<HTMLDivElement, CheckboxInputProps>(
               </p>
             )}
 
-            {/* Error Message */}
             {error && (
               <p
                 id={`${checkboxId}-error`}
@@ -149,7 +178,7 @@ export const CheckboxInput = forwardRef<HTMLDivElement, CheckboxInputProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 CheckboxInput.displayName = 'CheckboxInput';

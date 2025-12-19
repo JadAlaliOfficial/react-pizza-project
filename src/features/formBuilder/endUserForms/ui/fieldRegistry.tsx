@@ -81,111 +81,301 @@ const UnknownFieldComponent: React.FC<RuntimeFieldProps> = ({ field }) => {
  */
 
 const TextInput: RuntimeFieldComponent = (props) => (
-  <TextInputComponent {...props as any} />
+  <TextInputComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const TextArea: RuntimeFieldComponent = (props) => (
-  <TextAreaComponent {...props as any} />
+  <TextAreaComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+    rows={4}
+  />
 );
 
 const EmailInput: RuntimeFieldComponent = (props) => (
-  <EmailInputComponent {...props as any} />
+  <EmailInputComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const PhoneInput: RuntimeFieldComponent = (props) => (
-  <PhoneInputComponent {...props as any} />
+  <PhoneInputComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const PasswordInput: RuntimeFieldComponent = (props) => (
-  <PasswordInputComponent {...props as any} />
+  <PasswordInputComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const UrlInput: RuntimeFieldComponent = (props) => (
-  <UrlInputComponent {...props as any} />
+  <UrlInputComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const NumberInput: RuntimeFieldComponent = (props) => (
-  <NumberInputComponent {...props as any} />
+  <NumberInputComponent
+    field={props.field}
+    value={props.value as number}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const CurrencyInput: RuntimeFieldComponent = (props) => (
-  <CurrencyInputComponent {...props as any} />
+  <CurrencyInputComponent
+    field={props.field}
+    value={props.value as number}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const PercentageInput: RuntimeFieldComponent = (props) => (
-  <PercentageInputComponent {...props as any} />
+  <PercentageInputComponent
+    field={props.field}
+    value={props.value as number}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const DateInput: RuntimeFieldComponent = (props) => (
-  <DateInputComponent {...props as any} />
+  <DateInputComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const DateTimeInput: RuntimeFieldComponent = (props) => (
-  <DateTimeInputComponent {...props as any} />
+  <DateTimeInputComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const TimeInput: RuntimeFieldComponent = (props) => (
-  <TimeInputComponent {...props as any} />
+  <TimeInputComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const CheckboxInput: RuntimeFieldComponent = (props) => (
-  <CheckboxInputComponent {...props as any} />
+  <CheckboxInputComponent
+    field={props.field}
+    value={props.value as boolean}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const ToggleSwitch: RuntimeFieldComponent = (props) => (
-  <ToggleSwitchComponent {...props as any} />
+  <ToggleSwitchComponent
+    field={props.field}
+    value={props.value as boolean}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const RadioButton: RuntimeFieldComponent = (props) => (
-  <RadioButtonComponent {...props as any} />
+  <RadioButtonComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const DropdownSelect: RuntimeFieldComponent = (props) => (
-  <DropdownSelectComponent {...props as any} />
+  <DropdownSelectComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const MultiSelect: RuntimeFieldComponent = (props) => (
-  <MultiSelectComponent {...props as any} />
+  <MultiSelectComponent
+    field={props.field}
+    value={props.value as string[]}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const FileUpload: RuntimeFieldComponent = (props) => (
-  <FileUploadComponent {...props as any} />
+  <FileUploadComponent
+    field={props.field}
+    value={props.value as any}
+    onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const ImageUpload: RuntimeFieldComponent = (props) => (
-  <ImageUploadComponent {...props as any} />
+  <ImageUploadComponent
+    field={props.field}
+    value={props.value as any}
+    onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const DocumentUpload: RuntimeFieldComponent = (props) => (
-  <DocumentUploadComponent {...props as any} />
+  <DocumentUploadComponent
+    field={props.field}
+    value={props.value as any}
+    onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const SignaturePad: RuntimeFieldComponent = (props) => (
-  <SignaturePadComponent {...props as any} />
+  <SignaturePadComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const ColorPickerInput: RuntimeFieldComponent = (props) => (
-  <ColorPickerInputComponent {...props as any} />
+  <ColorPickerInputComponent
+    field={props.field}
+    value={props.value as string}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const PopupLocationPicker: RuntimeFieldComponent = (props) => (
-  <PopupLocationPickerComponent {...props as any} />
+  <PopupLocationPickerComponent
+    field={props.field}
+    value={props.value as any}
+    onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const AddressInput: RuntimeFieldComponent = (props) => (
-  <AddressInputComponent {...props as any} />
+  <AddressInputComponent
+    field={props.field}
+    value={props.value as any}
+    onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const Rating: RuntimeFieldComponent = (props) => (
-  <RatingComponent {...props as any} />
+  <RatingComponent
+    field={props.field}
+    value={props.value as number}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const Slider: RuntimeFieldComponent = (props) => (
-  <SliderComponent {...props as any} />
+  <SliderComponent
+    field={props.field}
+    value={props.value as number}
+    onChange={(value) => props.onChange(props.field.field_id, value)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 const VideoUpload: RuntimeFieldComponent = (props) => (
-  <FileUploadComponent {...props as any} />
+  <FileUploadComponent
+    field={props.field}
+    value={props.value as any}
+    onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    error={props.error || undefined}
+    disabled={props.disabled}
+    languageId={props.languageId}
+  />
 );
 
 // ================================

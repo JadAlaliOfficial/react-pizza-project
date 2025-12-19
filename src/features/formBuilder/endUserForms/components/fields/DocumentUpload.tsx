@@ -2,14 +2,24 @@
  * ================================
  * DOCUMENT UPLOAD COMPONENT
  * ================================
- * Production-ready Document Upload field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Drag and drop support
- * - File type validation
- * - File size validation (min/max)
- * - Preview of selected file
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Document Upload field component.
+ *
+ * Responsibilities:
+ * - Render document upload area with drag-and-drop support
+ * - Emit File object changes via onChange callback
+ * - Display validation errors from parent
+ * - Apply file type and size constraints from field rules
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for drag/drop UI and file preview
  */
 
 import React, { useEffect, useState, useRef, forwardRef } from 'react';
@@ -33,13 +43,66 @@ import {
   getFileSizeInKB,
 } from './validation/documentUploadValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedDocumentUploadConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      pdfLabel: 'PDF',
+      wordLabel: 'وورد',
+      excelLabel: 'إكسل',
+      pptLabel: 'عرض',
+      mainText: 'اسحب وأسقط المستند هنا، أو ',
+      browseText: 'تصفح',
+      acceptedPrefix: 'الأنواع المسموح بها: ',
+      maxPrefix: 'الحد الأقصى: ',
+      ariaSuffix: ' - حقل رفع المستند',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      pdfLabel: 'PDF',
+      wordLabel: 'Word',
+      excelLabel: 'Excel',
+      pptLabel: 'PPT',
+      mainText: 'Arrastra y suelta el documento aquí, o ',
+      browseText: 'explorar',
+      acceptedPrefix: 'Aceptados: ',
+      maxPrefix: 'Máx.: ',
+      ariaSuffix: ' - campo de carga de documentos',
+    };
+  }
+
+  // English (default)
+  return {
+    pdfLabel: 'PDF',
+    wordLabel: 'Word',
+    excelLabel: 'Excel',
+    pptLabel: 'PPT',
+    mainText: 'Drag and drop document here, or ',
+    browseText: 'browse',
+    acceptedPrefix: 'Accepted: ',
+    maxPrefix: 'Max: ',
+    ariaSuffix: ' - document upload field',
+  };
+};
+
+// ================================
+// COMPONENT
+// ================================
+
 /**
  * DocumentUpload Component
- * 
- * Renders a document upload area with drag-and-drop and file validation
- * Integrates with form systems via onChange callback
- * Supports forwardRef for scrolling to errors
- * 
+ *
+ * Renders a document upload area with drag-and-drop and file validation.
+ * Integrates with form systems via onChange callback.
+ * Supports forwardRef for scrolling to errors.
+ *
  * @example
  * ```
  * <DocumentUpload
@@ -52,29 +115,38 @@ import {
  * ```
  */
 export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[DocumentUpload] Rendering for field:', field.field_id);
-
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(value || null);
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Get accepted MIME types
     const acceptedTypes = getAcceptedMimeTypes(field.rules || []);
-    
-    // Get MIME types for display
+
     const mimeTypesRule = field.rules?.find((rule) => rule.rule_name === 'mimetypes');
     const mimeTypes = (mimeTypesRule?.rule_props as { types?: string[] })?.types || [];
-    const readableTypes = mimeTypes.length > 0 ? getReadableFileTypes(mimeTypes) : 'All files';
+    const readableTypes =
+      mimeTypes.length > 0 ? getReadableFileTypes(mimeTypes) : 'All files';
 
-    // Get file size limits
-    const maxSizeRule = field.rules?.find((rule) => rule.rule_name === 'max_file_size');
+    const maxSizeRule = field.rules?.find(
+      (rule) => rule.rule_name === 'max_file_size',
+    );
     const maxSize = (maxSizeRule?.rule_props as { maxsize?: number })?.maxsize;
 
-    // Update local file when external value changes
+    const {
+      pdfLabel,
+      wordLabel,
+      excelLabel,
+      pptLabel,
+      mainText,
+      browseText,
+      acceptedPrefix,
+      maxPrefix,
+      ariaSuffix,
+    } = getLocalizedDocumentUploadConfig(languageId);
+
     useEffect(() => {
       if (value instanceof File) {
         setSelectedFile(value);
@@ -83,24 +155,11 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
       }
     }, [value]);
 
-    /**
-     * Handle file selection
-     */
     const handleFileSelect = (file: File) => {
       setSelectedFile(file);
       onChange(file);
-
-      console.debug('[DocumentUpload] File selected:', {
-        fieldId: field.field_id,
-        fileName: file.name,
-        fileSize: getFileSizeInKB(file),
-        fileType: file.type,
-      });
     };
 
-    /**
-     * Handle file input change
-     */
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
@@ -108,9 +167,6 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
       }
     };
 
-    /**
-     * Handle drag events
-     */
     const handleDragEnter = (e: React.DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -143,9 +199,6 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
       }
     };
 
-    /**
-     * Handle remove file
-     */
     const handleRemoveFile = () => {
       setSelectedFile(null);
       onChange(null);
@@ -154,19 +207,14 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
       }
     };
 
-    /**
-     * Trigger file input click
-     */
     const handleBrowseClick = () => {
       fileInputRef.current?.click();
     };
 
-    // Generate unique ID for accessibility
     const documentUploadId = `document-upload-${field.field_id}`;
 
     return (
       <div ref={ref} className={cn('space-y-3', className)}>
-        {/* Field Label with Icon */}
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-orange-500" />
           <Label htmlFor={documentUploadId} className="text-sm font-medium">
@@ -175,7 +223,6 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
           </Label>
         </div>
 
-        {/* Upload Area */}
         {!selectedFile ? (
           <div
             className={cn(
@@ -185,66 +232,72 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
                 : error
                 ? 'border-destructive bg-destructive/5'
                 : 'border-orange-300 bg-orange-50/30',
-              disabled && 'opacity-50 cursor-not-allowed'
+              disabled && 'opacity-50 cursor-not-allowed',
             )}
             onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {/* Document Type Icons */}
             <div className="p-6 flex items-center justify-center gap-4 border-b border-orange-200">
               <div className="text-center">
                 <div className="w-12 h-16 bg-red-100 rounded border-2 border-red-300 flex items-center justify-center mb-1">
                   <FileText className="h-6 w-6 text-red-600" />
                 </div>
-                <span className="text-[10px] text-muted-foreground font-medium">PDF</span>
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  {pdfLabel}
+                </span>
               </div>
               <div className="text-center">
                 <div className="w-12 h-16 bg-blue-100 rounded border-2 border-blue-300 flex items-center justify-center mb-1">
                   <FileIcon className="h-6 w-6 text-blue-600" />
                 </div>
-                <span className="text-[10px] text-muted-foreground font-medium">Word</span>
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  {wordLabel}
+                </span>
               </div>
               <div className="text-center">
                 <div className="w-12 h-16 bg-green-100 rounded border-2 border-green-300 flex items-center justify-center mb-1">
                   <FileSpreadsheet className="h-6 w-6 text-green-600" />
                 </div>
-                <span className="text-[10px] text-muted-foreground font-medium">Excel</span>
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  {excelLabel}
+                </span>
               </div>
               <div className="text-center">
                 <div className="w-12 h-16 bg-orange-100 rounded border-2 border-orange-300 flex items-center justify-center mb-1">
                   <FileImage className="h-6 w-6 text-orange-600" />
                 </div>
-                <span className="text-[10px] text-muted-foreground font-medium">PPT</span>
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  {pptLabel}
+                </span>
               </div>
             </div>
 
-            {/* Upload Button Area */}
             <div className="p-6 text-center">
               <div className="flex flex-col items-center gap-3">
                 <Upload className="h-8 w-8 text-orange-400" />
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">
-                    Drag and drop document here, or{' '}
+                    {mainText}
                     <button
                       type="button"
                       onClick={handleBrowseClick}
                       disabled={disabled}
                       className="text-orange-600 hover:text-orange-700 font-medium underline"
                     >
-                      browse
+                      {browseText}
                     </button>
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Accepted: {readableTypes}
-                    {maxSize && ` • Max: ${formatFileSize(maxSize)}`}
+                    {acceptedPrefix}
+                    {readableTypes}
+                    {maxSize && ` • ${maxPrefix}${formatFileSize(maxSize)}`}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Hidden File Input */}
             <input
               ref={fileInputRef}
               id={documentUploadId}
@@ -253,13 +306,12 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
               onChange={handleFileInputChange}
               disabled={disabled}
               className="hidden"
-              aria-label={field.label}
+              aria-label={`${field.label}${ariaSuffix}`}
               aria-required={isRequired}
               aria-invalid={!!error}
             />
           </div>
         ) : (
-          /* Selected File Preview */
           <div className="border-2 border-green-300 bg-green-50/30 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
@@ -285,12 +337,10 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
           </div>
         )}
 
-        {/* Helper Text */}
         {field.helper_text && !error && (
           <p className="text-xs text-muted-foreground">{field.helper_text}</p>
         )}
 
-        {/* Error Message */}
         {error && (
           <p className="text-xs text-destructive font-medium" role="alert">
             {error}
@@ -298,7 +348,7 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 DocumentUpload.displayName = 'DocumentUpload';

@@ -221,6 +221,7 @@ export interface RuntimeFieldProps {
   onChange: (fieldId: number, value: JsonValue) => void;
   onBlur: (fieldId: number) => void;
   direction: Direction;
+  languageId?: number;
 }
 
 /**
@@ -365,6 +366,7 @@ export interface UseRuntimeFormReturn {
   isFormValid: boolean;
   isFormDirty: boolean;
   canSubmit: boolean;
+  languageId: LanguageId;
 }
 
 // =============================================================================

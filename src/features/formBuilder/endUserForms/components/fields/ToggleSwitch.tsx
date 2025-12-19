@@ -2,13 +2,22 @@
  * ================================
  * TOGGLE SWITCH COMPONENT
  * ================================
- * Production-ready Toggle Switch field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - On/off state management
- * - Inline layout with label and helper text
- * - Required validation (must be enabled)
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Toggle Switch field component.
+ *
+ * Responsibilities:
+ * - Render toggle switch
+ * - Emit boolean value via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
  */
 
 import { useEffect, useState, forwardRef } from 'react';
@@ -19,13 +28,41 @@ import { cn } from '@/lib/utils';
 import type { ToggleSwitchProps } from './types/toggleSwitchField.types';
 import { getDefaultToggleSwitchValue } from './validation/toggleSwitchValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedToggleConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      enabledLabel: 'مفعّل',
+      ariaSuffix: ' - مفتاح تبديل',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      enabledLabel: 'Activado',
+      ariaSuffix: ' - interruptor',
+    };
+  }
+
+  // English (default)
+  return {
+    enabledLabel: 'Enabled',
+    ariaSuffix: ' - toggle switch',
+  };
+};
+
 /**
  * ToggleSwitch Component
- * 
+ *
  * Renders a toggle switch with inline layout
  * Integrates with form systems via onChange callback
  * Supports forwardRef for scrolling to errors
- * 
+ *
  * @example
  * ```
  * <ToggleSwitch
@@ -38,35 +75,33 @@ import { getDefaultToggleSwitchValue } from './validation/toggleSwitchValidation
  * ```
  */
 export const ToggleSwitch = forwardRef<HTMLDivElement, ToggleSwitchProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[ToggleSwitch] Rendering for field:', field.field_id);
-
-    // Initialize with default value or current value
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const [localValue, setLocalValue] = useState<boolean>(() => {
       if (typeof value === 'boolean') {
         return value;
       }
-      
-      if (field.current_value !== null && field.current_value !== undefined) {
+
+      if (
+        field.current_value !== null &&
+        field.current_value !== undefined
+      ) {
         return getDefaultToggleSwitchValue(field);
       }
-      
+
       return getDefaultToggleSwitchValue(field);
     });
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Update local value when external value changes
+    const { enabledLabel, ariaSuffix } = getLocalizedToggleConfig(languageId);
+
     useEffect(() => {
       if (typeof value === 'boolean') {
         setLocalValue(value);
       }
     }, [value]);
 
-    /**
-     * Handle toggle change
-     */
     const handleChange = (checked: boolean) => {
       setLocalValue(checked);
       onChange(checked);
@@ -77,11 +112,14 @@ export const ToggleSwitch = forwardRef<HTMLDivElement, ToggleSwitchProps>(
       });
     };
 
-    // Generate unique ID for accessibility
     const toggleId = `toggle-${field.field_id}`;
 
     return (
-      <div ref={ref} className={cn('space-y-3', className)}>
+      <div
+        ref={ref}
+        className={cn('space-y-3', className)}
+        aria-label={`${field.label}${ariaSuffix}`}
+      >
         {/* Header with Icon */}
         <div className="flex items-center gap-2">
           <ToggleLeft className="h-4 w-4 text-teal-500" />
@@ -98,7 +136,7 @@ export const ToggleSwitch = forwardRef<HTMLDivElement, ToggleSwitchProps>(
             error
               ? 'border-destructive bg-destructive/5'
               : 'border-border bg-card hover:bg-accent/50',
-            disabled && 'opacity-60 cursor-not-allowed'
+            disabled && 'opacity-60 cursor-not-allowed',
           )}
         >
           {/* Label and Helper Text */}
@@ -110,7 +148,11 @@ export const ToggleSwitch = forwardRef<HTMLDivElement, ToggleSwitchProps>(
               </p>
             )}
             {error && (
-              <p className="text-xs text-destructive font-medium mt-1" role="alert">
+              <p
+                className="text-xs text-destructive font-medium mt-1"
+                role="alert"
+                id={`${toggleId}-error`}
+              >
                 {error}
               </p>
             )}
@@ -124,7 +166,7 @@ export const ToggleSwitch = forwardRef<HTMLDivElement, ToggleSwitchProps>(
             disabled={disabled}
             className={cn(
               'data-[state=checked]:bg-teal-500',
-              error && 'data-[state=unchecked]:border-destructive'
+              error && 'data-[state=unchecked]:border-destructive',
             )}
             aria-label={field.label}
             aria-required={isRequired}
@@ -137,12 +179,12 @@ export const ToggleSwitch = forwardRef<HTMLDivElement, ToggleSwitchProps>(
         {localValue && !error && (
           <div className="flex items-center gap-2 text-xs text-teal-600">
             <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-            <span className="font-medium">Enabled</span>
+            <span className="font-medium">{enabledLabel}</span>
           </div>
         )}
       </div>
     );
-  }
+  },
 );
 
 ToggleSwitch.displayName = 'ToggleSwitch';

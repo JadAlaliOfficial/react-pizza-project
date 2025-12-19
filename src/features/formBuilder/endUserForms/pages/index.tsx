@@ -1,10 +1,23 @@
 /**
  * ================================
- * FORM PAGE - NEW RUNTIME SYSTEM
+ * FORM PAGE - RUNTIME SYSTEM
  * ================================
- * 
- * Simplified form page using the new runtime form system.
- * All complexity (visibility, validation, state management) is handled internally.
+ *
+ * Main form page using the runtime form system.
+ *
+ * Responsibilities:
+ * - Route parameter extraction (formVersionId, languageId)
+ * - Fetch form structure via useFormStructure
+ * - Apply RTL/language at page level (not in field components)
+ * - Pass form structure to renderer
+ * - Handle loading, error, and success states
+ *
+ * Architecture Decisions:
+ * - Page-level RTL application (dir attribute on root element)
+ * - Language configuration centralized via LANGUAGE_MAP
+ * - All business logic delegated to runtime form hook and renderer
+ * - Clean separation: routing/loading vs form rendering
+ * - No debug logs
  */
 
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,24 +27,26 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { LANGUAGE_MAP, type LanguageId } from '@/features/formBuilder/endUserForms/types/runtime.types';
 
 export default function FormPage() {
   const navigate = useNavigate();
   const params = useParams<{ formVersionId: string; languageId: string }>();
 
-  // Get form parameters from URL path
   const formVersionId = parseInt(params.formVersionId || '0');
-  const languageId = parseInt(params.languageId || '1') as 1 | 2 | 3;
-  
-  // Optional: Get recordId from query params if editing existing record
-  const recordId = undefined; // Or get from query params if needed
+  const languageId = parseInt(params.languageId || '1') as LanguageId;
+  const recordId = undefined;
 
-  // Fetch form structure
+  const languageConfig = LANGUAGE_MAP[languageId];
+
   const {
     data: formStructure,
     isLoading,
     error,
-  } = useFormStructure({ formVersionId, languageId });
+  } = useFormStructure({
+    formVersionId,
+    languageId,
+  });
 
   // ================================
   // LOADING STATE
@@ -39,15 +54,16 @@ export default function FormPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-4xl py-8">
+      <div className="container mx-auto py-8" dir={languageConfig.direction}>
         <Card>
           <CardHeader>
             <Skeleton className="h-8 w-64" />
           </CardHeader>
-          <CardContent className="space-y-6">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
+          <CardContent className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-10 w-32" />
           </CardContent>
         </Card>
       </div>
@@ -60,16 +76,11 @@ export default function FormPage() {
 
   if (error || !formStructure) {
     return (
-      <div className="container mx-auto max-w-4xl py-8">
+      <div className="container mx-auto py-8" dir={languageConfig.direction}>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load form. Please try again later.
-            {error && (
-              <div className="mt-2 text-xs">
-                Error: {error.message || 'Unknown error'}
-              </div>
-            )}
+            {error?.message || 'Failed to load form. Please try again.'}
           </AlertDescription>
         </Alert>
       </div>
@@ -77,39 +88,24 @@ export default function FormPage() {
   }
 
   // ================================
-  // SUCCESS HANDLERS
-  // ================================
-
-  const handleSuccess = (data: any) => {
-    // console.log('Form submitted successfully:', data);
-    
-    // Show success message or redirect
-    console.log('done ...');
-  };
-
-  const handleError = (error: any) => {
-    console.error('Form submission failed:', error);
-    // Error is already displayed by the form renderer
-  };
-
-  // ================================
-  // RENDER FORM
+  // SUCCESS STATE - RENDER FORM
   // ================================
 
   return (
-    <div className="container mx-auto max-w-4xl py-8">
-      <Card>
-        <CardContent className="pt-6">
-          <CompleteFormRenderer
-            formVersionId={formVersionId}
-            recordId={recordId}
-            languageId={languageId}
-            formStructure={formStructure}
-            onSuccess={handleSuccess}
-            onError={handleError}
-          />
-        </CardContent>
-      </Card>
+    <div className="container mx-auto py-8" dir={languageConfig.direction}>
+      <CompleteFormRenderer
+        formStructure={formStructure}
+        formVersionId={formVersionId}
+        languageId={languageId}
+        recordId={recordId}
+        onSuccess={(data) => {
+          if (data.is_complete) {
+            navigate('/forms/success');
+          } else {
+            navigate(`/forms/${formVersionId}/stage/${data.current_stage_id}`);
+          }
+        }}
+      />
     </div>
   );
 }

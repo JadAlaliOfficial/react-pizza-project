@@ -2,13 +2,23 @@
  * ================================
  * TIME INPUT COMPONENT
  * ================================
- * Production-ready Time Input field component with:
- * - Dynamic configuration from API field data
- * - Zod validation based on field rules
- * - Native HTML5 time picker
- * - 24-hour format (HH:MM)
- * - Quick time helper display
- * - ForwardRef support for parent scrolling
+ *
+ * Production-ready Time Input field component.
+ *
+ * Responsibilities:
+ * - Render time input
+ * - Emit value via onChange callback
+ * - Display validation errors from parent
+ * - Apply disabled state
+ * - Support accessibility
+ *
+ * Architecture Decisions:
+ * - Dumb component - no validation/visibility/business logic
+ * - Props match RuntimeFieldProps contract
+ * - No debug logs
+ * - No RTL logic (handled by parent)
+ * - ForwardRef for error scrolling
+ * - Local state for controlled input behavior
  */
 
 import React, { useEffect, useState, forwardRef } from 'react';
@@ -24,13 +34,53 @@ import {
   getCurrentTime,
 } from './validation/timeInputValidation';
 
+// ================================
+// LOCALIZATION
+// ================================
+
+const getLocalizedTimeConfig = (languageId?: number) => {
+  if (languageId === 2) {
+    // Arabic
+    return {
+      placeholder: 'ساعة:دقيقة',
+      nowLabel: 'الآن',
+      nowTitle: 'تعيين على الوقت الحالي',
+      clearLabel: 'مسح',
+      clearTitle: 'مسح الوقت',
+      ariaSuffix: ' - حقل إدخال الوقت',
+    };
+  }
+
+  if (languageId === 3) {
+    // Spanish
+    return {
+      placeholder: 'HH:MM',
+      nowLabel: 'Ahora',
+      nowTitle: 'Establecer a la hora actual',
+      clearLabel: 'Borrar',
+      clearTitle: 'Borrar hora',
+      ariaSuffix: ' - campo de entrada de hora',
+    };
+  }
+
+  // English (default)
+  return {
+    placeholder: 'HH:MM',
+    nowLabel: 'Now',
+    nowTitle: 'Set to current time',
+    clearLabel: 'Clear',
+    clearTitle: 'Clear time',
+    ariaSuffix: ' - time input field',
+  };
+};
+
 /**
  * TimeInput Component
- * 
+ *
  * Renders a native HTML5 time picker
  * Integrates with form systems via onChange callback
  * Supports forwardRef for scrolling to errors
- * 
+ *
  * @example
  * ```
  * <TimeInput
@@ -43,90 +93,75 @@ import {
  * ```
  */
 export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
-  ({ field, value, onChange, error, disabled = false, className }, ref) => {
-    console.debug('[TimeInput] Rendering for field:', field.field_id);
-
-    // Initialize with default value or current value
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value !== null && value !== undefined) {
         return String(value);
       }
-      
+
       if (field.current_value !== null && field.current_value !== undefined) {
         return String(field.current_value);
       }
-      
+
       return getDefaultTimeInputValue(field);
     });
 
-    // Check if field is required
-    const isRequired = field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-    // Update local value when external value changes
     useEffect(() => {
       if (value !== null && value !== undefined) {
         setLocalValue(String(value));
       }
     }, [value]);
 
-    /**
-     * Handle time input change
-     */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
       setLocalValue(newValue);
       onChange(newValue);
-
-      console.debug('[TimeInput] Value changed:', {
-        fieldId: field.field_id,
-        value: newValue,
-      });
     };
 
-    /**
-     * Set time to current time
-     */
     const handleSetNow = () => {
       if (disabled) return;
-      
+
       const currentTime = getCurrentTime();
       setLocalValue(currentTime);
       onChange(currentTime);
-
-      console.debug('[TimeInput] Set to current time:', {
-        fieldId: field.field_id,
-        value: currentTime,
-      });
     };
 
-    /**
-     * Clear time value
-     */
     const handleClear = () => {
       if (disabled) return;
-      
+
       setLocalValue('');
       onChange('');
-
-      console.debug('[TimeInput] Cleared:', {
-        fieldId: field.field_id,
-      });
     };
 
-    // Generate unique ID for accessibility
     const timeInputId = `time-input-${field.field_id}`;
 
-    // Get placeholder
-    const placeholder = field.placeholder || 'HH:MM';
+    const {
+      placeholder: localizedPlaceholder,
+      nowLabel,
+      nowTitle,
+      clearLabel,
+      clearTitle,
+      ariaSuffix,
+    } = getLocalizedTimeConfig(languageId);
 
-    // Get formatted display time
+    const placeholder = field.placeholder || localizedPlaceholder;
     const displayTime = localValue ? formatTimeDisplay(localValue) : null;
 
     return (
-      <div ref={ref} className={cn('space-y-2', className)}>
+      <div
+        ref={ref}
+        className={cn('space-y-2', className)}
+        aria-label={`${field.label}${ariaSuffix}`}
+      >
         {/* Field Label with Icon */}
         <div className="flex items-center justify-between">
-          <Label htmlFor={timeInputId} className="text-sm font-medium flex items-center gap-2">
+          <Label
+            htmlFor={timeInputId}
+            className="text-sm font-medium flex items-center gap-2"
+          >
             <Clock className="h-4 w-4 text-teal-500" />
             {field.label}
             {isRequired && <span className="text-destructive ml-1">*</span>}
@@ -151,7 +186,7 @@ export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
             disabled={disabled}
             className={cn(
               'flex-1',
-              error && 'border-destructive focus-visible:ring-destructive'
+              error && 'border-destructive focus-visible:ring-destructive',
             )}
             aria-label={field.label}
             aria-required={isRequired}
@@ -160,8 +195,8 @@ export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
               error
                 ? `${timeInputId}-error`
                 : field.helper_text
-                ? `${timeInputId}-description`
-                : undefined
+                  ? `${timeInputId}-description`
+                  : undefined
             }
           />
 
@@ -173,9 +208,9 @@ export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
             onClick={handleSetNow}
             disabled={disabled}
             className="shrink-0"
-            title="Set to current time"
+            title={nowTitle}
           >
-            Now
+            {nowLabel}
           </Button>
 
           {!isRequired && localValue && (
@@ -186,9 +221,9 @@ export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
               onClick={handleClear}
               disabled={disabled}
               className="shrink-0"
-              title="Clear time"
+              title={clearTitle}
             >
-              Clear
+              {clearLabel}
             </Button>
           )}
         </div>
@@ -215,7 +250,7 @@ export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 TimeInput.displayName = 'TimeInput';

@@ -42,6 +42,11 @@ export interface TextInputProps {
   disabled?: boolean;
   
   /**
+   * Current language ID
+   */
+  languageId?: number;
+  
+  /**
    * Additional CSS classes
    */
   className?: string;
