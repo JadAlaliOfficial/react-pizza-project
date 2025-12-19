@@ -107,6 +107,18 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
     setDefaultAddress(parsed.address);
   }, [field.default_value]);
 
+  // Ensure default value is preserved on mount/init
+  useEffect(() => {
+    if (!field.default_value) {
+      const defaultLoc = serializeLocationValue({
+        lat: 40.7128,
+        lng: -74.006,
+        address: 'New York, NY, USA',
+      });
+      onFieldChange({ default_value: defaultLoc });
+    }
+  }, []);
+
   const updateDefaultLocation = useCallback(() => {
     const latNum = parseFloat(defaultLat);
     const lngNum = parseFloat(defaultLng);

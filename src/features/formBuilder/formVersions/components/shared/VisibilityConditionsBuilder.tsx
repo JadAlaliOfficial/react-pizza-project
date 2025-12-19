@@ -394,6 +394,46 @@ interface VisibilityConditionsBuilderProps {
 }
 
 // ============================================================================
+// Internal Components
+// ============================================================================
+
+/**
+ * Input component for array values (comma-separated)
+ * Handles local state to allow typing commas without immediate parsing
+ */
+const ArrayValueInput: React.FC<{
+  value: string[];
+  onChange: (value: string[]) => void;
+}> = ({ value, onChange }) => {
+  const [inputValue, setInputValue] = useState('');
+
+  // Sync with prop value when it changes externally
+  useEffect(() => {
+    setInputValue(Array.isArray(value) ? value.join(', ') : '');
+  }, [value]);
+
+  const handleBlur = () => {
+    // Parse on blur
+    const arrayValue = inputValue
+      .split(',')
+      .map((v) => v.trim())
+      .filter((v) => v.length > 0);
+    
+    onChange(arrayValue);
+  };
+
+  return (
+    <Input
+      type="text"
+      value={inputValue}
+      onChange={(e) => setInputValue(e.target.value)}
+      onBlur={handleBlur}
+      placeholder="Enter comma-separated values"
+    />
+  );
+};
+
+// ============================================================================
 // Component
 // ============================================================================
 
@@ -594,17 +634,11 @@ export const VisibilityConditionsBuilder: React.FC<VisibilityConditionsBuilderPr
     // Array operators
     if (ARRAY_OPERATORS.includes(operator)) {
       return (
-        <Input
-          type="text"
-          value={Array.isArray(condition.value) ? condition.value.join(', ') : ''}
-          onChange={(e) => {
-            const arrayValue = e.target.value
-              .split(',')
-              .map((v) => v.trim())
-              .filter((v) => v);
+        <ArrayValueInput
+          value={Array.isArray(condition.value) ? condition.value : []}
+          onChange={(arrayValue) => {
             handleUpdateCondition(index, { value: arrayValue });
           }}
-          placeholder="Enter comma-separated values"
         />
       );
     }
@@ -820,16 +854,23 @@ export const VisibilityConditionsBuilder: React.FC<VisibilityConditionsBuilderPr
         </div>
 
         {/* Add condition button */}
-        {allFields.length > 0 && (!isComplex || conditions.length === 0 || isComplex) && (
-          <Button
-            variant="outline"
-            onClick={handleAddCondition}
-            className="w-full"
-            disabled={allFields.length === 0}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add {conditions.length > 0 && isComplex ? 'Another ' : ''}Condition
-          </Button>
+        {allFields.length > 0 && (
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              onClick={handleAddCondition}
+              className="w-full"
+              disabled={allFields.length === 0 || (!isComplex && conditions.length >= 1)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add {conditions.length > 0 && isComplex ? 'Another ' : ''}Condition
+            </Button>
+            {!isComplex && conditions.length >= 1 && (
+              <p className="text-xs text-muted-foreground text-center">
+                Switch to Complex Mode (AND/OR) to add multiple conditions
+              </p>
+            )}
+          </div>
         )}
 
         {/* Footer */}

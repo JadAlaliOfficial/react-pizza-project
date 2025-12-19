@@ -61,6 +61,13 @@ export const ColorPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
     field.default_value || '#3B82F6',
   );
 
+  // Ensure default value is preserved on mount/init
+  useEffect(() => {
+    if (!field.default_value) {
+      onFieldChange({ default_value: '#3B82F6' });
+    }
+  }, []);
+
   return (
     <>
       <Card className="p-4 border-l-4 border-l-purple-500">

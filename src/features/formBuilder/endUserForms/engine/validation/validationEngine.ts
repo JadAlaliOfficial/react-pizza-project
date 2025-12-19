@@ -1135,17 +1135,24 @@ const generateAddressSchema = (field: FormField): z.ZodType => {
   console.log('hello from address schema');
   const isRequired = isFieldRequired(field.rules || []);
 
+  // Helper: Reject empty strings OR spaces-only
+  const nonEmptyString = z
+    .string()
+    .min(1)
+    .refine((val) => val.trim().length > 0, {
+      message: 'This field cannot be empty or contain only spaces',
+    });
+
   let schema = z
     .object({
-      street: z.string(),
-      city: z.string(),
-      state: z.string(),
-      postal_code: z.string(),
-      country: z.string(),
+      street: nonEmptyString,
+      city: nonEmptyString,
+      state: nonEmptyString,
+      postal_code: nonEmptyString,
+      country: nonEmptyString,
     })
     .superRefine((data, _ctx) => {
       console.log('📍 Current Address Input Values:', data);
-      // Example: console.log("City is:", data.city);
     });
 
   if (!isRequired) {

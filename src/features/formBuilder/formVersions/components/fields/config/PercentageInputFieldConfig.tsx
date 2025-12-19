@@ -56,6 +56,13 @@ export const PercentageInputFieldConfig: React.FC<
   }, [field.visibility_conditions, field.visibility_condition]);
   const [defaultValue, setDefaultValue] = useState(field.default_value || '50');
 
+  // Ensure default value is preserved on mount/init
+  useEffect(() => {
+    if (!field.default_value) {
+      onFieldChange({ default_value: '50' });
+    }
+  }, []);
+
   const numValue = parseFloat(defaultValue);
   const safeValue = Number.isNaN(numValue) ? 0 : numValue;
 

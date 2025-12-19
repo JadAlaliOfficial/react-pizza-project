@@ -59,6 +59,13 @@ export const SliderFieldConfig: React.FC<FieldConfigComponentProps> = ({
   }, [field.visibility_conditions, field.visibility_condition]);
   const [defaultValue, setDefaultValue] = useState(field.default_value || '50');
 
+  // Ensure default value is preserved on mount/init
+  useEffect(() => {
+    if (!field.default_value) {
+      onFieldChange({ default_value: '50' });
+    }
+  }, []);
+
   const minValue = 0;
   const maxValue = 100;
   const step = 1;
