@@ -25,7 +25,7 @@ import type {
 } from '@/features/formBuilder/endUserForms/types/formStructure.types';
 import type { JsonValue } from '@/features/formBuilder/endUserForms/types/submitInitialForm.types';
 import type { RuntimeFieldValues } from '../../types/runtime.types';
-
+import { parseISO, format } from 'date-fns';
 // ================================
 // TYPES
 // ================================
@@ -196,17 +196,9 @@ const compareDates = (date1: string, date2: string): number => {
 /**
  * Format date for display
  */
-const formatDateForDisplay = (isoDate: string): string => {
-  try {
-    const date = new Date(isoDate);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  } catch {
-    return isoDate;
-  }
+const formatDateForDisplay = (dateStr: string): string => {
+  const date = parseISO(dateStr);
+  return format(date, 'MMM dd, yyyy');
 };
 
 /**
@@ -756,7 +748,7 @@ const generatePercentageInputSchema = (field: FormField): z.ZodType => {
 // PHONE INPUT VALIDATION
 // ================================
 
-const E164_PATTERN = /^\+[1-9]\d{1,14}$/;
+const E164_PATTERN = /^[1-9]\d{1,14}$/;
 
 const cleanPhoneNumber = (phone: string): string => {
   if (!phone) return '';
@@ -864,6 +856,7 @@ const generateDateInputSchema = (field: FormField): z.ZodType => {
     schema = schema.refine(
       (value) => {
         if (!value) return !isRequired;
+        console.log('before:', before, 'value:', value);
         return compareDates(value, before) < 0;
       },
       {

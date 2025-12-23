@@ -7,7 +7,6 @@
  *
  * Responsibilities:
  * - Render international phone number input
- * - Auto-prepend + for country code
  * - Display formatted phone number
  * - Emit phone string changes via onChange callback
  * - Display validation errors from parent
@@ -136,11 +135,7 @@ export const PhoneInput = forwardRef<HTMLDivElement, PhoneInputProps>(
     }, [localValue]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let newValue = e.target.value;
-
-      if (newValue && !newValue.startsWith('+') && /^\d/.test(newValue)) {
-        newValue = '+' + newValue;
-      }
+      const newValue = e.target.value;
 
       setLocalValue(newValue);
       onChange(newValue);
