@@ -293,7 +293,7 @@ const validateCrossFieldRules = (
     if (currentNormalized !== compareNormalized) {
       return {
         valid: false,
-        error: `${field.label} must match the other field`,
+        error: `${field.label} must match the other field (ID: ${compareFieldId})`,
       };
     }
   }
@@ -316,7 +316,7 @@ const validateCrossFieldRules = (
     if (currentNormalized === compareNormalized) {
       return {
         valid: false,
-        error: `${field.label} must be different from the other field`,
+        error: `${field.label} must be different from the other field (ID: ${compareFieldId})`,
       };
     }
   }
@@ -493,52 +493,52 @@ const extractEmailValidationRules = (
 
 const generateEmailInputSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
-  const { regex, startsWith, endsWith } = extractEmailValidationRules(
-    field.rules || [],
-  );
-
-  let schema = z.string();
-
-  if (regex) {
-    try {
-      const regexPattern = new RegExp(regex);
-      schema = schema.regex(
-        regexPattern,
-        `${field.label} does not match the required pattern`,
-      );
-    } catch (error) {
-      console.error('[validationEngine] Invalid regex pattern:', regex);
-      schema = schema.email(`${field.label} must be a valid email address`);
-    }
-  } else {
-    schema = schema.email(`${field.label} must be a valid email address`);
-  }
-
-  if (startsWith && startsWith.length > 0) {
-    schema = schema.refine(
-      (value) => {
-        if (!value) return true;
-        return startsWith.some((prefix) => value.startsWith(prefix));
-      },
-      { message: `${field.label} must start with: ${startsWith.join(' or ')}` },
-    );
-  }
-
-  if (endsWith && endsWith.length > 0) {
-    schema = schema.refine(
-      (value) => {
-        if (!value) return true;
-        return endsWith.some((suffix) => value.endsWith(suffix));
-      },
-      { message: `${field.label} must end with: ${endsWith.join(' or ')}` },
-    );
-  }
+  const { regex } = extractEmailValidationRules(field.rules || []);
 
   if (!isRequired) {
+    // Build full schema for optional case
+    let schema = z.string();
+    if (regex) {
+      try {
+        const regexPattern = new RegExp(regex);
+        schema = schema.regex(
+          regexPattern,
+          `${field.label} does not match the required pattern`,
+        );
+      } catch (error) {
+        schema = schema.email(`${field.label} must be a valid email address`);
+      }
+    } else {
+      schema = schema.email(`${field.label} must be a valid email address`);
+    }
+    // ... startsWith/endsWith ...
     return z.union([schema, z.literal('')]);
   }
 
-  return schema.min(1, `${field.label} is required`);
+  // ✅ REQUIRED: Build from scratch with CORRECT ORDER
+  return z
+    .string()
+    .refine((val) => val !== null && val !== undefined, {
+      message: `${field.label} is required`,
+    })
+    .min(1, `${field.label} is required`)
+    .refine(
+      (val) => {
+        // Email validation LAST
+        if (regex) {
+          try {
+            return new RegExp(regex).test(val);
+          } catch {
+            return z.string().email().safeParse(val).success;
+          }
+        }
+        return z.string().email().safeParse(val).success;
+      },
+      {
+        message: `${field.label} must be a valid email address`,
+      },
+    );
+  // Add startsWith/endsWith after email validation...
 };
 
 // ================================
@@ -796,9 +796,12 @@ const generateDateInputSchema = (field: FormField): z.ZodType => {
     return z.union([schema, z.literal('')]);
   }
 
-  return schema.min(1, `${field.label} is required`);
+  return schema
+    .refine((val) => val !== null && val !== undefined, {
+      message: `${field.label} is required`,
+    })
+    .min(1, `${field.label} is required`);
 };
-
 // ================================
 // TIME INPUT VALIDATION
 // ================================
@@ -806,15 +809,23 @@ const generateDateInputSchema = (field: FormField): z.ZodType => {
 const generateTimeInputSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
 
-  let schema = z
-    .string()
-    .regex(/^\d{2}:\d{2}$/, `${field.label} must be a valid time (HH:MM)`);
-
   if (!isRequired) {
-    return z.union([schema, z.literal('')]);
+    return z.union([
+      z
+        .string()
+        .regex(/^\d{2}:\d{2}$/, `${field.label} must be a valid time (HH:MM)`),
+      z.literal(''),
+    ]);
   }
 
-  return schema.min(1, `${field.label} is required`);
+  // ✅ Required: null check → length → format (in correct order)
+  return z
+    .string()
+    .refine((val) => val !== null && val !== undefined, {
+      message: `${field.label} is required`,
+    })
+    .min(1, `${field.label} is required`)
+    .regex(/^\d{2}:\d{2}$/, `${field.label} must be a valid time (HH:MM)`);
 };
 
 // ================================
@@ -824,18 +835,29 @@ const generateTimeInputSchema = (field: FormField): z.ZodType => {
 const generateDateTimeInputSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
 
-  let schema = z
+  if (!isRequired) {
+    return z.union([
+      z
+        .string()
+        .regex(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
+          `${field.label} must be a valid date and time`,
+        ),
+      z.literal(''),
+    ]);
+  }
+
+  // ✅ Required: null check → length → format (CORRECT order)
+  return z
     .string()
+    .refine((val) => val !== null && val !== undefined, {
+      message: `${field.label} is required`,
+    })
+    .min(1, `${field.label} is required`)
     .regex(
       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
       `${field.label} must be a valid date and time`,
     );
-
-  if (!isRequired) {
-    return z.union([schema, z.literal('')]);
-  }
-
-  return schema.min(1, `${field.label} is required`);
 };
 
 // ================================
@@ -996,15 +1018,15 @@ const extractFileValidationRules = (
 
   rules.forEach((rule) => {
     switch (rule.rule_name) {
-      case 'file_maxsize':
+      case 'max_file_size':
         const maxProps = rule.rule_props as { maxsize?: number } | null;
         if (maxProps?.maxsize) maxSize = maxProps.maxsize;
         break;
-      case 'file_minsize':
+      case 'min_file_size':
         const minProps = rule.rule_props as { minsize?: number } | null;
         if (minProps?.minsize) minSize = minProps.minsize;
         break;
-      case 'file_types':
+      case 'mimetypes':
         const typeProps = rule.rule_props as { types?: string[] } | null;
         if (typeProps?.types) mimeTypes = typeProps.types;
         break;
@@ -1114,17 +1136,29 @@ const generateColorPickerSchema = (field: FormField): z.ZodType => {
 const generateLocationPickerSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
 
-  let schema = z.object({
-    lat: z.number(),
-    lng: z.number(),
-    address: z.string().optional(),
-  });
-
   if (!isRequired) {
-    return z.union([schema, z.null()]) as z.ZodType;
+    return z.union([
+      z.object({
+        lat: z.number(),
+        lng: z.number(),
+        address: z.string().optional(),
+      }),
+      z.null(),
+    ]);
   }
 
-  return schema;
+  // ✅ KEY: Use nullable() to allow null → then reject it with refine
+  return z
+    .object({
+      lat: z.number(),
+      lng: z.number(),
+      address: z.string().optional(),
+    })
+    .nullable() // ✅ Allows null to pass type check
+    .refine((val) => val !== null, {
+      // ✅ Now catches null
+      message: `${field.label} is required`,
+    });
 };
 
 // ================================

@@ -222,21 +222,7 @@ export const LocationPickerFieldConfig: React.FC<FieldConfigComponentProps> = ({
             />
           </div>
 
-          {/* Placeholder */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
-              Placeholder Text
-            </label>
-            <Input
-              value={field.placeholder ?? ''}
-              onChange={(e) =>
-                onFieldChange({ placeholder: e.target.value || null })
-              }
-              placeholder="e.g., Click on the map to select location"
-              className="h-9"
-              maxLength={255}
-            />
-          </div>
+
 
           {/* Helper Text */}
           <div className="space-y-1.5">

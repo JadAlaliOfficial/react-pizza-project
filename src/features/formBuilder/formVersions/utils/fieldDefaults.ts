@@ -124,6 +124,78 @@ const FIELD_TYPE_DEFAULTS: Record<number, Partial<UiField>> = {
     default_value: null,
   },
 
+  // Image Upload (ID: 14)
+  14: {
+    label: 'Upload Image',
+    placeholder: null,
+    helper_text: 'Maximum file size: 5MB',
+    default_value: null,
+  },
+
+  // Video Upload (ID: 15)
+  15: {
+    label: 'Upload Video',
+    placeholder: null,
+    helper_text: 'Maximum file size: 100MB',
+    default_value: null,
+  },
+
+  // Document Upload (ID: 16)
+  16: {
+    label: 'Upload Document',
+    placeholder: null,
+    helper_text: 'Maximum file size: 10MB',
+    default_value: null,
+  },
+
+  // Color Picker (ID: 19)
+  19: {
+    label: 'Color Picker',
+    placeholder: null,
+    helper_text: 'Select a color',
+    default_value: '#3B82F6',
+  },
+
+  // Rating (ID: 20)
+  20: {
+    label: 'Rating',
+    placeholder: null,
+    helper_text: 'Rate your experience',
+    default_value: '0',
+  },
+
+  // Slider (ID: 21)
+  21: {
+    label: 'Slider',
+    placeholder: null,
+    helper_text: 'Select a value',
+    default_value: '50',
+  },
+
+  // Toggle Switch (ID: 22)
+  22: {
+    label: 'Toggle Switch',
+    placeholder: null,
+    helper_text: 'Enable or disable',
+    default_value: '0',
+  },
+
+  // Percentage Input (ID: 24)
+  24: {
+    label: 'Percentage',
+    placeholder: null,
+    helper_text: 'Enter a percentage',
+    default_value: null,
+  },
+
+  // Location Picker (ID: 26)
+  26: {
+    label: 'Location',
+    placeholder: null,
+    helper_text: 'Select location on map',
+    default_value: null,
+  },
+
   // Add more field types here as needed...
 };
 
