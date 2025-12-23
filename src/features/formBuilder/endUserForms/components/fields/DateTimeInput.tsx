@@ -84,7 +84,7 @@ const getLocalizedDateTimeConfig = (languageId?: number) => {
  * ```
  */
 export const DateTimeInput = forwardRef<HTMLDivElement, DateTimeInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value && isValidDateTime(value)) return value.substring(0, 16);
 
@@ -122,6 +122,12 @@ export const DateTimeInput = forwardRef<HTMLDivElement, DateTimeInputProps>(
       onChange(newDateTime);
     };
 
+    const handleBlur = () => {
+      if (onBlur) {
+        onBlur();
+      }
+    };
+
     const dateTimeInputId = `datetime-input-${field.field_id}`;
 
     return (
@@ -140,6 +146,7 @@ export const DateTimeInput = forwardRef<HTMLDivElement, DateTimeInputProps>(
             type="datetime-local"
             value={localValue}
             onChange={handleDateTimeChange}
+            onBlur={handleBlur}
             min={minDateTimeFormatted}
             max={maxDateTimeFormatted}
             disabled={disabled}

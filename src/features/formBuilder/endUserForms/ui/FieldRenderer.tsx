@@ -32,6 +32,26 @@ import type { JsonValue } from '@/features/formBuilder/endUserForms/types/submit
 import type { Direction } from '../types/runtime.types';
 import { getFieldComponent } from './fieldRegistry';
 
+// List of field types that have been migrated to support onBlur syncing
+// These components explicitly call onBlur to trigger the sync
+const MIGRATED_FIELD_TYPES = [
+  'Text Input',
+  'Currency Input',
+  'Multi_Select',
+  'Address Input',
+  'Checkbox',
+  'Color Picker',
+  'Date Input',
+  'DateTime Input',
+  'Dropdown Select',
+  'Email Input',
+  'File Upload',
+  'Image Upload',
+  'Number Input',
+  'Password Input',
+  'Percentage Input',
+];
+
 // ================================
 // COMPONENT PROPS
 // ================================
@@ -141,17 +161,49 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   // Look up field component from registry
   const FieldComponent = getFieldComponent(field.field_type);
 
+  // Check if this field type supports onBlur syncing
+  const supportsOnBlur = React.useMemo(() => {
+    return MIGRATED_FIELD_TYPES.includes(field.field_type);
+  }, [field.field_type]);
+
+  // Local state for pending updates (buffers onChange)
+  // Initialize with current value
+  const [pendingValue, setPendingValue] = React.useState<JsonValue>(value);
+
+  // Sync local pending value when external value changes
+  React.useEffect(() => {
+    setPendingValue(value);
+  }, [value]);
+
+  // Handle local change (updates pending state only)
+  const handleLocalChange = React.useCallback((fieldId: number, newValue: JsonValue) => {
+    setPendingValue(newValue);
+    
+    // If not migrated, sync immediately to preserve functionality
+    if (!supportsOnBlur) {
+      onChange(fieldId, newValue);
+    }
+  }, [onChange, supportsOnBlur]);
+
+  // Handle blur (syncs pending state to global state)
+  const handleLocalBlur = React.useCallback((fieldId: number) => {
+    // Commit the pending value to global state
+    onChange(fieldId, pendingValue);
+    // Trigger original blur (for touched state)
+    onBlur(fieldId);
+  }, [onChange, onBlur, pendingValue]);
+
   // Build props for field component
   const fieldProps = {
     field,
-    value,
+    value: pendingValue,
     error,
     touched,
     disabled,
     direction,
     languageId,
-    onChange,
-    onBlur,
+    onChange: handleLocalChange,
+    onBlur: handleLocalBlur,
   };
 
   // Render field with optional container class

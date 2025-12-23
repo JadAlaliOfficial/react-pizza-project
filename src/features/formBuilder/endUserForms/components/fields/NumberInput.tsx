@@ -81,7 +81,7 @@ const getLocalizedNumberConfig = (languageId?: number) => {
  * ```
  */
 export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
     const [displayValue, setDisplayValue] = useState<string>('');
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
@@ -144,6 +144,10 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
       } else {
         setDisplayValue('0');
         onChange(0);
+      }
+      
+      if (onBlur) {
+        onBlur();
       }
     };
 

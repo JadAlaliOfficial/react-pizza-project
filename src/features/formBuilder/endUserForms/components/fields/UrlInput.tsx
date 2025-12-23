@@ -89,7 +89,7 @@ const getLocalizedUrlConfig = (languageId?: number) => {
  * ```
  */
 export const UrlInput = forwardRef<HTMLDivElement, UrlInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value !== null && value !== undefined) {
         return String(value);
@@ -135,6 +135,7 @@ export const UrlInput = forwardRef<HTMLDivElement, UrlInputProps>(
           updated: withProtocol,
         });
       }
+      onBlur?.();
     };
 
     const handleOpenLink = () => {

@@ -97,6 +97,7 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
       className,
       currencySymbol = DEFAULT_CURRENCY_FORMAT.symbol,
       languageId,
+      onBlur,
     },
     ref,
   ) => {
@@ -162,6 +163,10 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
         }
       } else {
         setDisplayValue('');
+      }
+      
+      if (onBlur) {
+        onBlur();
       }
     };
 

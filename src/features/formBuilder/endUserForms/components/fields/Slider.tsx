@@ -81,7 +81,7 @@ const getLocalizedSliderConfig = (languageId?: number) => {
  * ```
  */
 export const Slider = forwardRef<HTMLDivElement, SliderProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     const minValue = getSliderMin(field);
     const maxValue = getSliderMax(field);
     const step = getSliderStep(field);
@@ -161,6 +161,7 @@ export const Slider = forwardRef<HTMLDivElement, SliderProps>(
               id={sliderId}
               value={[localValue]}
               onValueChange={handleValueChange}
+              onValueCommit={() => onBlur?.()}
               min={minValue}
               max={maxValue}
               step={step}

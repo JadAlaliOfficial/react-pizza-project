@@ -66,7 +66,7 @@ const getLocalizedRadioConfig = (languageId?: number) => {
 // ================================
 
 export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     // Parse options from placeholder
     const options = parseRadioButtonOptions(field);
 
@@ -105,6 +105,15 @@ export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
       onChange(newValue);
     };
 
+    const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+      // Check if the new focus target is still within the radio group
+      if (e.currentTarget.contains(e.relatedTarget as Node)) {
+        return;
+      }
+      
+      onBlur?.();
+    };
+
     // Generate unique ID for accessibility
     const radioGroupId = `radio-group-${field.field_id}`;
 
@@ -126,7 +135,7 @@ export const RadioButton = forwardRef<HTMLDivElement, RadioButtonProps>(
     }
 
     return (
-      <div ref={ref} className={cn('space-y-2', className)}>
+      <div ref={ref} className={cn('space-y-2', className)} onBlur={handleBlur}>
         {/* Field Label with Icon */}
         <div className="flex items-center gap-2">
           <Circle className="h-4 w-4 text-cyan-500" />

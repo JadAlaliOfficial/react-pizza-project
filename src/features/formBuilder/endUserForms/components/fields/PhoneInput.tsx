@@ -97,7 +97,7 @@ const getLocalizedPhoneConfig = (languageId?: number) => {
  * ```
  */
 export const PhoneInput = forwardRef<HTMLDivElement, PhoneInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value !== null && value !== undefined) {
         return String(value);
@@ -149,6 +149,10 @@ export const PhoneInput = forwardRef<HTMLDivElement, PhoneInputProps>(
           onChange(cleaned);
         }
       }
+      
+      if (onBlur) {
+        onBlur();
+      }
     };
 
     const phoneInputId = `phone-input-${field.field_id}`;
@@ -185,9 +189,9 @@ export const PhoneInput = forwardRef<HTMLDivElement, PhoneInputProps>(
             type="tel"
             value={localValue}
             onChange={handleChange}
-            onBlur={handleBlur}
-            placeholder={placeholder}
-            disabled={disabled}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+          disabled={disabled}
             className={cn(
               'pl-9 font-mono',
               error && 'border-destructive focus-visible:ring-destructive',

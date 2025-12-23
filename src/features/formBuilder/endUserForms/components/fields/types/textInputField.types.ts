@@ -32,6 +32,11 @@ export interface TextInputProps {
   onChange: (value: string) => void;
   
   /**
+   * Callback when field loses focus
+   */
+  onBlur?: () => void;
+  
+  /**
    * Error message to display (from form validation)
    */
   error?: string;

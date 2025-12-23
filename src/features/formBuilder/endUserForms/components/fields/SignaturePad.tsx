@@ -90,7 +90,7 @@ const getLocalizedSignatureConfig = (languageId?: number) => {
  * ```
  */
 export const SignaturePad = forwardRef<HTMLDivElement, SignaturePadProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [isDrawing, setIsDrawing] = useState<boolean>(false);
     const [isSigned, setIsSigned] = useState<boolean>(false);
@@ -194,6 +194,7 @@ export const SignaturePad = forwardRef<HTMLDivElement, SignaturePadProps>(
       if (canvas && isSigned) {
         const dataUrl = canvas.toDataURL('image/png');
         onChange(dataUrl);
+        onBlur?.();
       }
     };
 
@@ -205,6 +206,7 @@ export const SignaturePad = forwardRef<HTMLDivElement, SignaturePadProps>(
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       setIsSigned(false);
       onChange('');
+      onBlur?.();
     };
 
     const handleDownload = () => {

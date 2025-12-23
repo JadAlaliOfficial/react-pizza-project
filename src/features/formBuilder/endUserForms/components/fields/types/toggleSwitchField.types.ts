@@ -47,4 +47,9 @@ export interface ToggleSwitchProps {
    * Additional CSS classes
    */
   className?: string;
+
+  /**
+   * Callback when field loses focus
+   */
+  onBlur?: () => void;
 }

@@ -79,7 +79,7 @@ const getLocalizedCheckboxConfig = (languageId?: number) => {
  * ```
  */
 export const CheckboxInput = forwardRef<HTMLDivElement, CheckboxInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
     const [localValue, setLocalValue] = useState<boolean>(() => {
       if (typeof value === 'boolean') return value;
 
@@ -113,6 +113,12 @@ export const CheckboxInput = forwardRef<HTMLDivElement, CheckboxInputProps>(
       onChange(checked);
     };
 
+    const handleBlur = () => {
+      if (onBlur) {
+        onBlur();
+      }
+    };
+
     const checkboxId = `checkbox-${field.field_id}`;
 
     return (
@@ -128,6 +134,7 @@ export const CheckboxInput = forwardRef<HTMLDivElement, CheckboxInputProps>(
             id={checkboxId}
             checked={localValue}
             onCheckedChange={handleChange}
+            onBlur={handleBlur}
             disabled={disabled}
             aria-required={isRequired}
             aria-invalid={!!error}

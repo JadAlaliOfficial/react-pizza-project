@@ -195,7 +195,7 @@ const getLocalizedAddressConfig = (languageId?: number) => {
  * ```
  */
 export const AddressInput = forwardRef<HTMLDivElement, AddressInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
     const [localValue, setLocalValue] = useState<AddressValue>(() => {
       if (value) return value;
       if (field.current_value && typeof field.current_value === 'object') {
@@ -231,6 +231,12 @@ export const AddressInput = forwardRef<HTMLDivElement, AddressInputProps>(
       };
       setLocalValue(updatedAddress);
       onChange(updatedAddress);
+    };
+
+    const handleSubFieldBlur = () => {
+      if (onBlur) {
+        onBlur();
+      }
     };
 
     const hasValue = (key: keyof AddressValue): boolean => {
@@ -269,6 +275,7 @@ export const AddressInput = forwardRef<HTMLDivElement, AddressInputProps>(
                 type="text"
                 value={localValue.street}
                 onChange={(e) => handleSubFieldChange('street', e.target.value)}
+                onBlur={handleSubFieldBlur}
                 placeholder={getPlaceholder(streetSubfield)}
                 disabled={disabled}
                 className={cn(
@@ -298,6 +305,7 @@ export const AddressInput = forwardRef<HTMLDivElement, AddressInputProps>(
                 type="text"
                 value={localValue.city}
                 onChange={(e) => handleSubFieldChange('city', e.target.value)}
+                onBlur={handleSubFieldBlur}
                 placeholder={getPlaceholder(citySubfield)}
                 disabled={disabled}
                 className={cn(
@@ -354,6 +362,7 @@ export const AddressInput = forwardRef<HTMLDivElement, AddressInputProps>(
                 onChange={(e) =>
                   handleSubFieldChange('postal_code', e.target.value)
                 }
+                onBlur={handleSubFieldBlur}
                 placeholder={getPlaceholder(postalSubfield)}
                 disabled={disabled}
                 className={cn(

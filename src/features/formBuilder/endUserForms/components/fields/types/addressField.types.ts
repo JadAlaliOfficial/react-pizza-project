@@ -47,6 +47,11 @@ export interface AddressInputProps {
    * Callback when address value changes
    */
   onChange: (value: AddressValue) => void;
+
+  /**
+   * Callback when field loses focus
+   */
+  onBlur?: () => void;
   
   /**
    * Error message to display (from form validation)

@@ -90,7 +90,7 @@ const getLocalizedMultiSelectConfig = (languageId?: number) => {
  * ```
  */
 export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
     const options = parseMultiSelectOptions(field);
 
     const [localValue, setLocalValue] = useState<string[]>(() => {
@@ -138,6 +138,16 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
       return localValue.includes(optionValue);
     };
 
+    const handleContainerBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+      // Check if the new focus is still inside this component
+      if (e.currentTarget.contains(e.relatedTarget as Node)) {
+        return;
+      }
+      if (onBlur) {
+        onBlur();
+      }
+    };
+
     const multiSelectId = `multi-select-${field.field_id}`;
 
     if (options.length === 0) {
@@ -157,7 +167,11 @@ export const MultiSelect = forwardRef<HTMLDivElement, MultiSelectProps>(
     }
 
     return (
-      <div ref={ref} className={cn('space-y-3', className)}>
+      <div 
+        ref={ref} 
+        className={cn('space-y-3', className)}
+        onBlur={handleContainerBlur}
+      >
         <div className="flex items-center gap-2">
           <CheckSquare className="h-4 w-4 text-indigo-500" />
           <Label className="text-sm font-medium" id={multiSelectId}>

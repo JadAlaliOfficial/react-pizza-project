@@ -56,4 +56,9 @@ export interface TextAreaProps {
    * Number of visible rows (default: 4)
    */
   rows?: number;
+
+  /**
+   * Callback when field loses focus
+   */
+  onBlur?: () => void;
 }

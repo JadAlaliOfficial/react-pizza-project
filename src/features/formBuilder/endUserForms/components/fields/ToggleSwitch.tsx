@@ -75,7 +75,7 @@ const getLocalizedToggleConfig = (languageId?: number) => {
  * ```
  */
 export const ToggleSwitch = forwardRef<HTMLDivElement, ToggleSwitchProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     const [localValue, setLocalValue] = useState<boolean>(() => {
       if (typeof value === 'boolean') {
         return value;
@@ -105,6 +105,7 @@ export const ToggleSwitch = forwardRef<HTMLDivElement, ToggleSwitchProps>(
     const handleChange = (checked: boolean) => {
       setLocalValue(checked);
       onChange(checked);
+      onBlur?.();
 
       console.debug('[ToggleSwitch] Value changed:', {
         fieldId: field.field_id,

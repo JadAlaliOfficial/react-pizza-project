@@ -31,6 +31,11 @@ export interface CurrencyInputProps {
    * Callback when currency value changes
    */
   onChange: (value: number) => void;
+
+  /**
+   * Callback when field loses focus
+   */
+  onBlur?: () => void;
   
   /**
    * Error message to display (from form validation)

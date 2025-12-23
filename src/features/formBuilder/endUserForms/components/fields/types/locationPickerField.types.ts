@@ -63,4 +63,9 @@ export interface LocationPickerProps {
    * Defaults to New York City
    */
   defaultLocation?: LocationCoords;
+
+  /**
+   * Callback when the field loses focus
+   */
+  onBlur?: () => void;
 }

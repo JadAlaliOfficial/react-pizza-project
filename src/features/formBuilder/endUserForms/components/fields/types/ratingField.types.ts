@@ -52,4 +52,9 @@ export interface RatingProps {
    * Maximum number of stars (default: 5)
    */
   maxStars?: number;
+
+  /**
+   * Callback when field loses focus
+   */
+  onBlur?: () => void;
 }

@@ -87,7 +87,7 @@ const getLocalizedEmailConfig = (languageId?: number) => {
  * ```
  */
 export const EmailInput = forwardRef<HTMLDivElement, EmailInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value) return value;
 
@@ -152,6 +152,7 @@ export const EmailInput = forwardRef<HTMLDivElement, EmailInputProps>(
           type={usesCustomRegex ? 'text' : 'email'}
           value={localValue}
           onChange={handleInputChange}
+          onBlur={onBlur}
           placeholder={placeholder}
           disabled={disabled}
           className={cn(

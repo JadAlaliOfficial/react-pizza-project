@@ -47,6 +47,11 @@ export interface ImageUploadProps {
    * Additional CSS classes
    */
   className?: string;
+
+  /**
+   * Callback when the field loses focus
+   */
+  onBlur?: () => void;
 }
 
 /**

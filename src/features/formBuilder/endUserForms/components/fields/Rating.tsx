@@ -79,7 +79,7 @@ const getLocalizedRatingConfig = (languageId?: number) => {
  */
 export const Rating = forwardRef<HTMLDivElement, RatingProps>(
   (
-    { field, value, onChange, error, disabled = false, className, maxStars = 5, languageId },
+    { field, value, onChange, onBlur, error, disabled = false, className, maxStars = 5, languageId },
     ref,
   ) => {
     const [localValue, setLocalValue] = useState<number>(() => {
@@ -112,6 +112,7 @@ export const Rating = forwardRef<HTMLDivElement, RatingProps>(
 
       setLocalValue(newValue);
       onChange(newValue);
+      onBlur?.();
     };
 
     const handleStarHover = (starNumber: number) => {
@@ -195,6 +196,7 @@ export const Rating = forwardRef<HTMLDivElement, RatingProps>(
               onClick={() => {
                 setLocalValue(0);
                 onChange(0);
+                onBlur?.();
               }}
               className="text-xs text-muted-foreground hover:text-foreground underline"
             >

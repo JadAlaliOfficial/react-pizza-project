@@ -95,7 +95,7 @@ const getLocalizedPasswordConfig = (languageId?: number) => {
  * ```
  */
 export const PasswordInput = forwardRef<HTMLDivElement, PasswordInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value) return value;
@@ -122,8 +122,9 @@ export const PasswordInput = forwardRef<HTMLDivElement, PasswordInputProps>(
       strengthLabel,
     } = getLocalizedPasswordConfig(languageId);
 
+    // Sync with external value changes
     useEffect(() => {
-      if (value !== undefined) {
+      if (value !== undefined && value !== localValue) {
         setLocalValue(value || '');
       }
     }, [value]);
@@ -132,6 +133,12 @@ export const PasswordInput = forwardRef<HTMLDivElement, PasswordInputProps>(
       const newValue = e.target.value;
       setLocalValue(newValue);
       onChange(newValue);
+    };
+
+    const handleBlur = () => {
+      if (onBlur) {
+        onBlur();
+      }
     };
 
     const togglePasswordVisibility = () => {
@@ -177,6 +184,7 @@ export const PasswordInput = forwardRef<HTMLDivElement, PasswordInputProps>(
                   ? `${passwordInputId}-description`
                   : undefined
             }
+            onBlur={handleBlur}
           />
 
           <Button

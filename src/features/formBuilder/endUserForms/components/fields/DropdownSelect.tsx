@@ -93,7 +93,7 @@ const getLocalizedDropdownConfig = (languageId?: number) => {
  * ```
  */
 export const DropdownSelect = forwardRef<HTMLDivElement, DropdownSelectProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     const options = parseDropdownOptions(field);
 
     const [localValue, setLocalValue] = useState<string>(() => {
@@ -124,6 +124,10 @@ export const DropdownSelect = forwardRef<HTMLDivElement, DropdownSelectProps>(
     const handleValueChange = (newValue: string) => {
       setLocalValue(newValue);
       onChange(newValue);
+    };
+
+    const handleBlur = () => {
+      onBlur?.();
     };
 
     const dropdownId = `dropdown-select-${field.field_id}`;
@@ -161,6 +165,7 @@ export const DropdownSelect = forwardRef<HTMLDivElement, DropdownSelectProps>(
         >
           <SelectTrigger
             id={dropdownId}
+            onBlur={handleBlur}
             className={cn(
               'h-10',
               error && 'border-destructive focus:ring-destructive',

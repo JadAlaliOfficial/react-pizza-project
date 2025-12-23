@@ -53,4 +53,9 @@ export interface PhoneInputProps {
    * Defaults to 'US'
    */
   defaultCountry?: string;
+
+  /**
+   * Callback when the field loses focus
+   */
+  onBlur?: () => void;
 }

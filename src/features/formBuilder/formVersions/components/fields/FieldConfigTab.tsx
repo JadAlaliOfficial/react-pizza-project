@@ -48,12 +48,12 @@ export const FieldConfigTab: React.FC = () => {
 
   // Get working stage (selected or first)
   const workingStageId = builder.selectedStageId || builder.stages[0]?.id || null;
-  const workingStage = builder.stages.find((s) => s.id === workingStageId);
+  const workingStage = builder.stages.find((s) => String(s.id) === String(workingStageId));
   
   // Get working section (selected or first in stage)
   const sections = workingStage?.sections || [];
   const workingSectionId = builder.selectedSectionId || sections[0]?.id || null;
-  const workingSection = sections.find((s) => s.id === workingSectionId);
+  const workingSection = sections.find((s) => String(s.id) === String(workingSectionId));
 
   // Get fields for the selected section
   const { fields, selectedFieldId, setSelected: setSelectedField } = useFieldSelection(
@@ -69,20 +69,28 @@ export const FieldConfigTab: React.FC = () => {
     }
   }, [builder.stages.length]);
 
-  // Auto-select first section when stage changes
+  // Check if selected section is valid for current stage
+  const isSectionValid = sections.some((s) => String(s.id) === String(workingSectionId));
+
+  // Auto-select first section when stage changes or section becomes invalid
   useEffect(() => {
-    if (workingStageId && sections.length > 0 && !workingSectionId) {
-      console.debug('[FieldConfigTab] Auto-selecting first section');
-      builder.setSelectedSectionId(sections[0].id);
+    if (workingStageId && sections.length > 0) {
+      if (!workingSectionId || !isSectionValid) {
+        console.debug('[FieldConfigTab] Auto-selecting first section');
+        builder.setSelectedSectionId(sections[0].id);
+      }
     }
-  }, [workingStageId, sections.length]);
+  }, [workingStageId, sections, workingSectionId, isSectionValid]);
 
   /**
    * Handles stage selection change
    */
   const handleStageChange = (stageIdString: string): void => {
     console.debug('[FieldConfigTab] Stage selection changed:', stageIdString);
-    builder.setSelectedStageId(stageIdString);
+    const stage = builder.stages.find((s) => String(s.id) === stageIdString);
+    if (stage) {
+      builder.setSelectedStageId(stage.id);
+    }
   };
 
   /**
@@ -90,7 +98,10 @@ export const FieldConfigTab: React.FC = () => {
    */
   const handleSectionChange = (sectionIdString: string): void => {
     console.debug('[FieldConfigTab] Section selection changed:', sectionIdString);
-    builder.setSelectedSectionId(sectionIdString);
+    const section = sections.find((s) => String(s.id) === sectionIdString);
+    if (section) {
+      builder.setSelectedSectionId(section.id);
+    }
   };
 
   /**

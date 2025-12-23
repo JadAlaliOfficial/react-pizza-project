@@ -50,7 +50,7 @@ import {
  * ```
  */
 export const TextInput = forwardRef<HTMLDivElement, TextInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
     // Initialize with default value or current value
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value) return value;
@@ -147,6 +147,7 @@ export const TextInput = forwardRef<HTMLDivElement, TextInputProps>(
           type="text"
           value={localValue}
           onChange={handleInputChange}
+          onBlur={onBlur}
           placeholder={effectivePlaceholder}
           disabled={disabled}
           className={cn(

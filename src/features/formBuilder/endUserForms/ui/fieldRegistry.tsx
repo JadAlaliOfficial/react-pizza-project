@@ -44,6 +44,7 @@ import MultiSelectComponent from '@/features/formBuilder/endUserForms/components
 // File/Media fields
 import FileUploadComponent from '@/features/formBuilder/endUserForms/components/fields/FileUpload';
 import ImageUploadComponent from '@/features/formBuilder/endUserForms/components/fields/ImageUpload';
+import VideoUploadComponent from '@/features/formBuilder/endUserForms/components/fields/VideoUpload';
 import DocumentUploadComponent from '@/features/formBuilder/endUserForms/components/fields/DocumentUpload';
 
 // Special fields
@@ -85,6 +86,7 @@ const TextInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -96,6 +98,7 @@ const TextArea: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -108,6 +111,7 @@ const EmailInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -119,6 +123,7 @@ const PhoneInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -141,6 +146,7 @@ const UrlInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -174,6 +180,7 @@ const PercentageInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as number}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -185,6 +192,7 @@ const DateInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -196,6 +204,7 @@ const DateTimeInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -207,6 +216,7 @@ const TimeInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -229,6 +239,7 @@ const ToggleSwitch: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as boolean}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -240,6 +251,7 @@ const RadioButton: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -251,6 +263,7 @@ const DropdownSelect: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -273,6 +286,7 @@ const FileUpload: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as any}
     onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -284,6 +298,7 @@ const ImageUpload: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as any}
     onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -306,6 +321,7 @@ const SignaturePad: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -317,6 +333,7 @@ const ColorPickerInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -328,6 +345,7 @@ const PopupLocationPicker: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as any}
     onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -339,6 +357,7 @@ const AddressInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as any}
     onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -361,6 +380,7 @@ const Slider: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as number}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -368,10 +388,11 @@ const Slider: RuntimeFieldComponent = (props) => (
 );
 
 const VideoUpload: RuntimeFieldComponent = (props) => (
-  <FileUploadComponent
+  <VideoUploadComponent
     field={props.field}
     value={props.value as any}
     onChange={(value) => props.onChange(props.field.field_id, value as any)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}

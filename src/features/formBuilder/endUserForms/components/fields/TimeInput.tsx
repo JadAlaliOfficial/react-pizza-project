@@ -93,7 +93,7 @@ const getLocalizedTimeConfig = (languageId?: number) => {
  * ```
  */
 export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value !== null && value !== undefined) {
         return String(value);
@@ -127,6 +127,7 @@ export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
       const currentTime = getCurrentTime();
       setLocalValue(currentTime);
       onChange(currentTime);
+      onBlur?.();
     };
 
     const handleClear = () => {
@@ -134,6 +135,7 @@ export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
 
       setLocalValue('');
       onChange('');
+      onBlur?.();
     };
 
     const timeInputId = `time-input-${field.field_id}`;
@@ -182,6 +184,7 @@ export const TimeInput = forwardRef<HTMLDivElement, TimeInputProps>(
             type="time"
             value={localValue}
             onChange={handleChange}
+            onBlur={onBlur}
             placeholder={placeholder}
             disabled={disabled}
             className={cn(

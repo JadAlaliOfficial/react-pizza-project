@@ -148,6 +148,7 @@ export const PopupLocationPicker = React.forwardRef<
       className,
       defaultLocation = { lat: 40.7128, lng: -74.006 }, // NYC
       languageId,
+      onBlur,
     },
     ref,
   ) => {
@@ -214,6 +215,9 @@ export const PopupLocationPicker = React.forwardRef<
 
         setLocation(newLocation);
         onChange(newLocation);
+        if (onBlur) {
+          onBlur();
+        }
       };
 
       window.addEventListener('message', handler);
@@ -259,7 +263,10 @@ export const PopupLocationPicker = React.forwardRef<
       setLocation(newLocation);
       onChange(newLocation);
       setInput('');
-    }, [input, onChange]);
+      if (onBlur) {
+        onBlur();
+      }
+    }, [input, onChange, onBlur]);
 
     const handleGetCurrentLocation = async () => {
       setIsLoadingGeolocation(true);
@@ -277,6 +284,9 @@ export const PopupLocationPicker = React.forwardRef<
 
         setLocation(newLocation);
         onChange(newLocation);
+        if (onBlur) {
+          onBlur();
+        }
       } finally {
         setIsLoadingGeolocation(false);
       }
@@ -300,6 +310,9 @@ export const PopupLocationPicker = React.forwardRef<
     const handleRemove = () => {
       setLocation(null);
       onChange(null as any); // keep compat with current form usage
+      if (onBlur) {
+        onBlur();
+      }
     };
 
     return (

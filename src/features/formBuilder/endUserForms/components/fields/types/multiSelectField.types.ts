@@ -31,6 +31,11 @@ export interface MultiSelectProps {
    * Callback when multi-select value changes
    */
   onChange: (value: string[]) => void;
+
+  /**
+   * Callback when field loses focus
+   */
+  onBlur?: () => void;
   
   /**
    * Error message to display (from form validation)

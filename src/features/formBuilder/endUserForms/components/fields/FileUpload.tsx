@@ -95,7 +95,7 @@ const getLocalizedFileUploadConfig = (languageId?: number) => {
  * ```
  */
 export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(
@@ -139,6 +139,9 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
     const handleFileSelect = (file: File) => {
       setSelectedFile(file);
       onChange(file);
+      if (onBlur) {
+        onBlur();
+      }
     };
 
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,6 +188,9 @@ export const FileUpload = forwardRef<HTMLDivElement, FileUploadProps>(
       onChange(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
+      }
+      if (onBlur) {
+        onBlur();
       }
     };
 

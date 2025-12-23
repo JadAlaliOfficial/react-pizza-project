@@ -47,6 +47,11 @@ export interface DropdownSelectProps {
    * Additional CSS classes
    */
   className?: string;
+
+  /**
+   * Callback when field loses focus
+   */
+  onBlur?: () => void;
 }
 
 /**

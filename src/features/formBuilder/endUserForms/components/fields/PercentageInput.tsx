@@ -86,7 +86,7 @@ const getLocalizedPercentageConfig = (languageId?: number) => {
  * ```
  */
 export const PercentageInput = forwardRef<HTMLDivElement, PercentageInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     const [displayValue, setDisplayValue] = useState<string>('');
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
@@ -161,6 +161,8 @@ export const PercentageInput = forwardRef<HTMLDivElement, PercentageInputProps>(
         setDisplayValue('0');
         onChange(0);
       }
+      
+      onBlur?.();
     };
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {

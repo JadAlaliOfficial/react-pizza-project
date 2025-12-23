@@ -92,7 +92,7 @@ const getLocalizedColorPickerConfig = (languageId?: number) => {
 export const ColorPickerInput = forwardRef<
   HTMLDivElement,
   ColorPickerInputProps
->(({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+>(({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
   const [localValue, setLocalValue] = useState<string>(() => {
     if (value && isValidHexColor(value)) return normalizeHexColor(value);
 
@@ -148,6 +148,12 @@ export const ColorPickerInput = forwardRef<
     handleColorChange(e.target.value);
   };
 
+  const handleBlur = () => {
+    if (onBlur) {
+      onBlur();
+    }
+  };
+
   const colorPickerId = `color-picker-${field.field_id}`;
 
   return (
@@ -168,6 +174,7 @@ export const ColorPickerInput = forwardRef<
               type="text"
               value={localValue}
               onChange={handleInputChange}
+              onBlur={handleBlur}
               placeholder={field.placeholder || inputPlaceholder}
               disabled={disabled}
               className={cn(
@@ -217,6 +224,7 @@ export const ColorPickerInput = forwardRef<
               type="color"
               value={isValidHexColor(localValue) ? localValue : '#3B82F6'}
               onChange={handleNativeColorChange}
+              onBlur={handleBlur}
               disabled={disabled}
               className="absolute inset-0 opacity-0 cursor-pointer"
               aria-label={`${field.label}${nativePickerAriaSuffix}`}

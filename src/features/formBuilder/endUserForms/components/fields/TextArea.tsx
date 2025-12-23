@@ -85,6 +85,7 @@ export const TextArea = forwardRef<HTMLDivElement, TextAreaProps>(
       field,
       value,
       onChange,
+      onBlur,
       error,
       disabled = false,
       className,
@@ -167,6 +168,7 @@ export const TextArea = forwardRef<HTMLDivElement, TextAreaProps>(
           id={textAreaId}
           value={localValue}
           onChange={handleChange}
+          onBlur={onBlur}
           placeholder={placeholder}
           disabled={disabled}
           rows={rows}

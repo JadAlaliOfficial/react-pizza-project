@@ -98,7 +98,7 @@ const getLocalizedVideoUploadConfig = (languageId?: number) => {
  * ```
  */
 export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -139,6 +139,7 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
 
     const handleFileChange = (file: File | null) => {
       onChange(file);
+      onBlur?.();
 
       console.debug('[VideoUpload] File changed:', {
         fieldId: field.field_id,
