@@ -4,15 +4,15 @@
  * ================================
  * Zod schema generation for Slider fields based on field rules
  * Handles: required, min, max, between, integer, numeric
- * Conflict resolution: min/max rules override between rule, numeric takes priority over integer
+ * Mixed priority: between partial + standalone fallback
  */
 
 import { z } from 'zod';
 import type { FormField, FieldRule } from '@/features/formBuilder/endUserForms/types/formStructure.types';
 
 /**
- * Extract validation bounds from rules with conflict resolution
- * Priority: individual min/max rules override between rule
+ * Extract validation bounds with mixed between + standalone priority
+ * Priority: between where provided, standalone fills gaps
  * 
  * @param rules - Field validation rules
  * @returns Object with min and max bounds
@@ -22,27 +22,35 @@ const extractValidationBounds = (
 ): { min: number | null; max: number | null } => {
   let min: number | null = null;
   let max: number | null = null;
-
-  // First, check for between rule
-  const betweenRule = rules.find((rule) => rule.rule_name === 'between');
-  if (betweenRule?.rule_props) {
-    const props = betweenRule.rule_props as { min?: number; max?: number };
-    if (typeof props.min === 'number') min = props.min;
-    if (typeof props.max === 'number') max = props.max;
+  
+  // Check for between rule first (partial priority)
+  const betweenRule = rules.find(rule => rule.rule_name === 'between');
+  const betweenProps = betweenRule?.rule_props as { min?: number; max?: number } || {};
+  const { min: betweenMin, max: betweenMax } = betweenProps;
+  
+  if (betweenMin !== undefined) {
+    min = Number(betweenMin);
   }
-
-  // Then, override with individual min rule (takes priority)
-  const minRule = rules.find((rule) => rule.rule_name === 'min');
-  if (minRule?.rule_props) {
-    const props = minRule.rule_props as { value?: number };
-    if (typeof props.value === 'number') min = props.value;
+  
+  if (betweenMax !== undefined) {
+    max = Number(betweenMax);
   }
-
-  // Finally, override with individual max rule (takes priority)
-  const maxRule = rules.find((rule) => rule.rule_name === 'max');
-  if (maxRule?.rule_props) {
-    const props = maxRule.rule_props as { value?: number };
-    if (typeof props.value === 'number') max = props.value;
+  
+  // Fallback logic - only use standalone if between didn't provide that bound
+  if (min === null) {
+    const minRule = rules.find((rule) => rule.rule_name === 'min');
+    if (minRule?.rule_props) {
+      const props = minRule.rule_props as { value?: number };
+      if (typeof props.value === 'number') min = props.value;
+    }
+  }
+  
+  if (max === null) {
+    const maxRule = rules.find((rule) => rule.rule_name === 'max');
+    if (maxRule?.rule_props) {
+      const props = maxRule.rule_props as { value?: number };
+      if (typeof props.value === 'number') max = props.value;
+    }
   }
 
   return { min, max };
@@ -51,39 +59,27 @@ const extractValidationBounds = (
 /**
  * Check if field requires integer values
  * Numeric takes priority over integer when both present
- * 
- * @param rules - Field validation rules
- * @returns True if only integers allowed
  */
 const requiresInteger = (rules: FieldRule[]): boolean => {
   const hasNumeric = rules.some((rule) => rule.rule_name === 'numeric');
   const hasInteger = rules.some((rule) => rule.rule_name === 'integer');
 
-  // If both numeric and integer exist, numeric takes priority (allows decimals)
   if (hasNumeric && hasInteger) {
     return false;
   }
 
-  // If only integer, require integer
   return hasInteger;
 };
 
 /**
  * Generate Zod schema for Slider field based on field rules
- * 
- * @param field - Field configuration from API
- * @returns Zod schema for slider validation
  */
 export const generateSliderSchema = (field: FormField): z.ZodType<number> => {
-  // Check if field is required
   const isRequired = field.rules?.some(
     (rule) => rule.rule_name === 'required'
   ) ?? false;
 
-  // Extract min/max bounds with conflict resolution
   const { min, max } = extractValidationBounds(field.rules || []);
-
-  // Check if integer required
   const integerOnly = requiresInteger(field.rules || []);
 
   console.debug('[sliderValidation] Generating schema for field:', {
@@ -94,28 +90,22 @@ export const generateSliderSchema = (field: FormField): z.ZodType<number> => {
     integerOnly,
   });
 
-  // Base schema for number
   let schema = z.coerce.number();
 
-  // Apply integer validation if required
   if (integerOnly) {
     schema = schema.int(`${field.label} must be an integer (no decimals)`);
   }
 
-  // Apply min validation (default to 0 for sliders if not specified)
   const minValue = min !== null ? min : 0;
   schema = schema.min(minValue, `${field.label} must be at least ${minValue}`);
 
-  // Apply max validation (default to 100 for sliders if not specified)
   const maxValue = max !== null ? max : 100;
   schema = schema.max(maxValue, `${field.label} must be at most ${maxValue}`);
 
-  // If not required, allow undefined
   if (!isRequired) {
     return schema.optional() as z.ZodType<number>;
   }
 
-  // If required, add custom message
   return schema.refine((val) => val !== undefined && val !== null && !isNaN(val), {
     message: `${field.label} is required`,
   });
@@ -123,10 +113,6 @@ export const generateSliderSchema = (field: FormField): z.ZodType<number> => {
 
 /**
  * Validate slider value against field rules
- * 
- * @param field - Field configuration
- * @param value - Slider value to validate
- * @returns Validation result with error message if invalid
  */
 export const validateSlider = (
   field: FormField,
@@ -151,19 +137,14 @@ export const validateSlider = (
 
 /**
  * Get default slider value from field configuration
- * 
- * @param field - Field configuration
- * @returns Default slider value
  */
 export const getDefaultSliderValue = (field: FormField): number => {
   const defaultValue = field.default_value;
 
-  // If default_value is a number
   if (typeof defaultValue === 'number') {
     return defaultValue;
   }
 
-  // If default_value is a numeric string
   if (typeof defaultValue === 'string') {
     const parsed = parseFloat(defaultValue);
     if (!isNaN(parsed)) {
@@ -171,7 +152,6 @@ export const getDefaultSliderValue = (field: FormField): number => {
     }
   }
 
-  // Get bounds and return midpoint or min
   const { min, max } = extractValidationBounds(field.rules || []);
   const minValue = min !== null ? min : 0;
   const maxValue = max !== null ? max : 100;
@@ -181,9 +161,6 @@ export const getDefaultSliderValue = (field: FormField): number => {
 
 /**
  * Get min value for slider
- * 
- * @param field - Field configuration
- * @returns Min value
  */
 export const getSliderMin = (field: FormField): number => {
   const { min } = extractValidationBounds(field.rules || []);
@@ -192,9 +169,6 @@ export const getSliderMin = (field: FormField): number => {
 
 /**
  * Get max value for slider
- * 
- * @param field - Field configuration
- * @returns Max value
  */
 export const getSliderMax = (field: FormField): number => {
   const { max } = extractValidationBounds(field.rules || []);
@@ -203,9 +177,6 @@ export const getSliderMax = (field: FormField): number => {
 
 /**
  * Get step value for slider
- * 
- * @param field - Field configuration
- * @returns Step value (1 for integers, 0.1 for decimals)
  */
 export const getSliderStep = (field: FormField): number => {
   return requiresInteger(field.rules || []) ? 1 : 0.1;

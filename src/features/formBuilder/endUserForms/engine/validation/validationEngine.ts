@@ -376,12 +376,41 @@ const extractTextValidationRules = (
 
 const generateTextInputSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
-  const { min, max } = extractValidationBounds(field.rules || []);
+  
+  // Extract bounds with mixed between + standalone priority
+  let min: number | null = null;
+  let max: number | null = null;
+  
+  // Check for between rule first (partial priority)
+  const betweenRule = (field.rules || []).find(rule => rule.rule_name === 'between');
+  const betweenProps = betweenRule?.rule_props as { min?: number, max?: number } || {};
+  const { min: betweenMin, max: betweenMax } = betweenProps;
+  
+  if (betweenMin !== undefined) {
+    min = Number(betweenMin);
+  }
+  
+  if (betweenMax !== undefined) {
+    max = Number(betweenMax);
+  }
+  
+  // Fallback logic - only use standalone if between didn't provide that bound
+  if (min === null) {
+    const { min: standaloneMin } = extractValidationBounds(field.rules || []);
+    min = standaloneMin;
+  }
+  
+  if (max === null) {
+    const { max: standaloneMax } = extractValidationBounds(field.rules || []);
+    max = standaloneMax;
+  }
+
   const { regex, alpha, alphaNum, alphaDash, startsWith, endsWith } =
     extractTextValidationRules(field.rules || []);
 
   let schema = z.string();
 
+  // Apply length bounds
   if (min !== null) {
     schema = schema.min(
       min,
@@ -396,6 +425,7 @@ const generateTextInputSchema = (field: FormField): z.ZodType => {
     );
   }
 
+  // Regex and pattern validations
   if (regex) {
     try {
       const regexPattern = new RegExp(regex);
@@ -425,6 +455,7 @@ const generateTextInputSchema = (field: FormField): z.ZodType => {
     }
   }
 
+  // Prefix/Suffix validations
   if (startsWith && startsWith.length > 0) {
     schema = schema.refine(
       (value) => {
@@ -547,7 +578,35 @@ const generateEmailInputSchema = (field: FormField): z.ZodType => {
 
 const generateNumberInputSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
-  const { min, max } = extractValidationBounds(field.rules || []);
+  
+  // Extract bounds with mixed between + standalone priority
+  let min: number | null = null;
+  let max: number | null = null;
+  
+  // Check for between rule first (partial priority)
+  const betweenRule = (field.rules || []).find(rule => rule.rule_name === 'between');
+  const betweenProps = betweenRule?.rule_props as { min?: number, max?: number } || {};
+  const { min: betweenMin, max: betweenMax } = betweenProps;
+  
+  if (betweenMin !== undefined) {
+    min = Number(betweenMin);
+  }
+  
+  if (betweenMax !== undefined) {
+    max = Number(betweenMax);
+  }
+  
+  // FIXED: Fallback logic - only use standalone if between didn't provide that bound
+  if (min === null) {
+    const { min: standaloneMin } = extractValidationBounds(field.rules || []);
+    min = standaloneMin;
+  }
+  
+  if (max === null) {
+    const { max: standaloneMax } = extractValidationBounds(field.rules || []);
+    max = standaloneMax;
+  }
+
   const { allowDecimals } = getNumberTypeRules(field.rules || []);
 
   let schema = z.coerce.number({
@@ -558,6 +617,7 @@ const generateNumberInputSchema = (field: FormField): z.ZodType => {
     schema = schema.int(`${field.label} must be an integer (no decimals)`);
   }
 
+  // Apply bounds validations
   if (min !== null) {
     schema = schema.min(min, `${field.label} must be at least ${min}`);
   }
@@ -584,10 +644,38 @@ const generateNumberInputSchema = (field: FormField): z.ZodType => {
 
 const generateCurrencyInputSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
-  const { min, max } = extractValidationBounds(field.rules || []);
+  
+  // Extract bounds with mixed between + standalone priority
+  let min: number | null = null;
+  let max: number | null = null;
+  
+  // Check for between rule first (partial priority)
+  const betweenRule = (field.rules || []).find(rule => rule.rule_name === 'between');
+  const betweenProps = betweenRule?.rule_props as { min?: number, max?: number } || {};
+  const { min: betweenMin, max: betweenMax } = betweenProps;
+  
+  if (betweenMin !== undefined) {
+    min = Number(betweenMin);
+  }
+  
+  if (betweenMax !== undefined) {
+    max = Number(betweenMax);
+  }
+  
+  // Fallback logic - only use standalone if between didn't provide that bound
+  if (min === null) {
+    const { min: standaloneMin } = extractValidationBounds(field.rules || []);
+    min = standaloneMin;
+  }
+  
+  if (max === null) {
+    const { max: standaloneMax } = extractValidationBounds(field.rules || []);
+    max = standaloneMax;
+  }
 
   let schema = z.number();
 
+  // Apply bounds validations
   if (min !== null) {
     schema = schema.min(min, `${field.label} must be at least ${min}`);
   }
@@ -614,10 +702,38 @@ const generateCurrencyInputSchema = (field: FormField): z.ZodType => {
 
 const generatePercentageInputSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
-  const { min, max } = extractValidationBounds(field.rules || []);
+  
+  // Extract bounds with mixed between + standalone priority
+  let min: number | null = null;
+  let max: number | null = null;
+  
+  // Check for between rule first (partial priority)
+  const betweenRule = (field.rules || []).find(rule => rule.rule_name === 'between');
+  const betweenProps = betweenRule?.rule_props as { min?: number, max?: number } || {};
+  const { min: betweenMin, max: betweenMax } = betweenProps;
+  
+  if (betweenMin !== undefined) {
+    min = Number(betweenMin);
+  }
+  
+  if (betweenMax !== undefined) {
+    max = Number(betweenMax);
+  }
+  
+  // Fallback logic - only use standalone if between didn't provide that bound
+  if (min === null) {
+    const { min: standaloneMin } = extractValidationBounds(field.rules || []);
+    min = standaloneMin;
+  }
+  
+  if (max === null) {
+    const { max: standaloneMax } = extractValidationBounds(field.rules || []);
+    max = standaloneMax;
+  }
 
   let schema = z.number();
 
+  // Apply percentage bounds with defaults (0-100)
   const minValue = min !== null ? min : 0;
   schema = schema.min(minValue, `${field.label} must be at least ${minValue}%`);
 
@@ -955,10 +1071,39 @@ const generateRadioGroupSchema = (field: FormField): z.ZodType => {
 
 const generateSliderSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
-  const { min, max } = extractValidationBounds(field.rules || []);
+  
+  // Extract bounds with mixed between + standalone priority
+  let min: number | null = null;
+  let max: number | null = null;
+  
+  // Check for between rule first (partial priority)
+  const betweenRule = (field.rules || []).find(rule => rule.rule_name === 'between');
+  const betweenProps = betweenRule?.rule_props as { min?: number, max?: number } || {};
+  const { min: betweenMin, max: betweenMax } = betweenProps;
+  
+  if (betweenMin !== undefined) {
+    min = Number(betweenMin);
+  }
+  
+  if (betweenMax !== undefined) {
+    max = Number(betweenMax);
+  }
+  
+  // Fallback logic - only use standalone if between didn't provide that bound
+  if (min === null) {
+    const { min: standaloneMin } = extractValidationBounds(field.rules || []);
+    min = standaloneMin;
+  }
+  
+  if (max === null) {
+    const { max: standaloneMax } = extractValidationBounds(field.rules || []);
+    max = standaloneMax;
+  }
 
   let schema = z.number();
+  console.log('min:', min, 'max:', max);
 
+  // Apply bounds validations
   if (min !== null) {
     schema = schema.min(min, `${field.label} must be at least ${min}`);
   }
