@@ -20,8 +20,14 @@ import {
   selectIsFormStructureError,
   selectFormStructureError,
   selectFormStructureLastFetchedAt,
+  fetchFormEntry,
+  selectFormEntry,
+  selectIsFormEntryLoading,
+  selectIsFormEntryError,
+  selectFormEntryError,
+  selectFormEntryLastFetchedAt,
 } from '../store/formStructure.slice';
-import type { FormStructureData, ApiError } from '../types/formStructure.types';
+import type { FormStructureData, FormEntryData, ApiError } from '../types/formStructure.types';
 
 /**
  * Hook parameters
@@ -192,19 +198,178 @@ export const useFormStructure = ({
 
     if (shouldFetch) {
       console.debug('[useFormStructure] Initial fetch triggered');
-      fetchData(false);
       hasFetchedRef.current = true;
+      fetchData();
     }
+  }, [fetchData, fetchOnMount, isCacheStale]);
 
-    // Cleanup: abort ongoing request when component unmounts or params change
-    return () => {
-      if (abortControllerRef.current) {
-        console.debug('[useFormStructure] Aborting fetch on cleanup');
-        abortControllerRef.current.abort();
-        abortControllerRef.current = null;
+  return {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  };
+};
+
+// ============================================================================
+// FORM ENTRY HOOK
+// ============================================================================
+
+/**
+ * Hook parameters for fetching form entry
+ */
+export interface UseFormEntryParams {
+  publicIdentifier: string;
+  languageId: number;
+  /**
+   * If true, fetch immediately on mount even if data already exists
+   * @default false
+   */
+  fetchOnMount?: boolean;
+  /**
+   * Cache duration in milliseconds
+   * @default 300000 (5 minutes)
+   */
+  cacheTime?: number;
+}
+
+/**
+ * Hook return type for form entry
+ */
+export interface UseFormEntryReturn {
+  data: FormEntryData | null;
+  isLoading: boolean;
+  isError: boolean;
+  error: ApiError | null;
+  refetch: (force?: boolean) => Promise<void>;
+}
+
+/**
+ * Custom hook to fetch and manage form entry state
+ * 
+ * @param params - Hook parameters including publicIdentifier and languageId
+ * @returns Object containing data, loading state, error state, and refetch function
+ */
+export const useFormEntry = ({
+  publicIdentifier,
+  languageId,
+  fetchOnMount = false,
+  cacheTime = 300000,
+}: UseFormEntryParams): UseFormEntryReturn => {
+  const dispatch = useDispatch<AppDispatch>();
+
+  // Select state from Redux store
+  const data = useSelector(selectFormEntry);
+  const isLoading = useSelector(selectIsFormEntryLoading);
+  const isError = useSelector(selectIsFormEntryError);
+  const error = useSelector(selectFormEntryError);
+  const lastFetchedAt = useSelector(selectFormEntryLastFetchedAt);
+
+  // Ref to track if initial fetch has been triggered
+  const hasFetchedRef = useRef(false);
+  // Ref to store the AbortController for cleanup
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  /**
+   * Check if cached data is stale
+   */
+  const isCacheStale = useCallback((): boolean => {
+    if (cacheTime === 0) return false;
+    if (!lastFetchedAt) return true;
+    
+    const now = Date.now();
+    const age = now - lastFetchedAt;
+    return age > cacheTime;
+  }, [lastFetchedAt, cacheTime]);
+
+  /**
+   * Fetch form entry data
+   */
+  const fetchData = useCallback(
+    async (force: boolean = false) => {
+      // Validate parameters
+      if (!publicIdentifier) {
+        console.warn('[useFormEntry] Invalid publicIdentifier');
+        return;
       }
-    };
-  }, [formVersionId, languageId, fetchOnMount, fetchData, isCacheStale]);
+
+      if (!languageId || languageId <= 0) {
+        console.warn('[useFormEntry] Invalid languageId:', languageId);
+        return;
+      }
+
+      // Skip fetch if data exists, cache is fresh, and not forced
+      if (!force && data && !isCacheStale()) {
+        console.debug('[useFormEntry] Using cached data, skipping fetch');
+        return;
+      }
+
+      // Cancel any ongoing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Create new AbortController
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
+      console.debug('[useFormEntry] Fetching form entry:', {
+        publicIdentifier,
+        languageId,
+        force,
+      });
+
+      try {
+        await dispatch(
+          fetchFormEntry({
+            publicIdentifier,
+            languageId,
+            signal: abortController.signal,
+          })
+        ).unwrap();
+
+        console.debug('[useFormEntry] Fetch completed successfully');
+      } catch (err: any) {
+        const isCancelled =
+          err?.name === 'AbortError' ||
+          err?.name === 'CanceledError' ||
+          err?.status === 0 ||
+          err?.message === 'Request was cancelled';
+        if (!isCancelled) {
+          console.error('[useFormEntry] Fetch error:', err);
+        }
+      }
+    },
+    [dispatch, publicIdentifier, languageId, data, isCacheStale]
+  );
+
+  /**
+   * Refetch function exposed to consumers
+   */
+  const refetch = useCallback(
+    async (force: boolean = false) => {
+      console.debug('[useFormEntry] Manual refetch triggered:', { force });
+      await fetchData(force);
+    },
+    [fetchData]
+  );
+
+  /**
+   * Effect: Fetch data on mount or when parameters change
+   */
+  useEffect(() => {
+    const shouldFetch =
+      !hasFetchedRef.current ||
+      fetchOnMount ||
+      isCacheStale();
+
+    if (shouldFetch) {
+      console.debug('[useFormEntry] Initial fetch triggered');
+      hasFetchedRef.current = true;
+      fetchData();
+    }
+  }, [fetchData, fetchOnMount, isCacheStale]);
 
   return {
     data,

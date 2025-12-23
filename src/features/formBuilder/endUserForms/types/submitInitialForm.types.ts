@@ -79,6 +79,21 @@ export interface SubmitInitialStageRequest {
   field_values: FieldValue[];
 }
 
+/**
+ * Request payload for submitting a later stage of a form.
+ * This is sent to POST /api/enduser/entries/submit-later-stage
+ */
+export interface SubmitLaterStageRequest {
+  /** Public identifier UUID of the entry */
+  public_identifier: string;
+  
+  /** ID of the stage transition (workflow step) */
+  stage_transition_id: number;
+  
+  /** Array of field values */
+  field_values: FieldValue[];
+}
+
 // =============================================================================
 // API RESPONSE TYPES
 // =============================================================================
@@ -120,6 +135,27 @@ export interface SubmitInitialStageResponse {
   
   /** Typed submission result data */
   data: SubmitInitialStageData;
+}
+
+/**
+ * Nested data object returned on successful later stage submission.
+ */
+export interface SubmitLaterStageData {
+  success: boolean;
+  entry_id: number;
+  public_identifier: string;
+  is_complete: boolean;
+  current_stage_id: number;
+  message: string;
+}
+
+/**
+ * Success response envelope from the submit-later-stage endpoint.
+ */
+export interface SubmitLaterStageResponse {
+  success: true;
+  message: string;
+  data: SubmitLaterStageData;
 }
 
 /**
@@ -212,7 +248,7 @@ export interface FormsSubmissionState {
   error: ApiError | null;
   
   /** Last successful response data */
-  lastResponse: SubmitInitialStageData | null;
+  lastResponse: SubmitInitialStageData | SubmitLaterStageData | null;
   
   /** Request ID for tracking/deduplication (optional) */
   requestId?: string;

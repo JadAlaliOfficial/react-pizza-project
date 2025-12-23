@@ -220,6 +220,38 @@ export interface FormStructureResponse {
 }
 
 /**
+ * Form Entry Stage wrapper
+ */
+export interface FormEntryStage {
+  stage_id: number;
+  stage_name: string;
+  is_current: boolean;
+  is_readonly: boolean;
+  structure: FormStage;
+}
+
+/**
+ * Form Entry Data
+ */
+export interface FormEntryData {
+  entry_id: number;
+  public_identifier: string;
+  form_name: string;
+  is_complete: boolean;
+  current_stage_id: number;
+  stages: FormEntryStage[];
+  available_transitions: FormTransition[];
+}
+
+/**
+ * API response wrapper for Form Entry
+ */
+export interface FormEntryResponse {
+  success: boolean;
+  data: FormEntryData;
+}
+
+/**
  * Custom error for authentication issues
  */
 export class AuthMissingError extends Error {

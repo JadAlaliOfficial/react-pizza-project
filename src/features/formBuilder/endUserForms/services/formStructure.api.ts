@@ -16,6 +16,7 @@ import { store } from '@/store'; // Adjust path to your Redux store
 import { loadToken } from '../../../auth/utils/tokenStorage'; // Adjust path
 import type {
   FormStructureResponse,
+  FormEntryResponse,
   ApiError,
 } from '../types/formStructure.types';
 
@@ -215,6 +216,70 @@ export class FormsService {
       }
 
       console.error('[FormsService.getFormStructure] Error:', error);
+      throw normalizeError(error);
+    }
+  }
+
+  /**
+   * GET FORM ENTRY
+   * Fetches the complete form entry data by public identifier.
+   * @param publicIdentifier - The public identifier UUID of the entry
+   * @param languageId - The language ID for the form content
+   * @param signal - Optional AbortSignal for request cancellation
+   * @returns Promise resolving to form entry data
+   * @throws {ApiError} When API returns an error or success is false
+   */
+  static async getFormEntry(
+    publicIdentifier: string,
+    languageId: number,
+    signal?: AbortSignal
+  ): Promise<FormEntryResponse['data']> {
+    try {
+      // Validate required parameters
+      if (!publicIdentifier) {
+        throw new Error('Invalid publicIdentifier: must be a non-empty string');
+      }
+
+      if (!languageId || languageId <= 0) {
+        throw new Error('Invalid language_id: must be a positive number');
+      }
+
+      console.debug('[FormsService.getFormEntry] Fetching form entry:', {
+        publicIdentifier,
+        languageId,
+      });
+
+      // Make the API request
+      const response = await axiosInstance.get<FormEntryResponse>(
+        `/enduser/entries/${publicIdentifier}`,
+        {
+          params: {
+            language_id: languageId,
+          },
+          signal,
+        }
+      );
+
+      // Check if API returned success=false (business logic error)
+      if (!response.data.success) {
+        console.error('[FormsService.getFormEntry] API returned success=false:', response.data);
+        throw {
+          status: response.status,
+          message: 'API returned unsuccessful response',
+          data: response.data,
+        } as ApiError;
+      }
+
+      console.debug('[FormsService.getFormEntry] Success:', response.data);
+      return response.data.data;
+    } catch (error: any) {
+      // Handle abort/cancellation
+      if (error.name === 'AbortError' || error.name === 'CanceledError') {
+        console.debug('[FormsService.getFormEntry] Request was cancelled');
+        throw error;
+      }
+
+      console.error('[FormsService.getFormEntry] Error:', error);
       throw normalizeError(error);
     }
   }

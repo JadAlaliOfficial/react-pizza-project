@@ -4,9 +4,9 @@
  * =============================================================================
  * FORMS SUBMISSION SLICE - REDUX TOOLKIT
  * =============================================================================
- * 
+ *
  * Redux slice for managing form submission state using Redux Toolkit.
- * 
+ *
  * Key features:
  * - createAsyncThunk for async form submission with full TypeScript support [web:21][web:22]
  * - Normalized error handling using rejectWithValue [web:25][web:26]
@@ -16,11 +16,17 @@
  * - Request deduplication via requestId tracking
  */
 
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import {
+  createSlice,
+  createAsyncThunk,
+  type PayloadAction,
+} from '@reduxjs/toolkit';
 import type { RootState } from '@/store';
 import type {
   SubmitInitialStageRequest,
   SubmitInitialStageData,
+  SubmitLaterStageRequest,
+  SubmitLaterStageData,
   ApiError,
   FormsSubmissionState,
   RequestStatus,
@@ -50,24 +56,24 @@ const initialState: FormsSubmissionState = {
 
 /**
  * Async thunk for submitting the initial stage of a form.
- * 
+ *
  * This thunk:
  * - Calls the formsService.submitInitialStage API method
  * - Handles all error cases and normalizes them with rejectWithValue [web:25]
  * - Returns typed submission data on success
  * - Tracks request metadata (requestId, timestamps)
- * 
+ *
  * Error handling:
  * - Missing auth token -> authentication error
  * - Network failure -> network error
  * - API returns success: false -> business error
  * - HTTP 4xx/5xx -> validation/server error
- * 
+ *
  * TypeScript typing: [web:1][web:22][web:26]
  * - First generic: Return type (SubmitInitialStageData)
  * - Second generic: Argument type (SubmitInitialStageRequest)
  * - Third generic: ThunkAPI config with rejectValue type
- * 
+ *
  * @example
  * ```
  * dispatch(submitInitialStage({
@@ -101,6 +107,41 @@ export const submitInitialStage = createAsyncThunk<
       
       // rejectWithValue ensures the error appears in action.payload (not action.error)
       // This gives us full control over the error shape in reducers
+      return rejectWithValue(apiError);
+    }
+  }
+);
+
+/**
+ * Async thunk for submitting a later stage of a form.
+ * 
+ * This thunk:
+ * - Calls the formsService.submitLaterStage API method
+ * - Handles all error cases and normalizes them with rejectWithValue
+ * - Returns typed submission data on success
+ * - Tracks request metadata (requestId, timestamps)
+ */
+export const submitLaterStage = createAsyncThunk<
+  SubmitLaterStageData, // Return type on success (fulfilled)
+  SubmitLaterStageRequest, // Argument type
+  {
+    state: RootState; // Type of getState()
+    rejectValue: ApiError; // Type of rejectWithValue() payload
+  }
+>(
+  'formsSubmission/submitLaterStage',
+  async (payload: SubmitLaterStageRequest, { rejectWithValue }) => {
+    try {
+      // Call the service method which handles token injection and error normalization
+      const response = await formsService.submitLaterStage(payload);
+      
+      // Return the nested data object (not the full response envelope)
+      return response.data;
+    } catch (error) {
+      // Error is already normalized by formsService (ApiError type)
+      const apiError = error as ApiError;
+      
+      // rejectWithValue ensures the error appears in action.payload
       return rejectWithValue(apiError);
     }
   }
@@ -149,7 +190,7 @@ const formsSubmissionSlice = createSlice({
       state.error = null; // Clear previous errors
       state.requestId = action.meta.requestId; // Track request for deduplication
       state.lastRequestTimestamp = Date.now();
-      
+
       // Note: We don't clear lastResponse here to allow displaying previous
       // submission data while a new request is in progress
     });
@@ -164,10 +205,10 @@ const formsSubmissionSlice = createSlice({
         state.error = null;
         state.lastResponse = action.payload; // Store submission result
         state.lastResponseTimestamp = Date.now();
-        
+
         // Optional: Clear requestId after completion
         state.requestId = undefined;
-      }
+      },
     );
 
     // -------------------------------------------------------------------------
@@ -195,6 +236,50 @@ const formsSubmissionSlice = createSlice({
       // Optional: Clear requestId after completion
       state.requestId = undefined;
     });
+
+    // -------------------------------------------------------------------------
+    // PENDING - Submit Later Stage Request started
+    // -------------------------------------------------------------------------
+    builder.addCase(submitLaterStage.pending, (state, action) => {
+      state.status = 'loading';
+      state.error = null; // Clear previous errors
+      state.requestId = action.meta.requestId; // Track request for deduplication
+      state.lastRequestTimestamp = Date.now();
+    });
+
+    // -------------------------------------------------------------------------
+    // FULFILLED - Submit Later Stage Request succeeded
+    // -------------------------------------------------------------------------
+    builder.addCase(
+      submitLaterStage.fulfilled,
+      (state, action: PayloadAction<SubmitLaterStageData>) => {
+        state.status = 'succeeded';
+        state.error = null;
+        state.lastResponse = action.payload; // Store submission result
+        state.lastResponseTimestamp = Date.now();
+        state.requestId = undefined;
+      }
+    );
+
+    // -------------------------------------------------------------------------
+    // REJECTED - Submit Later Stage Request failed
+    // -------------------------------------------------------------------------
+    builder.addCase(submitLaterStage.rejected, (state, action) => {
+      state.status = 'failed';
+      state.lastResponseTimestamp = Date.now();
+      
+      if (action.payload) {
+        state.error = action.payload;
+      } else {
+        state.error = {
+          type: 'unknown',
+          message: action.error.message || 'An unexpected error occurred',
+          originalError: action.error,
+        };
+      }
+      
+      state.requestId = undefined;
+    });
   },
 });
 
@@ -206,16 +291,17 @@ const formsSubmissionSlice = createSlice({
  * Action creators for synchronous reducers.
  * These can be dispatched directly without async logic.
  */
-export const { resetFormsSubmission, clearError, resetStatus } = formsSubmissionSlice.actions;
+export const { resetFormsSubmission, clearError, resetStatus } =
+  formsSubmissionSlice.actions;
 
 /**
  * Main reducer for the forms submission slice.
  * Named export as requested: submitInitialFormReducer
- * 
+ *
  * This should be added to your root reducer:
  * ```
  * import { submitInitialFormReducer } from './features/forms/formsSubmissionSlice';
- * 
+ *
  * export const store = configureStore({
  *   reducer: {
  *     formsSubmission: submitInitialFormReducer,
@@ -236,8 +322,9 @@ export default submitInitialFormReducer;
 /**
  * Selector for the entire forms submission state.
  */
-export const selectFormsSubmissionState = (state: RootState): FormsSubmissionState =>
-  state.submitInitialForm;
+export const selectFormsSubmissionState = (
+  state: RootState,
+): FormsSubmissionState => state.submitInitialForm;
 
 /**
  * Selector for submission status.
@@ -264,8 +351,9 @@ export const selectSubmissionError = (state: RootState): ApiError | null =>
  * Selector for last successful response.
  * Returns null if no successful submission yet.
  */
-export const selectLastSubmissionResponse = (state: RootState): SubmitInitialStageData | null =>
-  state.submitInitialForm.lastResponse;
+export const selectLastSubmissionResponse = (
+  state: RootState,
+): SubmitInitialStageData | null => state.submitInitialForm.lastResponse;
 
 /**
  * Selector for checking if submission succeeded.
@@ -292,7 +380,9 @@ export const selectLastEntryId = (state: RootState): number | undefined =>
  * Selector for public identifier from last successful submission.
  * Returns undefined if no successful submission yet.
  */
-export const selectLastPublicIdentifier = (state: RootState): string | undefined =>
+export const selectLastPublicIdentifier = (
+  state: RootState,
+): string | undefined =>
   state.submitInitialForm.lastResponse?.public_identifier;
 
 /**

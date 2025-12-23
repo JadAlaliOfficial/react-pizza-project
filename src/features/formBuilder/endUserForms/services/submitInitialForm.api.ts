@@ -21,6 +21,8 @@ import {
   type SubmitInitialStageRequest,
   type SubmitInitialStageResponse,
   type SubmitInitialStageErrorResponse,
+  type SubmitLaterStageRequest,
+  type SubmitLaterStageResponse,
   type ApiError,
   isErrorResponse,
 } from '../types/submitInitialForm.types';
@@ -400,6 +402,58 @@ export const formsService = {
       // Error is already normalized by response interceptor
       // Just re-throw it for Redux thunk to handle
       logger.error('Submit initial stage failed:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Submits a later stage of a form.
+   * 
+   * This method calls POST /api/enduser/entries/submit-later-stage with the provided
+   * data. It automatically attaches the auth token via request interceptor.
+   * 
+   * @param payload - The form submission data including public identifier
+   * @returns Promise resolving to the submission response data
+   * @throws {ApiError} Normalized error if request fails
+   */
+  submitLaterStage: async (
+    payload: SubmitLaterStageRequest
+  ): Promise<SubmitLaterStageResponse> => {
+    logger.info('Submitting later stage:', {
+      public_identifier: payload.public_identifier,
+      stage_transition_id: payload.stage_transition_id,
+      field_count: payload.field_values.length,
+    });
+    console.log('Payload:', payload);
+
+    // Check for auth token before making request
+    const token = getAuthToken();
+    if (!token) {
+      logger.error('Cannot submit form - no auth token available');
+      
+      // Throw normalized authentication error
+      const authError: ApiError = {
+        type: 'authentication',
+        message: 'Authentication required. Please log in to submit the form.',
+        statusCode: 401,
+      };
+      
+      throw authError;
+    }
+
+    try {
+      const response = await formsApiClient.post<SubmitLaterStageResponse>(
+        '/api/enduser/entries/submit-later-stage',
+        payload
+      );
+
+      logger.info('Later stage submitted successfully:', response.data.data.entry_id);
+      
+      return response.data;
+    } catch (error) {
+      // Error is already normalized by response interceptor
+      // Just re-throw it for Redux thunk to handle
+      logger.error('Submit later stage failed:', error);
       throw error;
     }
   },

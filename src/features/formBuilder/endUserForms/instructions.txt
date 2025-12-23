@@ -1,0 +1,224 @@
+Get request http://dforms.pnepizza.com/api/enduser/entries/:publicIdentifier?language_id=1 
+according to the publicIdentifier value that will look something like (a6f29276-b6d0-4eb9-b082-d3e4ef7c30c1) the request will return something like :"
+{
+    "success": true,
+    "data": {
+        "entry_id": 79,
+        "public_identifier": "a6f29276-b6d0-4eb9-b082-d3e4ef7c30c1",
+        "form_name": "test allah",
+        "is_complete": false,
+        "current_stage_id": 346,
+        "stages": [
+            {
+                "stage_id": 345,
+                "stage_name": "initial stage",
+                "is_current": false,
+                "is_readonly": true,
+                "structure": {
+                    "stage_id": 345,
+                    "stage_name": "initial stage",
+                    "is_initial": true,
+                    "visibility_condition": null,
+                    "access_rule": {
+                        "allow_authenticated_users": false,
+                        "allowed_users": null,
+                        "allowed_roles": null,
+                        "allowed_permissions": null,
+                        "email_field_id": null
+                    },
+                    "sections": [
+                        {
+                            "section_id": 365,
+                            "section_name": "Section 1",
+                            "section_order": 0,
+                            "visibility_condition": null,
+                            "fields": [
+                                {
+                                    "field_id": 1444,
+                                    "field_type_id": 1,
+                                    "field_type": "Text Input",
+                                    "label": "First Name",
+                                    "placeholder": null,
+                                    "helper_text": "Enter your first name",
+                                    "default_value": null,
+                                    "current_value": "charlie",
+                                    "visibility_condition": null,
+                                    "rules": [
+                                        {
+                                            "rule_id": 1745,
+                                            "input_rule_id": 8,
+                                            "rule_name": "alpha",
+                                            "rule_description": "Must contain only alphabetic characters",
+                                            "rule_props": null,
+                                            "rule_condition": null
+                                        },
+                                        {
+                                            "rule_id": 1746,
+                                            "input_rule_id": 3,
+                                            "rule_name": "max",
+                                            "rule_description": "Maximum length (for text) or maximum value (for numbers)",
+                                            "rule_props": {
+                                                "value": 50
+                                            },
+                                            "rule_condition": null
+                                        },
+                                        {
+                                            "rule_id": 1747,
+                                            "input_rule_id": 1,
+                                            "rule_name": "required",
+                                            "rule_description": "Field must have a value",
+                                            "rule_props": null,
+                                            "rule_condition": null
+                                        }
+                                    ]
+                                },
+                                {
+                                    "field_id": 1445,
+                                    "field_type_id": 1,
+                                    "field_type": "Text Input",
+                                    "label": "Last Name",
+                                    "placeholder": null,
+                                    "helper_text": "Enter your last name (optional)",
+                                    "default_value": null,
+                                    "current_value": "miller",
+                                    "visibility_condition": null,
+                                    "rules": [
+                                        {
+                                            "rule_id": 1748,
+                                            "input_rule_id": 8,
+                                            "rule_name": "alpha",
+                                            "rule_description": "Must contain only alphabetic characters",
+                                            "rule_props": null,
+                                            "rule_condition": null
+                                        },
+                                        {
+                                            "rule_id": 1749,
+                                            "input_rule_id": 3,
+                                            "rule_name": "max",
+                                            "rule_description": "Maximum length (for text) or maximum value (for numbers)",
+                                            "rule_props": {
+                                                "value": 50
+                                            },
+                                            "rule_condition": null
+                                        }
+                                    ]
+                                },
+                                {
+                                    "field_id": 1446,
+                                    "field_type_id": 2,
+                                    "field_type": "Email Input",
+                                    "label": "Email",
+                                    "placeholder": "user@example.com",
+                                    "helper_text": "Enter your Email address",
+                                    "default_value": null,
+                                    "current_value": "charlie@pneunited.com",
+                                    "visibility_condition": null,
+                                    "rules": [
+                                        {
+                                            "rule_id": 1750,
+                                            "input_rule_id": 1,
+                                            "rule_name": "required",
+                                            "rule_description": "Field must have a value",
+                                            "rule_props": null,
+                                            "rule_condition": null
+                                        },
+                                        {
+                                            "rule_id": 1751,
+                                            "input_rule_id": 30,
+                                            "rule_name": "unique",
+                                            "rule_description": "Value must be unique across all entries",
+                                            "rule_props": null,
+                                            "rule_condition": null
+                                        }
+                                    ]
+                                },
+                                {
+                                    "field_id": 1447,
+                                    "field_type_id": 10,
+                                    "field_type": "Radio Button",
+                                    "label": "Today's Date",
+                                    "placeholder": "[\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"]",
+                                    "helper_text": "Select one option",
+                                    "default_value": "Sunday",
+                                    "current_value": "Sunday",
+                                    "visibility_condition": null,
+                                    "rules": [
+                                        {
+                                            "rule_id": 1752,
+                                            "input_rule_id": 1,
+                                            "rule_name": "required",
+                                            "rule_description": "Field must have a value",
+                                            "rule_props": null,
+                                            "rule_condition": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            {
+                "stage_id": 346,
+                "stage_name": "Stage 2",
+                "is_current": true,
+                "is_readonly": false,
+                "structure": {
+                    "stage_id": 346,
+                    "stage_name": "Stage 2",
+                    "is_initial": false,
+                    "visibility_condition": null,
+                    "access_rule": {
+                        "allow_authenticated_users": false,
+                        "allowed_users": null,
+                        "allowed_roles": null,
+                        "allowed_permissions": null,
+                        "email_field_id": null
+                    },
+                    "sections": [
+                        {
+                            "section_id": 366,
+                            "section_name": "Section 1",
+                            "section_order": 1,
+                            "visibility_condition": null,
+                            "fields": [
+                                {
+                                    "field_id": 1448,
+                                    "field_type_id": 9,
+                                    "field_type": "Checkbox",
+                                    "label": "Let's continue If you Agree to the data in the previous stage",
+                                    "placeholder": null,
+                                    "helper_text": null,
+                                    "default_value": null,
+                                    "current_value": null,
+                                    "visibility_condition": null,
+                                    "rules": [
+                                        {
+                                            "rule_id": 1753,
+                                            "input_rule_id": 1,
+                                            "rule_name": "required",
+                                            "rule_description": "Field must have a value",
+                                            "rule_props": null,
+                                            "rule_condition": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ],
+        "available_transitions": [
+            {
+                "transition_id": 320,
+                "label": "Done",
+                "to_stage_id": null,
+                "to_stage_name": null,
+                "to_complete": true,
+                "condition": null,
+                "actions": []
+            }
+        ]
+    }
+}"

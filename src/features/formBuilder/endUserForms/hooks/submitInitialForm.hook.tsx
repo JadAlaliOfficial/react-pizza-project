@@ -20,6 +20,7 @@ import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux
 import type { AppDispatch, RootState } from '@/store';
 import {
   submitInitialStage,
+  submitLaterStage,
   resetFormsSubmission,
   clearError,
   resetStatus,
@@ -36,6 +37,8 @@ import {
 import type {
   SubmitInitialStageRequest,
   SubmitInitialStageData,
+  SubmitLaterStageRequest,
+  SubmitLaterStageData,
   ApiError,
   RequestStatus,
 } from '../types/submitInitialForm.types';
@@ -313,6 +316,146 @@ export const useSubmitInitialStage = (): UseSubmitInitialStageReturn => {
     entryId,
     publicIdentifier,
     isFormComplete,
+  };
+};
+
+// =============================================================================
+// SUBMIT LATER STAGE HOOK
+// =============================================================================
+
+/**
+ * Return type for the useSubmitLaterStage hook.
+ */
+export interface UseSubmitLaterStageReturn {
+  /**
+   * Submits the later stage form with the provided data.
+   * Returns a promise that resolves with submission data or rejects with ApiError.
+   */
+  submit: (payload: SubmitLaterStageRequest) => Promise<SubmitLaterStageData>;
+
+  /** Current status of the submission. */
+  status: RequestStatus;
+
+  /** Whether a submission is currently in progress. */
+  isSubmitting: boolean;
+
+  /** Error object if submission failed, null otherwise. */
+  error: ApiError | null;
+
+  /** Data from the last successful submission. */
+  data: SubmitLaterStageData | null;
+
+  /** Whether the last submission succeeded. */
+  isSuccess: boolean;
+
+  /** Whether the last submission failed. */
+  isError: boolean;
+
+  /** Entry ID from the last successful submission. */
+  entryId: number | undefined;
+
+  /** Public identifier (UUID) from the last successful submission. */
+  publicIdentifier: string | undefined;
+
+  /** Whether the form workflow is complete after the last submission. */
+  isFormComplete: boolean;
+
+  /** Resets the entire submission state back to initial values. */
+  reset: () => void;
+
+  /** Clears only the error state. */
+  dismissError: () => void;
+
+  /** Resets status to idle without clearing data or errors. */
+  resetToIdle: () => void;
+}
+
+/**
+ * Custom hook for submitting a later stage of a form.
+ * 
+ * This hook provides a complete interface for form submission including:
+ * - Typed submit function that returns a promise
+ * - Loading, error, and success state tracking
+ * - Submission result data access
+ * - State management helpers
+ * 
+ * @returns Object with submit function, state, and utility functions
+ */
+export const useSubmitLaterStage = (): UseSubmitLaterStageReturn => {
+  const dispatch = useAppDispatch();
+
+  // ---------------------------------------------------------------------------
+  // State Selection
+  // ---------------------------------------------------------------------------
+
+  const status = useAppSelector(selectSubmissionStatus);
+  const isSubmitting = useAppSelector(selectIsSubmitting);
+  const error = useAppSelector(selectSubmissionError);
+  
+  // Cast data to SubmitLaterStageData | null since they share the same shape
+  const data = useAppSelector(selectLastSubmissionResponse) as SubmitLaterStageData | null;
+  
+  const isSuccess = useAppSelector(selectSubmissionSucceeded);
+  const isError = useAppSelector(selectSubmissionFailed);
+  const entryId = useAppSelector(selectLastEntryId);
+  const publicIdentifier = useAppSelector(selectLastPublicIdentifier);
+  const isFormComplete = useAppSelector(selectIsFormComplete);
+
+  // ---------------------------------------------------------------------------
+  // Memoized Callbacks
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Submit function wrapped in useCallback.
+   */
+  const submit = useCallback(
+    async (payload: SubmitLaterStageRequest): Promise<SubmitLaterStageData> => {
+      const resultAction = await dispatch(submitLaterStage(payload));
+      
+      if (submitLaterStage.fulfilled.match(resultAction)) {
+        return resultAction.payload;
+      }
+      
+      throw resultAction.payload || resultAction.error;
+    },
+    [dispatch]
+  );
+
+  /**
+   * Reset function wrapped in useCallback.
+   */
+  const reset = useCallback(() => {
+    dispatch(resetFormsSubmission());
+  }, [dispatch]);
+
+  /**
+   * Dismiss error function wrapped in useCallback.
+   */
+  const dismissError = useCallback(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  /**
+   * Reset to idle function wrapped in useCallback.
+   */
+  const resetToIdle = useCallback(() => {
+    dispatch(resetStatus());
+  }, [dispatch]);
+
+  return {
+    submit,
+    status,
+    isSubmitting,
+    error,
+    data,
+    isSuccess,
+    isError,
+    entryId,
+    publicIdentifier,
+    isFormComplete,
+    reset,
+    dismissError,
+    resetToIdle,
   };
 };
 
