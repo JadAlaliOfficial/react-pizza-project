@@ -49,9 +49,7 @@ import type {
   LanguageConfig,
   UseRuntimeFormReturn,
 } from '../types/runtime.types';
-import {
-  LANGUAGE_MAP,
-} from '../types/runtime.types';
+import { LANGUAGE_MAP } from '../types/runtime.types';
 import { buildVisibilityMap } from '../engine/visibility/visibilityEngine';
 import {
   validateField as engineValidateField,
@@ -181,6 +179,7 @@ const fallbackByType = (field: FormField): JsonValue => {
   // Numeric types
   switch (type) {
     case 'Currency Input':
+      return null;
     case 'Number Input':
     case 'Percentage Input':
     case 'Slider':
@@ -472,7 +471,10 @@ export const useRuntimeForm = ({
    */
   const setFieldValue = useCallback(
     async (fieldId: number, value: JsonValue) => {
-      console.log(`[useRuntimeForm] setFieldValue called for field ${fieldId}:`, value);
+      console.log(
+        `[useRuntimeForm] setFieldValue called for field ${fieldId}:`,
+        value,
+      );
       setFieldValues((prev) => {
         const newState = {
           ...prev,
@@ -484,7 +486,10 @@ export const useRuntimeForm = ({
             isValid: true,
           },
         };
-        console.log(`[useRuntimeForm] New fieldValues state for field ${fieldId}:`, newState[fieldId]);
+        console.log(
+          `[useRuntimeForm] New fieldValues state for field ${fieldId}:`,
+          newState[fieldId],
+        );
         return newState;
       });
 
@@ -519,27 +524,73 @@ export const useRuntimeForm = ({
    * Called on blur
    */
   const setFieldTouched = useCallback(
-    async (fieldId: number) => {
+    async (fieldId: number, latestValue?: JsonValue) => {
+      // Mark as touched first
       setFieldValues((prev) => ({
         ...prev,
         [fieldId]: {
           ...prev[fieldId],
+          fieldId,
           touched: true,
+          ...(latestValue !== undefined ? { value: latestValue } : {}),
         },
       }));
 
-      const result = await validateField(fieldId);
+      const field = allFields.find((f) => f.field_id === fieldId);
+      if (!field) {
+        setFieldValues((prev) => ({
+          ...prev,
+          [fieldId]: {
+            ...prev[fieldId],
+            error: 'Field not found',
+            isValid: false,
+          },
+        }));
+        return;
+      }
+
+      // Validate deterministically:
+      // - valueToValidate: use latestValue if provided
+      // - contextValues: patch snapshot fieldValues with latestValue for cross-field rules
+      const currentRuntimeValue = fieldValues[fieldId];
+      const valueToValidate: JsonValue =
+        latestValue !== undefined
+          ? latestValue
+          : (currentRuntimeValue?.value ?? null);
+
+      const contextValues =
+        latestValue !== undefined
+          ? {
+              ...fieldValues,
+              [fieldId]: {
+                ...(currentRuntimeValue ?? {
+                  fieldId,
+                  value: valueToValidate,
+                  error: null,
+                  touched: true,
+                  isValid: true,
+                }),
+                value: valueToValidate,
+              },
+            }
+          : fieldValues;
+
+      const engineResult = engineValidateField(
+        field,
+        valueToValidate,
+        contextValues,
+      );
 
       setFieldValues((prev) => ({
         ...prev,
         [fieldId]: {
           ...prev[fieldId],
-          error: result.errors[0] || null,
-          isValid: result.isValid,
+          error: engineResult.error || null,
+          isValid: engineResult.valid,
         },
       }));
     },
-    [validateField],
+    [allFields, fieldValues],
   );
 
   /**

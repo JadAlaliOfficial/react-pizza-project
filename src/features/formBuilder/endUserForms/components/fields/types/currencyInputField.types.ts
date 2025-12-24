@@ -11,7 +11,7 @@ import type { FormField } from '@/features/formBuilder/endUserForms/types/formSt
  * Currency value type
  * Stored as number internally
  */
-export type CurrencyValue = number;
+export type CurrencyValue = number| null;
 
 /**
  * Props for CurrencyInput component
@@ -30,7 +30,7 @@ export interface CurrencyInputProps {
   /**
    * Callback when currency value changes
    */
-  onChange: (value: number) => void;
+  onChange: (value: number | null) => void;
 
   /**
    * Callback when field loses focus

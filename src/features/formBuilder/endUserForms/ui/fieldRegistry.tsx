@@ -2,13 +2,16 @@
  * ================================
  * FIELD REGISTRY
  * ================================
- * 
+ *
  * Central registry mapping field types to React components.
  * This enables dynamic field rendering based on form structure from API.
  */
 
 import React from 'react';
-import type { RuntimeFieldProps, RuntimeFieldComponent } from '../types/runtime.types';
+import type {
+  RuntimeFieldProps,
+  RuntimeFieldComponent,
+} from '../types/runtime.types';
 
 // ================================
 // FIELD COMPONENT IMPORTS
@@ -169,6 +172,7 @@ const CurrencyInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as number}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -228,6 +232,7 @@ const CheckboxInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as boolean}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)} // ✅ ADD THIS
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -286,7 +291,6 @@ const FileUpload: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as any}
     onChange={(value) => props.onChange(props.field.field_id, value as any)}
-    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -298,7 +302,6 @@ const ImageUpload: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as any}
     onChange={(value) => props.onChange(props.field.field_id, value as any)}
-    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -392,7 +395,6 @@ const VideoUpload: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as any}
     onChange={(value) => props.onChange(props.field.field_id, value as any)}
-    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -405,7 +407,7 @@ const VideoUpload: RuntimeFieldComponent = (props) => (
 
 /**
  * Central registry mapping field_type to React component
- * 
+ *
  * Field type names match EXACTLY what comes from backend API
  */
 const FIELD_REGISTRY: Record<string, RuntimeFieldComponent> = {
@@ -416,39 +418,39 @@ const FIELD_REGISTRY: Record<string, RuntimeFieldComponent> = {
   'Phone Input': PhoneInput,
   'Password Input': PasswordInput,
   'URL Input': UrlInput,
-  
+
   // Numeric fields (3 types)
   'Number Input': NumberInput,
   'Currency Input': CurrencyInput,
   'Percentage Input': PercentageInput,
-  
+
   // Date/Time fields (3 types)
   'Date Input': DateInput,
   'DateTime Input': DateTimeInput,
   'Time Input': TimeInput,
-  
+
   // Boolean fields (2 types)
-  'Checkbox': CheckboxInput,
+  Checkbox: CheckboxInput,
   'Toggle Switch': ToggleSwitch,
-  
+
   // Selection fields (3 types)
   'Radio Button': RadioButton,
   'Dropdown Select': DropdownSelect,
-  'Multi_Select': MultiSelect,
-  
+  Multi_Select: MultiSelect,
+
   // File/Media fields (4 types)
   'File Upload': FileUpload,
   'Image Upload': ImageUpload,
   'Video Upload': VideoUpload,
   'Document Upload': DocumentUpload,
-  
+
   // Special fields (6 types)
   'Signature Pad': SignaturePad,
   'Color Picker': ColorPickerInput,
   'Location Picker': PopupLocationPicker,
   'Address Input': AddressInput,
-  'Rating': Rating,
-  'Slider': Slider,
+  Rating: Rating,
+  Slider: Slider,
 };
 
 // ================================
@@ -457,13 +459,16 @@ const FIELD_REGISTRY: Record<string, RuntimeFieldComponent> = {
 
 export function getFieldComponent(fieldType: string): RuntimeFieldComponent {
   const component = FIELD_REGISTRY[fieldType];
-  
+
   if (!component) {
     console.warn(`[fieldRegistry] Unknown field type: "${fieldType}"`);
-    console.warn('[fieldRegistry] Available types:', Object.keys(FIELD_REGISTRY));
+    console.warn(
+      '[fieldRegistry] Available types:',
+      Object.keys(FIELD_REGISTRY),
+    );
     return UnknownFieldComponent;
   }
-  
+
   return component;
 }
 
@@ -477,14 +482,16 @@ export function getRegisteredFieldTypes(): string[] {
 
 export function registerFieldComponent(
   fieldType: string,
-  component: RuntimeFieldComponent
+  component: RuntimeFieldComponent,
 ): void {
   if (FIELD_REGISTRY[fieldType]) {
-    console.warn(`[fieldRegistry] Overwriting existing field type: ${fieldType}`);
+    console.warn(
+      `[fieldRegistry] Overwriting existing field type: ${fieldType}`,
+    );
   }
-  
+
   FIELD_REGISTRY[fieldType] = component;
-  
+
   if (process.env.NODE_ENV === 'development') {
     console.log(`[fieldRegistry] Registered field type: ${fieldType}`);
   }
@@ -492,7 +499,7 @@ export function registerFieldComponent(
 
 export function unregisterFieldComponent(fieldType: string): void {
   delete FIELD_REGISTRY[fieldType];
-  
+
   if (process.env.NODE_ENV === 'development') {
     console.log(`[fieldRegistry] Unregistered field type: ${fieldType}`);
   }
@@ -502,20 +509,39 @@ export function debugFieldRegistry(): void {
   if (process.env.NODE_ENV !== 'development') {
     return;
   }
-  
+
   console.group('[fieldRegistry] Registered Field Types');
-  
+
   const types = getRegisteredFieldTypes().sort();
   const categories = {
-    'Text-based': ['Text Input', 'Text Area', 'Email Input', 'Phone Input', 'Password Input', 'URL Input'],
-    'Numeric': ['Number Input', 'Currency Input', 'Percentage Input'],
+    'Text-based': [
+      'Text Input',
+      'Text Area',
+      'Email Input',
+      'Phone Input',
+      'Password Input',
+      'URL Input',
+    ],
+    Numeric: ['Number Input', 'Currency Input', 'Percentage Input'],
     'Date/Time': ['Date Input', 'DateTime Input', 'Time Input'],
-    'Boolean': ['Checkbox', 'Toggle Switch'],
-    'Selection': ['Radio Button', 'Dropdown Select', 'Multi_Select'],
-    'File/Media': ['File Upload', 'Image Upload', 'Video Upload', 'Document Upload'],
-    'Special': ['Signature Pad', 'Color Picker', 'Location Picker', 'Address Input', 'Rating', 'Slider'],
+    Boolean: ['Checkbox', 'Toggle Switch'],
+    Selection: ['Radio Button', 'Dropdown Select', 'Multi_Select'],
+    'File/Media': [
+      'File Upload',
+      'Image Upload',
+      'Video Upload',
+      'Document Upload',
+    ],
+    Special: [
+      'Signature Pad',
+      'Color Picker',
+      'Location Picker',
+      'Address Input',
+      'Rating',
+      'Slider',
+    ],
   };
-  
+
   Object.entries(categories).forEach(([category, fieldTypes]) => {
     console.group(category);
     fieldTypes.forEach((type) => {
@@ -527,7 +553,7 @@ export function debugFieldRegistry(): void {
     });
     console.groupEnd();
   });
-  
+
   console.log(`\nTotal: ${types.length} field types registered`);
   console.groupEnd();
 }

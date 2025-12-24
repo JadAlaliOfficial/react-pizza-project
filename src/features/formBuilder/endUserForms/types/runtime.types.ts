@@ -219,7 +219,11 @@ export interface RuntimeFieldProps {
   touched: boolean;
   disabled: boolean;
   onChange: (fieldId: number, value: JsonValue) => void;
-  onBlur: (fieldId: number) => void;
+  /**
+   * Optional latestValue is used by buffered (onBlur-sync) field types
+   * so validation can run against the committed value (avoids stale snapshot validation).
+   */
+  onBlur: (fieldId: number, latestValue?: JsonValue) => void;
   direction: Direction;
   languageId?: number;
 }
@@ -343,7 +347,7 @@ export interface UseRuntimeFormReturn {
   // Field operations
   getFieldValue: (fieldId: number) => JsonValue;
   setFieldValue: (fieldId: number, value: JsonValue) => void;
-  setFieldTouched: (fieldId: number) => void;
+  setFieldTouched: (fieldId: number, latestValue?: JsonValue) => void;
   getFieldError: (fieldId: number) => string | null;
 
   // Visibility queries

@@ -108,32 +108,34 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
       getLocalizedCurrencyConfig(languageId);
 
     useEffect(() => {
-      if (isFocused) {
+      if (isFocused) return;
+
+      // ✅ if runtime says null, display empty
+      if (value === null || value === undefined) {
+        // try backend default_value if it's a real number/string
+        const backendDefault = getDefaultCurrencyInputValue(field);
+
+        if (typeof backendDefault === 'number' && !isNaN(backendDefault)) {
+          setDisplayValue(formatCurrency(backendDefault));
+        } else {
+          setDisplayValue('');
+        }
         return;
       }
 
-      let initialValue: number;
-
+      // ✅ runtime has a number (including 0) -> display it
       if (typeof value === 'number' && !isNaN(value)) {
-        initialValue = value;
-      } else if (
-        field.current_value &&
-        typeof field.current_value === 'number'
-      ) {
-        initialValue = field.current_value;
-      } else {
-        initialValue = getDefaultCurrencyInputValue(field);
+        setDisplayValue(formatCurrency(value));
+        return;
       }
 
-      if (initialValue !== 0 || field.default_value !== null) {
-        setDisplayValue(formatCurrency(initialValue));
-      } else {
-        setDisplayValue('');
-      }
+      setDisplayValue('');
     }, [field, value, isFocused]);
 
     const isRequired =
       field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+
+    // CurrencyInput.tsx
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const input = e.target.value;
@@ -141,13 +143,15 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
 
       setDisplayValue(cleaned);
 
+      // ✅ clearing/unset must be null
       if (cleaned === '' || cleaned === '.') {
-        onChange(0);
-      } else {
-        const numericValue = parseCurrency(cleaned);
-        if (!isNaN(numericValue)) {
-          onChange(numericValue);
-        }
+        onChange(null);
+        return;
+      }
+
+      const numericValue = parseCurrency(cleaned);
+      if (!isNaN(numericValue)) {
+        onChange(numericValue);
       }
     };
 
@@ -164,7 +168,7 @@ export const CurrencyInput = forwardRef<HTMLDivElement, CurrencyInputProps>(
       } else {
         setDisplayValue('');
       }
-      
+
       if (onBlur) {
         onBlur();
       }

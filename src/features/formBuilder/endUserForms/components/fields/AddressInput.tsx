@@ -332,6 +332,7 @@ export const AddressInput = forwardRef<HTMLDivElement, AddressInputProps>(
                 type="text"
                 value={localValue.state}
                 onChange={(e) => handleSubFieldChange('state', e.target.value)}
+                onBlur={handleSubFieldBlur}
                 placeholder={getPlaceholder(stateSubfield)}
                 disabled={disabled}
                 className={cn(
@@ -391,6 +392,7 @@ export const AddressInput = forwardRef<HTMLDivElement, AddressInputProps>(
                 onChange={(e) =>
                   handleSubFieldChange('country', e.target.value)
                 }
+                onBlur={handleSubFieldBlur}
                 placeholder={getPlaceholder(countrySubfield)}
                 disabled={disabled}
                 className={cn(

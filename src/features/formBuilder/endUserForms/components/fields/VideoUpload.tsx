@@ -98,12 +98,16 @@ const getLocalizedVideoUploadConfig = (languageId?: number) => {
  * ```
  */
 export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
-  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
+  (
+    { field, value, onChange, error, disabled = false, className, languageId },
+    ref,
+  ) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    const [videoMetadata, setVideoMetadata] =
-      useState<VideoMetadata | null>(null);
+    const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(
+      null,
+    );
     const [isDragging, setIsDragging] = useState<boolean>(false);
 
     const isRequired =
@@ -112,13 +116,8 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
     const acceptedTypes = getAcceptedFileTypes(field);
     const maxSizeDisplay = getMaxFileSizeDisplay(field);
 
-    const {
-      dragPrompt,
-      dropPrompt,
-      removeTitle,
-      previewLabel,
-      ariaSuffix,
-    } = getLocalizedVideoUploadConfig(languageId);
+    const { dragPrompt, dropPrompt, removeTitle, previewLabel, ariaSuffix } =
+      getLocalizedVideoUploadConfig(languageId);
 
     useEffect(() => {
       if (value && value instanceof File) {
@@ -139,13 +138,6 @@ export const VideoUpload = forwardRef<HTMLDivElement, VideoUploadProps>(
 
     const handleFileChange = (file: File | null) => {
       onChange(file);
-      onBlur?.();
-
-      console.debug('[VideoUpload] File changed:', {
-        fieldId: field.field_id,
-        fileName: file?.name,
-        fileSize: file?.size,
-      });
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

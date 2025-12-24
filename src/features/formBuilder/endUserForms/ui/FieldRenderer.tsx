@@ -2,24 +2,24 @@
  * ================================
  * FIELD RENDERER
  * ================================
- * 
+ *
  * Renders a single form field dynamically based on field type.
  * This is the bridge between the runtime form system and field components.
- * 
+ *
  * Key Responsibilities:
  * - Look up field component from registry
  * - Map runtime form state to field component props
  * - Handle field visibility
  * - Render field with error states
  * - Emit onChange and onBlur events
- * 
+ *
  * Architecture Decisions:
  * - Pure presentational component - no business logic
  * - Receives all state via props (no hooks except registry lookup)
  * - Respects visibility state from parent
  * - RTL/LTR support via direction prop
  * - Handles unknown field types gracefully
- * 
+ *
  * Usage Pattern:
  * - Used by FormStageRenderer to render each field in a section
  * - Should not be used directly in application code
@@ -45,8 +45,6 @@ const MIGRATED_FIELD_TYPES = [
   'DateTime Input',
   'Dropdown Select',
   'Email Input',
-  'File Upload',
-  'Image Upload',
   'Number Input',
   'Password Input',
   'Percentage Input',
@@ -100,7 +98,7 @@ export interface FieldRendererProps {
   /**
    * Callback when field loses focus
    */
-  onBlur: (fieldId: number) => void;
+  onBlur: (fieldId: number, latestValue?: JsonValue) => void;
 
   /**
    * Optional CSS class name for container
@@ -119,13 +117,13 @@ export interface FieldRendererProps {
 
 /**
  * FieldRenderer - Dynamically renders a form field
- * 
+ *
  * This component is responsible for:
  * 1. Looking up the appropriate field component from the registry
  * 2. Mapping runtime props to field component props
  * 3. Handling visibility (hidden fields don't render)
  * 4. Providing consistent container structure
- * 
+ *
  * @example
  * ```
  * <FieldRenderer
@@ -176,22 +174,33 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
   }, [value]);
 
   // Handle local change (updates pending state only)
-  const handleLocalChange = React.useCallback((fieldId: number, newValue: JsonValue) => {
-    setPendingValue(newValue);
-    
-    // If not migrated, sync immediately to preserve functionality
-    if (!supportsOnBlur) {
-      onChange(fieldId, newValue);
-    }
-  }, [onChange, supportsOnBlur]);
+  const handleLocalChange = React.useCallback(
+    (fieldId: number, newValue: JsonValue) => {
+      setPendingValue(newValue);
+
+      // If not migrated, sync immediately to preserve functionality
+      if (!supportsOnBlur) {
+        onChange(fieldId, newValue);
+      }
+    },
+    [onChange, supportsOnBlur],
+  );
 
   // Handle blur (syncs pending state to global state)
-  const handleLocalBlur = React.useCallback((fieldId: number) => {
-    // Commit the pending value to global state
-    onChange(fieldId, pendingValue);
-    // Trigger original blur (for touched state)
-    onBlur(fieldId);
-  }, [onChange, onBlur, pendingValue]);
+  const handleLocalBlur = React.useCallback(
+    (fieldId: number) => {
+      // For migrated (buffered) field types, commit on blur then validate using latest value.
+      if (supportsOnBlur) {
+        onChange(fieldId, pendingValue);
+        onBlur(fieldId, pendingValue);
+        return;
+      }
+
+      // Non-migrated types already sync onChange immediately.
+      onBlur(fieldId);
+    },
+    [onChange, onBlur, pendingValue, supportsOnBlur],
+  );
 
   // Build props for field component
   const fieldProps = {
@@ -208,7 +217,11 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
 
   // Render field with optional container class
   return (
-    <div className={className} data-field-id={field.field_id} data-field-type={field.field_type}>
+    <div
+      className={className}
+      data-field-id={field.field_id}
+      data-field-type={field.field_type}
+    >
       <FieldComponent {...fieldProps} />
     </div>
   );
@@ -221,7 +234,7 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({
 /**
  * Memoized version of FieldRenderer for performance optimization
  * Use this in lists or when rendering many fields
- * 
+ *
  * Prevents re-renders when parent re-renders but field props haven't changed
  */
 export const MemoizedFieldRenderer = React.memo(FieldRenderer);
@@ -280,7 +293,7 @@ export interface FieldListRendererProps {
   /**
    * Blur handler
    */
-  onBlur: (fieldId: number) => void;
+  onBlur: (fieldId: number, latestValue?: JsonValue) => void;
 
   /**
    * Optional container class name
@@ -300,10 +313,10 @@ export interface FieldListRendererProps {
 
 /**
  * FieldListRenderer - Renders multiple fields efficiently
- * 
+ *
  * Uses memoized field renderers for performance
  * Useful for rendering all fields in a section
- * 
+ *
  * @example
  * ```
  * <FieldListRenderer
@@ -376,10 +389,10 @@ export interface ConditionalFieldRendererProps extends FieldRendererProps {
 
 /**
  * ConditionalFieldRenderer - Renders field with custom hidden behavior
- * 
+ *
  * Allows custom rendering when field is hidden (e.g., placeholder, skeleton)
  * Useful for maintaining layout when fields show/hide
- * 
+ *
  * @example
  * ```
  * <ConditionalFieldRenderer
@@ -389,12 +402,9 @@ export interface ConditionalFieldRendererProps extends FieldRendererProps {
  * />
  * ```
  */
-export const ConditionalFieldRenderer: React.FC<ConditionalFieldRendererProps> = ({
-  renderWhenHidden,
-  preserveSpace = false,
-  className,
-  ...fieldProps
-}) => {
+export const ConditionalFieldRenderer: React.FC<
+  ConditionalFieldRendererProps
+> = ({ renderWhenHidden, preserveSpace = false, className, ...fieldProps }) => {
   // Field is not visible
   if (!fieldProps.isVisible) {
     // Custom render function provided
@@ -422,7 +432,7 @@ export const ConditionalFieldRenderer: React.FC<ConditionalFieldRendererProps> =
 /**
  * DebugFieldRenderer - Renders field with debug information
  * Only renders debug info in development mode
- * 
+ *
  * @example
  * ```
  * <DebugFieldRenderer

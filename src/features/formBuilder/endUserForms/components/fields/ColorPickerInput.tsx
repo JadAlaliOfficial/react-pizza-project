@@ -92,189 +92,233 @@ const getLocalizedColorPickerConfig = (languageId?: number) => {
 export const ColorPickerInput = forwardRef<
   HTMLDivElement,
   ColorPickerInputProps
->(({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
-  const [localValue, setLocalValue] = useState<string>(() => {
-    if (value && isValidHexColor(value)) return normalizeHexColor(value);
+>(
+  (
+    {
+      field,
+      value,
+      onChange,
+      error,
+      disabled = false,
+      className,
+      languageId,
+      onBlur,
+    },
+    ref,
+  ) => {
+    const [localValue, setLocalValue] = useState<string>(() => {
+      // ✅ If runtime value is explicitly empty, keep it empty (important for optional + clearing)
+      if (value === '') return '';
 
-    if (field.current_value && typeof field.current_value === 'string') {
-      const currentVal = field.current_value;
-      if (isValidHexColor(currentVal)) {
-        return normalizeHexColor(currentVal);
+      if (value && isValidHexColor(value)) return normalizeHexColor(value);
+
+      if (field.current_value && typeof field.current_value === 'string') {
+        const currentVal = field.current_value;
+        if (isValidHexColor(currentVal)) {
+          return normalizeHexColor(currentVal);
+        }
       }
-    }
 
-    return getDefaultColorPickerValue(field);
-  });
+      return getDefaultColorPickerValue(field);
+    });
 
-  const isRequired =
-    field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
+    const isRequired =
+      field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
-  const {
-    inputPlaceholder,
-    nativePickerAriaSuffix,
-    presetAriaPrefix,
-  } = getLocalizedColorPickerConfig(languageId);
+    const { inputPlaceholder, nativePickerAriaSuffix, presetAriaPrefix } =
+      getLocalizedColorPickerConfig(languageId);
 
-  useEffect(() => {
-    if (value && isValidHexColor(value)) {
-      setLocalValue(normalizeHexColor(value));
-    }
-  }, [value]);
+    useEffect(() => {
+      // ✅ keep cleared state in sync
+      if (value === '') {
+        setLocalValue('');
+        return;
+      }
 
-  const handleColorChange = (newColor: string) => {
-    if (isValidHexColor(newColor)) {
-      const normalized = normalizeHexColor(newColor);
-      setLocalValue(normalized);
-      onChange(normalized);
-    }
-  };
+      if (value && isValidHexColor(value)) {
+        setLocalValue(normalizeHexColor(value));
+      }
+    }, [value]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    setLocalValue(input);
+    const handleColorChange = (newColor: string) => {
+      if (isValidHexColor(newColor)) {
+        const normalized = normalizeHexColor(newColor);
+        setLocalValue(normalized);
+        onChange(normalized);
+      }
+    };
 
-    if (isValidHexColor(input)) {
-      handleColorChange(input);
-    }
-  };
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const input = e.target.value;
+      setLocalValue(input);
 
-  const handlePresetClick = (presetColor: string) => {
-    if (!disabled) {
-      handleColorChange(presetColor);
-    }
-  };
+      // ✅ clearing must propagate, otherwise last valid value remains in runtime
+      if (input.trim() === '') {
+        onChange('');
+        return;
+      }
 
-  const handleNativeColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleColorChange(e.target.value);
-  };
+      // If valid, normalize + emit
+      if (isValidHexColor(input)) {
+        const normalized = normalizeHexColor(input);
+        setLocalValue(normalized);
+        onChange(normalized);
+        return;
+      }
 
-  const handleBlur = () => {
-    if (onBlur) {
-      onBlur();
-    }
-  };
+      // Optional: if you want invalid text to be validated by engine on blur,
+      // keep this line. If you prefer "only accept valid hex", remove it.
+      onChange(input);
+    };
 
-  const colorPickerId = `color-picker-${field.field_id}`;
+    const commitAfterChange = () => {
+      if (!onBlur) return;
+      // allow parent pending state to update first (works even with onBlur-buffering)
+      setTimeout(() => onBlur(), 0);
+    };
 
-  return (
-    <div ref={ref} className={cn('space-y-3', className)}>
-      <div className="flex items-center gap-2">
-        <Palette className="h-4 w-4 text-purple-500" />
-        <Label htmlFor={colorPickerId} className="text-sm font-medium">
-          {field.label}
-          {isRequired && <span className="text-destructive ml-1">*</span>}
-        </Label>
-      </div>
+    const handlePresetClick = (presetColor: string) => {
+      if (!disabled) {
+        handleColorChange(presetColor);
+        commitAfterChange(); // ✅ commit + validate without needing a manual blur
+      }
+    };
 
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Input
-              id={colorPickerId}
-              type="text"
-              value={localValue}
-              onChange={handleInputChange}
-              onBlur={handleBlur}
-              placeholder={field.placeholder || inputPlaceholder}
-              disabled={disabled}
-              className={cn(
-                'pl-12 h-10 font-mono uppercase',
-                error && 'border-destructive focus-visible:ring-destructive',
-              )}
-              aria-label={field.label}
-              aria-required={isRequired}
-              aria-invalid={!!error}
-              aria-describedby={
-                error
-                  ? `${colorPickerId}-error`
-                  : field.helper_text
-                    ? `${colorPickerId}-description`
-                    : undefined
-              }
-            />
-            <div
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded border-2 border-gray-300 shadow-sm transition-colors"
-              style={{
-                backgroundColor: isValidHexColor(localValue)
-                  ? localValue
-                  : '#ccc',
-              }}
-              aria-hidden="true"
-            />
-          </div>
+    const handleNativeColorChange = (
+      e: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+      handleColorChange(e.target.value);
+      commitAfterChange(); // ✅ commit + validate immediately
+    };
 
-          <div className="relative">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-10 px-3"
-              disabled={disabled}
-              asChild
-            >
-              <label
-                htmlFor={`${colorPickerId}-native`}
-                className="cursor-pointer"
+    const handleBlur = () => {
+      if (onBlur) {
+        onBlur();
+      }
+    };
+
+    const colorPickerId = `color-picker-${field.field_id}`;
+
+    return (
+      <div ref={ref} className={cn('space-y-3', className)}>
+        <div className="flex items-center gap-2">
+          <Palette className="h-4 w-4 text-purple-500" />
+          <Label htmlFor={colorPickerId} className="text-sm font-medium">
+            {field.label}
+            {isRequired && <span className="text-destructive ml-1">*</span>}
+          </Label>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                id={colorPickerId}
+                type="text"
+                value={localValue}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+                placeholder={field.placeholder || inputPlaceholder}
+                disabled={disabled}
+                className={cn(
+                  'pl-12 h-10 font-mono uppercase',
+                  error && 'border-destructive focus-visible:ring-destructive',
+                )}
+                aria-label={field.label}
+                aria-required={isRequired}
+                aria-invalid={!!error}
+                aria-describedby={
+                  error
+                    ? `${colorPickerId}-error`
+                    : field.helper_text
+                      ? `${colorPickerId}-description`
+                      : undefined
+                }
+              />
+              <div
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded border-2 border-gray-300 shadow-sm transition-colors"
+                style={{
+                  backgroundColor: isValidHexColor(localValue)
+                    ? localValue
+                    : '#ccc',
+                }}
+                aria-hidden="true"
+              />
+            </div>
+
+            <div className="relative">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-10 px-3"
+                disabled={disabled}
+                asChild
               >
-                <Palette className="h-4 w-4" />
-              </label>
-            </Button>
-            <input
-              id={`${colorPickerId}-native`}
-              type="color"
-              value={isValidHexColor(localValue) ? localValue : '#3B82F6'}
-              onChange={handleNativeColorChange}
-              onBlur={handleBlur}
-              disabled={disabled}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              aria-label={`${field.label}${nativePickerAriaSuffix}`}
-            />
+                <label
+                  htmlFor={`${colorPickerId}-native`}
+                  className="cursor-pointer"
+                >
+                  <Palette className="h-4 w-4" />
+                </label>
+              </Button>
+              <input
+                id={`${colorPickerId}-native`}
+                type="color"
+                value={isValidHexColor(localValue) ? localValue : '#3B82F6'}
+                onChange={handleNativeColorChange}
+                onBlur={handleBlur}
+                disabled={disabled}
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                aria-label={`${field.label}${nativePickerAriaSuffix}`}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            {COLOR_PRESETS.map((presetColor) => (
+              <button
+                key={presetColor}
+                type="button"
+                onClick={() => handlePresetClick(presetColor)}
+                disabled={disabled}
+                className={cn(
+                  'w-8 h-8 rounded border-2 transition-all',
+                  localValue.toLowerCase() === presetColor.toLowerCase()
+                    ? 'border-gray-900 ring-2 ring-gray-900 ring-offset-2 scale-110'
+                    : 'border-gray-300 hover:border-gray-400 hover:scale-105',
+                  disabled && 'opacity-50 cursor-not-allowed',
+                )}
+                style={{ backgroundColor: presetColor }}
+                title={presetColor}
+                aria-label={`${presetAriaPrefix}${presetColor}`}
+              />
+            ))}
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1.5">
-          {COLOR_PRESETS.map((presetColor) => (
-            <button
-              key={presetColor}
-              type="button"
-              onClick={() => handlePresetClick(presetColor)}
-              disabled={disabled}
-              className={cn(
-                'w-8 h-8 rounded border-2 transition-all',
-                localValue.toLowerCase() === presetColor.toLowerCase()
-                  ? 'border-gray-900 ring-2 ring-gray-900 ring-offset-2 scale-110'
-                  : 'border-gray-300 hover:border-gray-400 hover:scale-105',
-                disabled && 'opacity-50 cursor-not-allowed',
-              )}
-              style={{ backgroundColor: presetColor }}
-              title={presetColor}
-              aria-label={`${presetAriaPrefix}${presetColor}`}
-            />
-          ))}
-        </div>
+        {field.helper_text && !error && (
+          <p
+            id={`${colorPickerId}-description`}
+            className="text-xs text-muted-foreground"
+          >
+            {field.helper_text}
+          </p>
+        )}
+
+        {error && (
+          <p
+            id={`${colorPickerId}-error`}
+            className="text-xs text-destructive font-medium"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
       </div>
-
-      {field.helper_text && !error && (
-        <p
-          id={`${colorPickerId}-description`}
-          className="text-xs text-muted-foreground"
-        >
-          {field.helper_text}
-        </p>
-      )}
-
-      {error && (
-        <p
-          id={`${colorPickerId}-error`}
-          className="text-xs text-destructive font-medium"
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-    </div>
-  );
-});
+    );
+  },
+);
 
 ColorPickerInput.displayName = 'ColorPickerInput';
 

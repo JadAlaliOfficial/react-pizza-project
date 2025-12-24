@@ -7,17 +7,20 @@
  */
 
 import { z } from 'zod';
-import type { FormField, FieldRule } from '@/features/formBuilder/endUserForms/types/formStructure.types';
+import type {
+  FormField,
+  FieldRule,
+} from '@/features/formBuilder/endUserForms/types/formStructure.types';
 
 /**
  * Extract validation bounds from rules with conflict resolution
  * Priority: individual min/max rules override between rule
- * 
+ *
  * @param rules - Field validation rules
  * @returns Object with min and max bounds
  */
 const extractValidationBounds = (
-  rules: FieldRule[]
+  rules: FieldRule[],
 ): { min: number | null; max: number | null } => {
   let min: number | null = null;
   let max: number | null = null;
@@ -49,15 +52,16 @@ const extractValidationBounds = (
 
 /**
  * Generate Zod schema for Currency Input field based on field rules
- * 
+ *
  * @param field - Field configuration from API
  * @returns Zod schema for currency input validation
  */
-export const generateCurrencyInputSchema = (field: FormField): z.ZodType<number> => {
+export const generateCurrencyInputSchema = (
+  field: FormField,
+): z.ZodType<number> => {
   // Check if field is required
-  const isRequired = field.rules?.some(
-    (rule) => rule.rule_name === 'required'
-  ) ?? false;
+  const isRequired =
+    field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
   // Extract min/max bounds with conflict resolution
   const { min, max } = extractValidationBounds(field.rules || []);
@@ -88,21 +92,24 @@ export const generateCurrencyInputSchema = (field: FormField): z.ZodType<number>
   }
 
   // If required, add custom message
-  return schema.refine((val) => val !== undefined && val !== null && !isNaN(val), {
-    message: `${field.label} is required`,
-  });
+  return schema.refine(
+    (val) => val !== undefined && val !== null && !isNaN(val),
+    {
+      message: `${field.label} is required`,
+    },
+  );
 };
 
 /**
  * Validate currency value against field rules
- * 
+ *
  * @param field - Field configuration
  * @param value - Currency value to validate
  * @returns Validation result with error message if invalid
  */
 export const validateCurrencyInput = (
   field: FormField,
-  value: number | null | undefined
+  value: number | null | undefined,
 ): { valid: boolean; error?: string } => {
   const schema = generateCurrencyInputSchema(field);
 
@@ -123,19 +130,19 @@ export const validateCurrencyInput = (
 
 /**
  * Get default currency value from field configuration
- * 
+ *
  * @param field - Field configuration
  * @returns Default currency value (number)
  */
-export const getDefaultCurrencyInputValue = (field: FormField): number => {
+export const getDefaultCurrencyInputValue = (
+  field: FormField,
+): number | null => {
   const defaultValue = field.default_value;
 
-  // If default_value is a number
-  if (typeof defaultValue === 'number') {
+  if (typeof defaultValue === 'number' && !isNaN(defaultValue)) {
     return defaultValue;
   }
 
-  // If default_value is a numeric string
   if (typeof defaultValue === 'string') {
     const parsed = parseFloat(defaultValue);
     if (!isNaN(parsed)) {
@@ -143,38 +150,40 @@ export const getDefaultCurrencyInputValue = (field: FormField): number => {
     }
   }
 
-  // Default to 0 if no valid default
-  return 0;
+  return null; // ✅ no default -> null
 };
 
 /**
  * Format number as currency with thousand separators
- * 
+ *
  * @param value - Numeric value
  * @param decimals - Number of decimal places (default: 2)
  * @returns Formatted string (e.g., "1,234.56")
  */
-export const formatCurrency = (value: number | string, decimals: number = 2): string => {
+export const formatCurrency = (
+  value: number | string,
+  decimals: number = 2,
+): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
-  
+
   if (isNaN(num)) return '';
 
   // Format with fixed decimals
   const fixed = num.toFixed(decimals);
-  
+
   // Split into integer and decimal parts
   const parts = fixed.split('.');
-  
+
   // Add thousand separators to integer part
   const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  
+
   // Return formatted value
   return decimals > 0 ? `${integerPart}.${parts[1]}` : integerPart;
 };
 
 /**
  * Parse formatted currency string to number
- * 
+ *
  * @param value - Formatted currency string (e.g., "1,234.56")
  * @returns Parsed number
  */
@@ -188,12 +197,15 @@ export const parseCurrency = (value: string): number => {
 /**
  * Validate and clean currency input string - FLEXIBLE VERSION
  * Allows typing freely, only restricts invalid characters
- * 
+ *
  * @param value - Input string
  * @param previousValue - Previous input value
  * @returns Cleaned string
  */
-export const cleanCurrencyInput = (value: string, previousValue: string = ''): string => {
+export const cleanCurrencyInput = (
+  value: string,
+  previousValue: string = '',
+): string => {
   // If empty, allow it
   if (value === '') return '';
 
@@ -206,7 +218,7 @@ export const cleanCurrencyInput = (value: string, previousValue: string = ''): s
     // Split at first dot
     const beforeDot = cleaned.substring(0, dotIndex);
     const afterDot = cleaned.substring(dotIndex + 1).replace(/\./g, ''); // Remove any other dots
-    
+
     // Limit decimals to 2 digits, but allow typing
     if (afterDot.length <= 2) {
       cleaned = beforeDot + '.' + afterDot;

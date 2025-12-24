@@ -150,6 +150,7 @@ const fallbackByType = (field: FormField): JsonValue => {
 
   switch (type) {
     case 'Currency Input':
+      return null;
     case 'Number Input':
     case 'Percentage Input':
     case 'Slider':

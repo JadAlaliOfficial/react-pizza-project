@@ -21,28 +21,28 @@ export interface DocumentUploadProps {
    * Field configuration from API
    */
   field: FormField;
-  
+
   /**
    * Current value of the document field (File object)
    */
   value?: File | null;
-  
+
   /**
    * Callback when document value changes
    */
   onChange: (value: File | null) => void;
-  
+
   /**
    * Error message to display (from form validation)
    */
   error?: string;
-  
+
   /**
    * Whether the field is disabled
    */
   disabled?: boolean;
   languageId?: number;
-  
+
   /**
    * Additional CSS classes
    */

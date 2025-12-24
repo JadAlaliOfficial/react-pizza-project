@@ -3,14 +3,18 @@
 /**
  * Redux Toolkit slice for translations feature.
  * Manages state for available languages, localizable data, and translation save operations.
- * 
+ *
  * State structure is designed to be scalable with caching for localizable data
  * and granular loading/error states for each operation.
- * 
- * UPDATED: Compatible with nested original/translated structure from API
+ *
+ * UPDATED: Compatible with nested original/translated structure for stages, sections, transitions, and fields
  */
 
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import {
+  createSlice,
+  createAsyncThunk,
+  type PayloadAction,
+} from '@reduxjs/toolkit';
 import type { RootState } from '@/store';
 import {
   type TranslationsState,
@@ -65,7 +69,7 @@ const initialState: TranslationsState = {
 
 /**
  * Fetch available languages for translation (excluding default language).
- * 
+ *
  * This thunk calls the translations service to retrieve all languages
  * that can be used for creating translations.
  */
@@ -73,109 +77,131 @@ export const fetchAvailableLanguages = createAsyncThunk<
   Language[], // Return type
   void, // Argument type
   { rejectValue: string } // ThunkAPI config
->(
-  'translations/fetchAvailableLanguages',
-  async (_, { rejectWithValue }) => {
-    try {
-      console.log('[Translations Slice] Thunk: Fetching available languages...');
-      const languages = await fetchLanguagesService();
-      console.log(`[Translations Slice] Thunk: Successfully fetched ${languages.length} languages`);
-      return languages;
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to fetch available languages';
-      console.error('[Translations Slice] Thunk: Error fetching languages:', errorMessage, error);
-      return rejectWithValue(errorMessage);
-    }
+>('translations/fetchAvailableLanguages', async (_, { rejectWithValue }) => {
+  try {
+    console.log('[Translations Slice] Thunk: Fetching available languages...');
+    const languages = await fetchLanguagesService();
+    console.log(
+      `[Translations Slice] Thunk: Successfully fetched ${languages.length} languages`,
+    );
+    return languages;
+  } catch (error: any) {
+    const errorMessage = error.message || 'Failed to fetch available languages';
+    console.error(
+      '[Translations Slice] Thunk: Error fetching languages:',
+      errorMessage,
+      error,
+    );
+    return rejectWithValue(errorMessage);
   }
-);
+});
 
 /**
  * Fetch localizable data for a specific form version and language.
- * 
- * Retrieves the form name and all field data that can be translated.
+ *
+ * Retrieves the form name and all translatable data (stages, sections, transitions, fields).
  * Results are cached in state using a composite key (formVersionId_languageId).
- * 
- * The data now includes nested original/translated structure:
+ *
+ * The data includes nested original/translated structure:
  * - form_name: { original: string, translated: string }
+ * - stages[]: { stage_id, original: {name}, translated: {name} }
+ * - sections[]: { section_id, stage_id, original: {name}, translated: {name} }
+ * - transitions[]: { stage_transition_id, original: {label}, translated: {label} }
  * - fields[]: { field_id, original: {...}, translated: {...} }
- * 
+ *
  * @param params - Form version ID and language ID
  */
 export const fetchLocalizableData = createAsyncThunk<
   { data: LocalizableData; cacheKey: LocalizableDataCacheKey }, // Return type
   GetLocalizableDataParams, // Argument type
   { rejectValue: string } // ThunkAPI config
->(
-  'translations/fetchLocalizableData',
-  async (params, { rejectWithValue }) => {
-    try {
-      console.log(
-        `[Translations Slice] Thunk: Fetching localizable data for form_version_id=${params.form_version_id}, language_id=${params.language_id}...`
-      );
+>('translations/fetchLocalizableData', async (params, { rejectWithValue }) => {
+  try {
+    console.log(
+      `[Translations Slice] Thunk: Fetching localizable data for form_version_id=${params.form_version_id}, language_id=${params.language_id}...`,
+    );
 
-      const data = await fetchLocalizableDataService(params);
-      const cacheKey = createCacheKey(params.form_version_id, params.language_id);
+    const data = await fetchLocalizableDataService(params);
+    const cacheKey = createCacheKey(params.form_version_id, params.language_id);
 
-      console.log(
-        `[Translations Slice] Thunk: Successfully fetched localizable data with ${data.fields.length} fields`
-      );
-      console.log(
-        `[Translations Slice] Thunk: Form name - Original: "${data.form_name.original}", Translated: "${data.form_name.translated}"`
-      );
+    console.log(
+      `[Translations Slice] Thunk: Successfully fetched localizable data:`,
+      `${data.stages.length} stages,`,
+      `${data.sections.length} sections,`,
+      `${data.transitions.length} transitions,`,
+      `${data.fields.length} fields`,
+    );
+    console.log(
+      `[Translations Slice] Thunk: Form name - Original: "${data.form_name.original}", Translated: "${data.form_name.translated}"`,
+    );
 
-      return { data, cacheKey };
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to fetch localizable data';
-      console.error(
-        '[Translations Slice] Thunk: Error fetching localizable data:',
-        errorMessage,
-        error
-      );
-      return rejectWithValue(errorMessage);
-    }
+    return { data, cacheKey };
+  } catch (error: any) {
+    const errorMessage = error.message || 'Failed to fetch localizable data';
+    console.error(
+      '[Translations Slice] Thunk: Error fetching localizable data:',
+      errorMessage,
+      error,
+    );
+    return rejectWithValue(errorMessage);
   }
-);
+});
 
 /**
  * Save translations for a form version in a specific language.
- * 
- * Submits translated form name and field translations to the API.
+ *
+ * Submits translated form name and all translation arrays (stages, sections, transitions, fields) to the API.
  * On success, invalidates the cache for the corresponding localizable data
  * so it will be refetched with updated translations on next access.
- * 
- * Note: The save payload uses flat structure for field_translations,
- * while the fetched data has nested original/translated structure.
- * 
- * @param payload - Translation data including form_version_id, language_id, form_name, and field_translations
+ *
+ * The save payload uses flat structure for translations:
+ * - form_name: string
+ * - stage_translations: [{ stage_id, name }]
+ * - section_translations: [{ section_id, name }]
+ * - transition_translations: [{ stage_transition_id, label }]
+ * - field_translations: [{ field_id, label, helper_text, default_value, place_holder }]
+ *
+ * @param payload - Translation data including form_version_id, language_id, and all translation arrays
  */
 export const saveTranslations = createAsyncThunk<
   { message: string; cacheKey: LocalizableDataCacheKey }, // Return type
   SaveTranslationsPayload, // Argument type
   { rejectValue: string } // ThunkAPI config
->(
-  'translations/saveTranslations',
-  async (payload, { rejectWithValue }) => {
-    try {
-      console.log(
-        `[Translations Slice] Thunk: Saving translations for form_version_id=${payload.form_version_id}, language_id=${payload.language_id}...`
-      );
-      console.log(
-        `[Translations Slice] Thunk: Form name: "${payload.form_name}", ${payload.field_translations.length} field translations`
-      );
+>('translations/saveTranslations', async (payload, { rejectWithValue }) => {
+  try {
+    console.log(
+      `[Translations Slice] Thunk: Saving translations for form_version_id=${payload.form_version_id}, language_id=${payload.language_id}...`,
+    );
+    console.log(
+      `[Translations Slice] Thunk: Form name: "${payload.form_name}",`,
+      `${payload.stage_translations.length} stage translations,`,
+      `${payload.section_translations.length} section translations,`,
+      `${payload.transition_translations.length} transition translations,`,
+      `${payload.field_translations.length} field translations`,
+    );
 
-      const result = await saveTranslationsService(payload);
-      const cacheKey = createCacheKey(payload.form_version_id, payload.language_id);
+    const result = await saveTranslationsService(payload);
+    const cacheKey = createCacheKey(
+      payload.form_version_id,
+      payload.language_id,
+    );
 
-      console.log('[Translations Slice] Thunk: Successfully saved translations:', result.message);
+    console.log(
+      '[Translations Slice] Thunk: Successfully saved translations:',
+      result.message,
+    );
 
-      return { message: result.message, cacheKey };
-    } catch (error: any) {
-      const errorMessage = error.message || 'Failed to save translations';
-      console.error('[Translations Slice] Thunk: Error saving translations:', errorMessage, error);
-      return rejectWithValue(errorMessage);
-    }
+    return { message: result.message, cacheKey };
+  } catch (error: any) {
+    const errorMessage = error.message || 'Failed to save translations';
+    console.error(
+      '[Translations Slice] Thunk: Error saving translations:',
+      errorMessage,
+      error,
+    );
+    return rejectWithValue(errorMessage);
   }
-);
+});
 
 // ============================================================================
 // Slice Definition
@@ -208,7 +234,9 @@ const translationsSlice = createSlice({
      * Clear localizable data error only.
      */
     clearLocalizableDataError: (state) => {
-      console.log('[Translations Slice] Reducer: Clearing localizable data error');
+      console.log(
+        '[Translations Slice] Reducer: Clearing localizable data error',
+      );
       state.errors.localizableData = null;
     },
 
@@ -234,12 +262,17 @@ const translationsSlice = createSlice({
     /**
      * Clear a specific localizable data from cache.
      * Useful when you know data is stale and want to force a refetch.
-     * 
+     *
      * @param action - Cache key to remove
      */
-    clearLocalizableDataCache: (state, action: PayloadAction<LocalizableDataCacheKey>) => {
+    clearLocalizableDataCache: (
+      state,
+      action: PayloadAction<LocalizableDataCacheKey>,
+    ) => {
       const cacheKey = action.payload;
-      console.log(`[Translations Slice] Reducer: Clearing cache for key: ${cacheKey}`);
+      console.log(
+        `[Translations Slice] Reducer: Clearing cache for key: ${cacheKey}`,
+      );
       delete state.localizableDataCache[cacheKey];
     },
 
@@ -248,8 +281,141 @@ const translationsSlice = createSlice({
      * Useful for logout or when switching contexts.
      */
     clearEntireCache: (state) => {
-      console.log('[Translations Slice] Reducer: Clearing entire localizable data cache');
+      console.log(
+        '[Translations Slice] Reducer: Clearing entire localizable data cache',
+      );
       state.localizableDataCache = {};
+    },
+
+    /**
+     * Update a specific field translation in the cache.
+     * This allows real-time updates without a full refetch.
+     */
+    updateFieldTranslationInCache: (
+      state,
+      action: PayloadAction<{
+        cacheKey: LocalizableDataCacheKey;
+        fieldId: number;
+        updates: Partial<{
+          label: string;
+          helper_text: string;
+          default_value: string;
+          place_holder: string;
+        }>;
+      }>,
+    ) => {
+      const { cacheKey, fieldId, updates } = action.payload;
+      const cachedData = state.localizableDataCache[cacheKey];
+
+      if (cachedData) {
+        const field = cachedData.fields.find((f) => f.field_id === fieldId);
+        if (field) {
+          Object.assign(field.translated, updates);
+          console.log(
+            `[Translations Slice] Reducer: Updated field ${fieldId} in cache ${cacheKey}`,
+          );
+        }
+      }
+    },
+
+    /**
+     * Update a specific stage translation in the cache.
+     */
+    updateStageTranslationInCache: (
+      state,
+      action: PayloadAction<{
+        cacheKey: LocalizableDataCacheKey;
+        stageId: number;
+        name: string;
+      }>,
+    ) => {
+      const { cacheKey, stageId, name } = action.payload;
+      const cachedData = state.localizableDataCache[cacheKey];
+
+      if (cachedData) {
+        const stage = cachedData.stages.find((s) => s.stage_id === stageId);
+        if (stage) {
+          stage.translated.name = name;
+          console.log(
+            `[Translations Slice] Reducer: Updated stage ${stageId} in cache ${cacheKey}`,
+          );
+        }
+      }
+    },
+
+    /**
+     * Update a specific section translation in the cache.
+     */
+    updateSectionTranslationInCache: (
+      state,
+      action: PayloadAction<{
+        cacheKey: LocalizableDataCacheKey;
+        sectionId: number;
+        name: string;
+      }>,
+    ) => {
+      const { cacheKey, sectionId, name } = action.payload;
+      const cachedData = state.localizableDataCache[cacheKey];
+
+      if (cachedData) {
+        const section = cachedData.sections.find(
+          (s) => s.section_id === sectionId,
+        );
+        if (section) {
+          section.translated.name = name;
+          console.log(
+            `[Translations Slice] Reducer: Updated section ${sectionId} in cache ${cacheKey}`,
+          );
+        }
+      }
+    },
+
+    /**
+     * Update a specific transition translation in the cache.
+     */
+    updateTransitionTranslationInCache: (
+      state,
+      action: PayloadAction<{
+        cacheKey: LocalizableDataCacheKey;
+        transitionId: number;
+        label: string;
+      }>,
+    ) => {
+      const { cacheKey, transitionId, label } = action.payload;
+      const cachedData = state.localizableDataCache[cacheKey];
+
+      if (cachedData) {
+        const transition = cachedData.transitions.find(
+          (t) => t.stage_transition_id === transitionId,
+        );
+        if (transition) {
+          transition.translated.label = label;
+          console.log(
+            `[Translations Slice] Reducer: Updated transition ${transitionId} in cache ${cacheKey}`,
+          );
+        }
+      }
+    },
+
+    /**
+     * Update form name translation in the cache.
+     */
+    updateFormNameInCache: (
+      state,
+      action: PayloadAction<{
+        cacheKey: LocalizableDataCacheKey;
+        formName: string;
+      }>,
+    ) => {
+      const { cacheKey, formName } = action.payload;
+      const cachedData = state.localizableDataCache[cacheKey];
+
+      if (cachedData) {
+        cachedData.form_name.translated = formName;
+        console.log(
+          `[Translations Slice] Reducer: Updated form name in cache ${cacheKey}`,
+        );
+      }
     },
   },
 
@@ -259,13 +425,15 @@ const translationsSlice = createSlice({
     // ========================================================================
     builder
       .addCase(fetchAvailableLanguages.pending, (state) => {
-        console.log('[Translations Slice] Reducer: fetchAvailableLanguages pending');
+        console.log(
+          '[Translations Slice] Reducer: fetchAvailableLanguages pending',
+        );
         state.loading.languages = true;
         state.errors.languages = null;
       })
       .addCase(fetchAvailableLanguages.fulfilled, (state, action) => {
         console.log(
-          `[Translations Slice] Reducer: fetchAvailableLanguages fulfilled with ${action.payload.length} languages`
+          `[Translations Slice] Reducer: fetchAvailableLanguages fulfilled with ${action.payload.length} languages`,
         );
         state.loading.languages = false;
         state.languages = action.payload;
@@ -275,7 +443,7 @@ const translationsSlice = createSlice({
       .addCase(fetchAvailableLanguages.rejected, (state, action) => {
         console.error(
           '[Translations Slice] Reducer: fetchAvailableLanguages rejected:',
-          action.payload
+          action.payload,
         );
         state.loading.languages = false;
         state.errors.languages = {
@@ -290,17 +458,24 @@ const translationsSlice = createSlice({
     // ========================================================================
     builder
       .addCase(fetchLocalizableData.pending, (state) => {
-        console.log('[Translations Slice] Reducer: fetchLocalizableData pending');
+        console.log(
+          '[Translations Slice] Reducer: fetchLocalizableData pending',
+        );
         state.loading.localizableData = true;
         state.errors.localizableData = null;
       })
       .addCase(fetchLocalizableData.fulfilled, (state, action) => {
         const { data, cacheKey } = action.payload;
         console.log(
-          `[Translations Slice] Reducer: fetchLocalizableData fulfilled for cache key: ${cacheKey}`
+          `[Translations Slice] Reducer: fetchLocalizableData fulfilled for cache key: ${cacheKey}`,
         );
         console.log(
-          `[Translations Slice] Reducer: Caching data with ${data.fields.length} fields, form_name: "${data.form_name.translated}"`
+          `[Translations Slice] Reducer: Caching data with`,
+          `${data.stages.length} stages,`,
+          `${data.sections.length} sections,`,
+          `${data.transitions.length} transitions,`,
+          `${data.fields.length} fields,`,
+          `form_name: "${data.form_name.translated}"`,
         );
         state.loading.localizableData = false;
         state.localizableDataCache[cacheKey] = data;
@@ -309,7 +484,7 @@ const translationsSlice = createSlice({
       .addCase(fetchLocalizableData.rejected, (state, action) => {
         console.error(
           '[Translations Slice] Reducer: fetchLocalizableData rejected:',
-          action.payload
+          action.payload,
         );
         state.loading.localizableData = false;
         state.errors.localizableData = {
@@ -332,7 +507,7 @@ const translationsSlice = createSlice({
       .addCase(saveTranslations.fulfilled, (state, action) => {
         const { message, cacheKey } = action.payload;
         console.log(
-          `[Translations Slice] Reducer: saveTranslations fulfilled: ${message}`
+          `[Translations Slice] Reducer: saveTranslations fulfilled: ${message}`,
         );
         state.loading.saving = false;
         state.lastSaveSuccess = true;
@@ -342,12 +517,15 @@ const translationsSlice = createSlice({
         // Invalidate cache for this form version + language combination
         // so next fetch will get updated data
         console.log(
-          `[Translations Slice] Reducer: Invalidating cache for key: ${cacheKey} after save`
+          `[Translations Slice] Reducer: Invalidating cache for key: ${cacheKey} after save`,
         );
         delete state.localizableDataCache[cacheKey];
       })
       .addCase(saveTranslations.rejected, (state, action) => {
-        console.error('[Translations Slice] Reducer: saveTranslations rejected:', action.payload);
+        console.error(
+          '[Translations Slice] Reducer: saveTranslations rejected:',
+          action.payload,
+        );
         state.loading.saving = false;
         state.lastSaveSuccess = false;
         state.lastSaveTimestamp = Date.now();
@@ -382,13 +560,15 @@ export const selectLanguagesLoaded = (state: RootState): boolean =>
  */
 export const selectLocalizableDataByKey = (
   state: RootState,
-  cacheKey: LocalizableDataCacheKey
-): LocalizableData | undefined => state.translations.localizableDataCache[cacheKey];
+  cacheKey: LocalizableDataCacheKey,
+): LocalizableData | undefined =>
+  state.translations.localizableDataCache[cacheKey];
 
 /**
  * Select all loading states.
  */
-export const selectLoadingStates = (state: RootState) => state.translations.loading;
+export const selectLoadingStates = (state: RootState) =>
+  state.translations.loading;
 
 /**
  * Check if languages are currently loading.
@@ -416,14 +596,16 @@ export const selectErrors = (state: RootState) => state.translations.errors;
 /**
  * Select languages error.
  */
-export const selectLanguagesError = (state: RootState): TranslationError | null =>
-  state.translations.errors.languages;
+export const selectLanguagesError = (
+  state: RootState,
+): TranslationError | null => state.translations.errors.languages;
 
 /**
  * Select localizable data error.
  */
-export const selectLocalizableDataError = (state: RootState): TranslationError | null =>
-  state.translations.errors.localizableData;
+export const selectLocalizableDataError = (
+  state: RootState,
+): TranslationError | null => state.translations.errors.localizableData;
 
 /**
  * Select save error.
@@ -461,6 +643,11 @@ export const {
   resetSaveStatus,
   clearLocalizableDataCache,
   clearEntireCache,
+  updateFieldTranslationInCache,
+  updateStageTranslationInCache,
+  updateSectionTranslationInCache,
+  updateTransitionTranslationInCache,
+  updateFormNameInCache,
 } = translationsSlice.actions;
 
 export default translationsSlice.reducer;

@@ -115,18 +115,26 @@ const getLocalizedDocumentUploadConfig = (languageId?: number) => {
  * ```
  */
 export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
+  (
+    { field, value, onChange, error, disabled = false, className, languageId },
+    ref,
+  ) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [selectedFile, setSelectedFile] = useState<File | null>(value || null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(
+      value || null,
+    );
 
     const isRequired =
       field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
     const acceptedTypes = getAcceptedMimeTypes(field.rules || []);
 
-    const mimeTypesRule = field.rules?.find((rule) => rule.rule_name === 'mimetypes');
-    const mimeTypes = (mimeTypesRule?.rule_props as { types?: string[] })?.types || [];
+    const mimeTypesRule = field.rules?.find(
+      (rule) => rule.rule_name === 'mimetypes',
+    );
+    const mimeTypes =
+      (mimeTypesRule?.rule_props as { types?: string[] })?.types || [];
     const readableTypes =
       mimeTypes.length > 0 ? getReadableFileTypes(mimeTypes) : 'All files';
 
@@ -230,8 +238,8 @@ export const DocumentUpload = forwardRef<HTMLDivElement, DocumentUploadProps>(
               isDragging
                 ? 'border-orange-500 bg-orange-50'
                 : error
-                ? 'border-destructive bg-destructive/5'
-                : 'border-orange-300 bg-orange-50/30',
+                  ? 'border-destructive bg-destructive/5'
+                  : 'border-orange-300 bg-orange-50/30',
               disabled && 'opacity-50 cursor-not-allowed',
             )}
             onDragEnter={handleDragEnter}

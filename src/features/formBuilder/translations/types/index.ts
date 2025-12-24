@@ -3,7 +3,7 @@
 /**
  * Domain models and type definitions for the translations feature.
  * Follows the Laravel backend API schema and provides strong typing for all request/response payloads.
- * UPDATED: Now supports nested original/translated structure from API
+ * UPDATED: Now supports nested original/translated structure for stages, sections, transitions, and fields
  */
 
 // ============================================================================
@@ -34,6 +34,84 @@ export interface TranslatableFormName {
   translated: string;
 }
 
+// ---------- Stage Models ----------
+
+/**
+ * Original stage content
+ */
+export interface OriginalStageContent {
+  name: string;
+}
+
+/**
+ * Translated stage content
+ */
+export interface TranslatedStageContent {
+  name: string;
+}
+
+/**
+ * Represents a single stage with original and translated content
+ */
+export interface LocalizableStage {
+  stage_id: number;
+  original: OriginalStageContent;
+  translated: TranslatedStageContent;
+}
+
+// ---------- Section Models ----------
+
+/**
+ * Original section content
+ */
+export interface OriginalSectionContent {
+  name: string;
+}
+
+/**
+ * Translated section content
+ */
+export interface TranslatedSectionContent {
+  name: string;
+}
+
+/**
+ * Represents a single section with original and translated content
+ */
+export interface LocalizableSection {
+  section_id: number;
+  stage_id: number;
+  original: OriginalSectionContent;
+  translated: TranslatedSectionContent;
+}
+
+// ---------- Transition Models ----------
+
+/**
+ * Original transition content
+ */
+export interface OriginalTransitionContent {
+  label: string;
+}
+
+/**
+ * Translated transition content
+ */
+export interface TranslatedTransitionContent {
+  label: string;
+}
+
+/**
+ * Represents a single transition with original and translated content
+ */
+export interface LocalizableTransition {
+  stage_transition_id: number;
+  original: OriginalTransitionContent;
+  translated: TranslatedTransitionContent;
+}
+
+// ---------- Field Models ----------
+
 /**
  * Original field content (English or default language)
  */
@@ -51,7 +129,7 @@ export interface TranslatedFieldContent {
   label: string;
   helper_text: string;
   default_value: string;
-  place_holder: string | null;  // Note: API uses place_holder in translated
+  place_holder: string; // Note: API uses place_holder in translated
 }
 
 /**
@@ -63,6 +141,8 @@ export interface LocalizableField {
   translated: TranslatedFieldContent;
 }
 
+// ---------- Complete Localizable Data ----------
+
 /**
  * Complete localizable data for a form version in a specific language
  */
@@ -70,12 +150,39 @@ export interface LocalizableData {
   form_version_id: number;
   language: Language;
   form_name: TranslatableFormName;
+  stages: LocalizableStage[];
+  sections: LocalizableSection[];
+  transitions: LocalizableTransition[];
   fields: LocalizableField[];
 }
 
 // ============================================================================
 // Translation Save Models
 // ============================================================================
+
+/**
+ * Single stage translation to be saved
+ */
+export interface StageTranslation {
+  stage_id: number;
+  name: string;
+}
+
+/**
+ * Single section translation to be saved
+ */
+export interface SectionTranslation {
+  section_id: number;
+  name: string;
+}
+
+/**
+ * Single transition translation to be saved
+ */
+export interface TransitionTranslation {
+  stage_transition_id: number;
+  label: string;
+}
 
 /**
  * Single field translation to be saved
@@ -95,6 +202,9 @@ export interface SaveTranslationsPayload {
   form_version_id: number;
   language_id: number;
   form_name: string;
+  stage_translations: StageTranslation[];
+  section_translations: SectionTranslation[];
+  transition_translations: TransitionTranslation[];
   field_translations: FieldTranslation[];
 }
 
@@ -267,18 +377,102 @@ export function createCacheKey(
  */
 export type FieldValue = string | null | undefined;
 
-/**
- * Helper type for field property keys in original content
- */
-export type OriginalFieldPropertyKey = keyof OriginalFieldContent;
+// ============================================================================
+// Utility Functions for Stages
+// ============================================================================
 
 /**
- * Helper type for field property keys in translated content
+ * Get original stage name
  */
-export type TranslatedFieldPropertyKey = keyof TranslatedFieldContent;
+export function getOriginalStageName(stage: LocalizableStage): string {
+  return stage.original.name;
+}
 
 /**
- * Utility function to get original field value
+ * Get translated stage name
+ */
+export function getTranslatedStageName(stage: LocalizableStage): string {
+  return stage.translated.name;
+}
+
+/**
+ * Create a StageTranslation object from a LocalizableStage
+ */
+export function createStageTranslationFromLocalizable(
+  stage: LocalizableStage
+): StageTranslation {
+  return {
+    stage_id: stage.stage_id,
+    name: stage.translated.name,
+  };
+}
+
+// ============================================================================
+// Utility Functions for Sections
+// ============================================================================
+
+/**
+ * Get original section name
+ */
+export function getOriginalSectionName(section: LocalizableSection): string {
+  return section.original.name;
+}
+
+/**
+ * Get translated section name
+ */
+export function getTranslatedSectionName(section: LocalizableSection): string {
+  return section.translated.name;
+}
+
+/**
+ * Create a SectionTranslation object from a LocalizableSection
+ */
+export function createSectionTranslationFromLocalizable(
+  section: LocalizableSection
+): SectionTranslation {
+  return {
+    section_id: section.section_id,
+    name: section.translated.name,
+  };
+}
+
+// ============================================================================
+// Utility Functions for Transitions
+// ============================================================================
+
+/**
+ * Get original transition label
+ */
+export function getOriginalTransitionLabel(transition: LocalizableTransition): string {
+  return transition.original.label;
+}
+
+/**
+ * Get translated transition label
+ */
+export function getTranslatedTransitionLabel(transition: LocalizableTransition): string {
+  return transition.translated.label;
+}
+
+/**
+ * Create a TransitionTranslation object from a LocalizableTransition
+ */
+export function createTransitionTranslationFromLocalizable(
+  transition: LocalizableTransition
+): TransitionTranslation {
+  return {
+    stage_transition_id: transition.stage_transition_id,
+    label: transition.translated.label,
+  };
+}
+
+// ============================================================================
+// Utility Functions for Fields
+// ============================================================================
+
+/**
+ * Get original field value
  */
 export function getOriginalFieldValue(
   field: LocalizableField,
@@ -288,14 +482,14 @@ export function getOriginalFieldValue(
 }
 
 /**
- * Utility function to get original placeholder (handles naming difference)
+ * Get original placeholder (handles naming difference)
  */
 export function getOriginalPlaceholder(field: LocalizableField): string | null {
   return field.original.placeholder;
 }
 
 /**
- * Utility function to get translated field value
+ * Get translated field value
  */
 export function getTranslatedFieldValue(
   field: LocalizableField,
@@ -305,11 +499,30 @@ export function getTranslatedFieldValue(
 }
 
 /**
- * Utility function to get translated placeholder
+ * Get translated placeholder
  */
-export function getTranslatedPlaceholder(field: LocalizableField): string | null {
+export function getTranslatedPlaceholder(field: LocalizableField): string {
   return field.translated.place_holder;
 }
+
+/**
+ * Create a FieldTranslation object from a LocalizableField
+ */
+export function createFieldTranslationFromLocalizable(
+  field: LocalizableField
+): FieldTranslation {
+  return {
+    field_id: field.field_id,
+    label: field.translated.label,
+    helper_text: field.translated.helper_text,
+    default_value: field.translated.default_value,
+    place_holder: field.translated.place_holder,
+  };
+}
+
+// ============================================================================
+// General Utility Functions
+// ============================================================================
 
 /**
  * Check if a translated value exists and is not empty
@@ -345,35 +558,29 @@ export function getTranslatedFormName(formName: TranslatableFormName): string {
   return formName.translated;
 }
 
+// ============================================================================
+// Translation Progress and Stats
+// ============================================================================
+
 /**
- * Create a FieldTranslation object from a LocalizableField
- * This is useful when preparing data to save
+ * Check if a stage has translation
  */
-export function createFieldTranslationFromLocalizable(
-  field: LocalizableField
-): FieldTranslation {
-  return {
-    field_id: field.field_id,
-    label: field.translated.label,
-    helper_text: field.translated.helper_text,
-    default_value: field.translated.default_value,
-    place_holder: field.translated.place_holder || '',
-  };
+export function stageHasTranslation(stage: LocalizableStage): boolean {
+  return hasTranslation(stage.translated.name) && stage.translated.name !== stage.original.name;
 }
 
 /**
- * Calculate translation progress percentage
+ * Check if a section has translation
  */
-export function calculateTranslationProgress(fields: LocalizableField[]): number {
-  if (fields.length === 0) return 0;
+export function sectionHasTranslation(section: LocalizableSection): boolean {
+  return hasTranslation(section.translated.name) && section.translated.name !== section.original.name;
+}
 
-  const translatedCount = fields.filter(field => {
-    const hasLabelTranslation = hasTranslation(field.translated.label) && 
-                                 field.translated.label !== field.original.label;
-    return hasLabelTranslation;
-  }).length;
-
-  return Math.round((translatedCount / fields.length) * 100);
+/**
+ * Check if a transition has translation
+ */
+export function transitionHasTranslation(transition: LocalizableTransition): boolean {
+  return hasTranslation(transition.translated.label) && transition.translated.label !== transition.original.label;
 }
 
 /**
@@ -389,15 +596,67 @@ export function fieldHasTranslations(field: LocalizableField): boolean {
 }
 
 /**
- * Get count of translated fields
+ * Calculate overall translation progress percentage
  */
-export function getTranslatedFieldsCount(fields: LocalizableField[]): number {
-  return fields.filter(fieldHasTranslations).length;
+export function calculateTranslationProgress(data: LocalizableData): number {
+  const totalItems = 
+    1 + // form_name
+    data.stages.length +
+    data.sections.length +
+    data.transitions.length +
+    data.fields.length;
+
+  if (totalItems === 0) return 0;
+
+  let translatedCount = 0;
+
+  // Check form name
+  if (hasTranslation(data.form_name.translated) && data.form_name.translated !== data.form_name.original) {
+    translatedCount++;
+  }
+
+  // Check stages
+  translatedCount += data.stages.filter(stageHasTranslation).length;
+
+  // Check sections
+  translatedCount += data.sections.filter(sectionHasTranslation).length;
+
+  // Check transitions
+  translatedCount += data.transitions.filter(transitionHasTranslation).length;
+
+  // Check fields
+  translatedCount += data.fields.filter(fieldHasTranslations).length;
+
+  return Math.round((translatedCount / totalItems) * 100);
 }
 
 /**
- * Get count of untranslated fields
+ * Get count of translated items
  */
-export function getUntranslatedFieldsCount(fields: LocalizableField[]): number {
-  return fields.length - getTranslatedFieldsCount(fields);
+export function getTranslatedItemsCount(data: LocalizableData): number {
+  let count = 0;
+
+  if (hasTranslation(data.form_name.translated) && data.form_name.translated !== data.form_name.original) {
+    count++;
+  }
+
+  count += data.stages.filter(stageHasTranslation).length;
+  count += data.sections.filter(sectionHasTranslation).length;
+  count += data.transitions.filter(transitionHasTranslation).length;
+  count += data.fields.filter(fieldHasTranslations).length;
+
+  return count;
+}
+
+/**
+ * Get total count of translatable items
+ */
+export function getTotalTranslatableItemsCount(data: LocalizableData): number {
+  return (
+    1 + // form_name
+    data.stages.length +
+    data.sections.length +
+    data.transitions.length +
+    data.fields.length
+  );
 }

@@ -98,7 +98,7 @@ const getLocalizedImageUploadConfig = (languageId?: number) => {
  * ```
  */
 export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
-  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
+  ({ field, value, onChange, error, disabled = false, className, languageId }, ref) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(
@@ -216,7 +216,6 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      onBlur?.();
     };
 
     const handleBrowseClick = () => {

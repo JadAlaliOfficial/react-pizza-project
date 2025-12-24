@@ -1,11 +1,13 @@
-
 import type { FormField } from '@/features/formBuilder/endUserForms/types/formStructure.types';
 import type { JsonValue } from '@/features/formBuilder/endUserForms/types/submitInitialForm.types';
 
 /**
  * Normalizes API values to runtime shapes based on field type
  */
-export const normalizeByType = (field: FormField, raw: JsonValue): JsonValue => {
+export const normalizeByType = (
+  field: FormField,
+  raw: JsonValue,
+): JsonValue => {
   const type = String(field.field_type || '').trim();
 
   switch (type) {
@@ -91,6 +93,7 @@ export const fallbackByType = (field: FormField): JsonValue => {
   // Numeric types
   switch (type) {
     case 'Currency Input':
+      return null;
     case 'Number Input':
     case 'Percentage Input':
     case 'Slider':
