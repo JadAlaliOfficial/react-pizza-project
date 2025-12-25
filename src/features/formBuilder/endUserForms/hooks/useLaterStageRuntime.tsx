@@ -31,9 +31,7 @@ import type {
   LanguageConfig,
   UseRuntimeFormReturn,
 } from '../types/runtime.types';
-import {
-  LANGUAGE_MAP,
-} from '../types/runtime.types';
+import { LANGUAGE_MAP } from '../types/runtime.types';
 import { buildVisibilityMap } from '../engine/visibility/visibilityEngine';
 import {
   validateField as engineValidateField,
@@ -152,8 +150,11 @@ const fallbackByType = (field: FormField): JsonValue => {
     case 'Currency Input':
       return null;
     case 'Number Input':
+      return null;
     case 'Percentage Input':
     case 'Slider':
+    case 'Signature Pad':
+      return '';
     case 'Rating':
       return 0;
   }
@@ -212,7 +213,6 @@ export const useLaterStageRuntime = ({
   entryPublicIdentifier,
   languageId = 1,
 }: UseLaterStageRuntimeParams): UseRuntimeFormReturn => {
-  
   // Use the LATER stage submit hook
   const { submit: submitForm, isSubmitting } = useSubmitLaterStage();
 
@@ -221,7 +221,9 @@ export const useLaterStageRuntime = ({
   // ================================
 
   const [fieldValues, setFieldValues] = useState<RuntimeFieldValues>({});
-  const [selectedTransitionId, setSelectedTransitionId] = useState<number | null>(null);
+  const [selectedTransitionId, setSelectedTransitionId] = useState<
+    number | null
+  >(null);
 
   const languageConfig: LanguageConfig = LANGUAGE_MAP[languageId];
 
@@ -516,7 +518,9 @@ export const useLaterStageRuntime = ({
     const transitionId =
       selectedTransitionId || submitButtonState.selectedTransitionId;
     if (!transitionId) {
-      console.error('[useLaterStageRuntime] No transition selected for submission');
+      console.error(
+        '[useLaterStageRuntime] No transition selected for submission',
+      );
       return;
     }
 

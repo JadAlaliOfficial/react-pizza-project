@@ -89,7 +89,19 @@ const getLocalizedUrlConfig = (languageId?: number) => {
  * ```
  */
 export const UrlInput = forwardRef<HTMLDivElement, UrlInputProps>(
-  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
+  (
+    {
+      field,
+      value,
+      onChange,
+      onBlur,
+      error,
+      disabled = false,
+      className,
+      languageId,
+    },
+    ref,
+  ) => {
     const [localValue, setLocalValue] = useState<string>(() => {
       if (value !== null && value !== undefined) {
         return String(value);
@@ -124,17 +136,26 @@ export const UrlInput = forwardRef<HTMLDivElement, UrlInputProps>(
     };
 
     const handleBlur = () => {
-      if (localValue && !isValidUrl(localValue)) {
-        const withProtocol = ensureProtocol(localValue);
-        setLocalValue(withProtocol);
-        onChange(withProtocol);
+      const trimmed = localValue.trim();
 
-        console.debug('[UrlInput] Auto-prepended protocol:', {
-          fieldId: field.field_id,
-          original: localValue,
-          updated: withProtocol,
-        });
+      // spaces-only should be treated as empty
+      if (trimmed === '') {
+        if (localValue !== '') {
+          setLocalValue('');
+          onChange('');
+        }
+        onBlur?.();
+        return;
       }
+
+      const normalized = ensureProtocol(trimmed);
+
+      // always keep local state normalized (trim + protocol)
+      if (normalized !== localValue) {
+        setLocalValue(normalized);
+        onChange(normalized);
+      }
+
       onBlur?.();
     };
 
@@ -151,8 +172,11 @@ export const UrlInput = forwardRef<HTMLDivElement, UrlInputProps>(
 
     const urlInputId = `url-input-${field.field_id}`;
 
-    const { placeholder: localizedPlaceholder, openTitle, ariaSuffix } =
-      getLocalizedUrlConfig(languageId);
+    const {
+      placeholder: localizedPlaceholder,
+      openTitle,
+      ariaSuffix,
+    } = getLocalizedUrlConfig(languageId);
     const placeholder = field.placeholder || localizedPlaceholder;
 
     const domain = isValid ? extractDomain(localValue) : null;

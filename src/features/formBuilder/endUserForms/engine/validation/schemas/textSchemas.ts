@@ -124,18 +124,18 @@ export const generateTextInputSchema = (field: FormField): z.ZodType => {
   } else {
     if (alphaDash) {
       schema = schema.regex(
-        /^[a-zA-Z0-9_-]*$/,
-        `${field.label} must contain only letters, numbers, dashes, and underscores`,
+        /^[a-zA-Z0-9_-\s]*$/,
+        `${field.label} must contain only letters, numbers, dashes, underscores, spaces, and newlines`,
       );
     } else if (alphaNum) {
       schema = schema.regex(
-        /^[a-zA-Z0-9]*$/,
-        `${field.label} must contain only letters and numbers`,
+        /^[a-zA-Z0-9\s]*$/,
+        `${field.label} must contain only letters, numbers, spaces, and newlines`,
       );
     } else if (alpha) {
       schema = schema.regex(
-        /^[a-zA-Z]*$/,
-        `${field.label} must contain only letters`,
+        /^[a-zA-Z\s]*$/,
+        `${field.label} must contain only letters, spaces, and newlines`,
       );
     }
   }

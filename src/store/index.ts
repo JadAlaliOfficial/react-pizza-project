@@ -17,6 +17,8 @@ import schedulePreferencesReducer from '../features/schedulePreferences/store/sc
 import employmentInformationReducer from '../features/employmentInformation/store/employmentInformationSlice';
 import dailySchedulesReducer from '../features/dailySchedules/store/slices/dailySchedulesSlice';
 import weeklySchedulesReducer from '../features/dailySchedules/store/slices/weeklySchedulesSlice';
+import entriesReducer from '../features/formBuilder/entries/store/entriesSlice';
+
 
 
 // Import the new DSPR slices
@@ -87,6 +89,7 @@ export const store = configureStore({
     formStructure: formStructureReducer,
     submitInitialForm: submitInitialFormReducer,
     formRuntime: formRuntimeReducer,
+    entries: entriesReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

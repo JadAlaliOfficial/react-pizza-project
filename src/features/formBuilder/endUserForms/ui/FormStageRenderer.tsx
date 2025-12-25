@@ -143,6 +143,7 @@ export const CompleteFormRenderer: React.FC<CompleteFormRendererProps> = ({
     handleSubmit: runtimeHandleSubmit,
     isFormValid,
     canSubmit,
+    selectTransition,
   } = useRuntimeForm({
     formVersionId,
     recordId,
@@ -229,16 +230,6 @@ export const CompleteFormRenderer: React.FC<CompleteFormRendererProps> = ({
         />
       )}
 
-      {/* Available Transitions Info (if multiple) */}
-      {submitButtonState.availableTransitions.length > 1 && (
-        <div className="mt-6 rounded-md bg-blue-50 p-4 dark:bg-blue-900/20">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
-            Multiple transitions available. Using:{' '}
-            <strong>{submitButtonState.submitLabel}</strong>
-          </p>
-        </div>
-      )}
-
       {/* Submit Button Container */}
       <div
         className={
@@ -261,22 +252,54 @@ export const CompleteFormRenderer: React.FC<CompleteFormRendererProps> = ({
           )}
         </div>
 
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          disabled={!canSubmit || formState.isSubmitting}
-          size="lg"
-          className="min-w-40"
-        >
-          {formState.isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
-            </>
+        {/* Submit Actions */}
+        <div className="flex gap-2">
+          {submitButtonState.availableTransitions.length > 0 ? (
+            submitButtonState.availableTransitions.map((transition) => (
+              <Button
+                key={transition.transitionId}
+                type="submit"
+                onClick={() => selectTransition(transition.transitionId)}
+                disabled={!canSubmit || formState.isSubmitting || transition.isDisabled}
+                variant={transition.label.toLowerCase() === 'reject' ? 'secondary' : 'default'}
+                className={
+                  transition.label.toLowerCase() === 'reject'
+                    ? 'bg-red-500 hover:bg-red-600 text-white min-w-32'
+                    : 'min-w-32'
+                }
+              >
+                {formState.isSubmitting &&
+                (formState.selectedTransitionId === transition.transitionId ||
+                  (!formState.selectedTransitionId &&
+                    submitButtonState.selectedTransitionId ===
+                      transition.transitionId)) ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  transition.label
+                )}
+              </Button>
+            ))
           ) : (
-            submitButtonState.submitLabel
+            <Button
+              type="submit"
+              disabled={!canSubmit || formState.isSubmitting}
+              size="lg"
+              className="min-w-40"
+            >
+              {formState.isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                submitButtonState.submitLabel || 'Submit'
+              )}
+            </Button>
           )}
-        </Button>
+        </div>
       </div>
 
       {/* Form Completion Message */}

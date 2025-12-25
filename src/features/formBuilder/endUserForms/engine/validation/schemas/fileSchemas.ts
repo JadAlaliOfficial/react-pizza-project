@@ -13,6 +13,7 @@ import {
   formatFileSize,
   getFileSizeInKB,
 } from '../validationEngine.helpers';
+import { isSignatureEmpty } from '@/features/formBuilder/endUserForms/components/fields/validation/signaturePadValidation';
 
 const extractFileValidationRules = (
   rules: FieldRule[],
@@ -106,19 +107,49 @@ export const generateDocumentUploadSchema = (field: FormField): z.ZodType => {
 
 export const generateSignaturePadSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
-  let schema = z.string();
 
-  schema = schema.refine(
-    (value) => {
-      if (!value) return !isRequired;
-      return value.startsWith('data:image/png;base64,');
-    },
-    { message: `${field.label} must be a valid signature` },
+  // Normalize null/undefined into empty string
+  const base = z.preprocess(
+    (val) => (val === null || val === undefined ? '' : val),
+    z.string({
+      message: `${field.label} must be a valid signature`,
+    }),
   );
 
-  if (!isRequired) {
-    return z.union([schema, z.literal('')]);
-  }
+  const schema = base.superRefine((val, ctx) => {
+    const v = val.trim();
 
-  return schema.min(1, `${field.label} is required`);
+    // Empty
+    if (v.length === 0) {
+      if (isRequired) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${field.label} is required`,
+        });
+      }
+      return;
+    }
+
+    // Optional: ensure it's an actual signature dataUrl (png)
+    if (!v.startsWith('data:image/png;base64,')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `${field.label} must be a valid signature`,
+      });
+      return;
+    }
+
+    // Treat “blank canvas” as empty
+    if (isSignatureEmpty(v)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: isRequired
+          ? `${field.label} is required`
+          : `${field.label} must be a valid signature`,
+      });
+    }
+  });
+
+  // Optional fields should allow empty
+  return isRequired ? schema : (schema.optional() as z.ZodType);
 };

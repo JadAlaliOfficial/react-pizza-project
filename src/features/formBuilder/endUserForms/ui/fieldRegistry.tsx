@@ -138,6 +138,7 @@ const PasswordInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -161,6 +162,7 @@ const NumberInput: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as number}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -280,6 +282,7 @@ const MultiSelect: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as string[]}
     onChange={(value) => props.onChange(props.field.field_id, value)}
+    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}
@@ -348,7 +351,6 @@ const PopupLocationPicker: RuntimeFieldComponent = (props) => (
     field={props.field}
     value={props.value as any}
     onChange={(value) => props.onChange(props.field.field_id, value as any)}
-    onBlur={() => props.onBlur(props.field.field_id)}
     error={props.error || undefined}
     disabled={props.disabled}
     languageId={props.languageId}

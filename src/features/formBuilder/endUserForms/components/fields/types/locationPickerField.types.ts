@@ -40,7 +40,7 @@ export interface LocationPickerProps {
   /**
    * Callback when location value changes
    */
-  onChange: (value: LocationValue) => void;
+  onChange: (value: LocationValue | null) => void;
   
   /**
    * Error message to display (from form validation)
@@ -63,9 +63,4 @@ export interface LocationPickerProps {
    * Defaults to New York City
    */
   defaultLocation?: LocationCoords;
-
-  /**
-   * Callback when the field loses focus
-   */
-  onBlur?: () => void;
 }

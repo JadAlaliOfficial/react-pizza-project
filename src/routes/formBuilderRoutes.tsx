@@ -6,6 +6,7 @@ import FormBuilderPage from '@/features/formBuilder/workspace/pages/FormBuilderP
 import {FormVersionBuilderPage} from '@/features/formBuilder/formVersions/pages/FormVersionBuilderPage'
 import EndUserFormPage from '@/features/formBuilder/endUserForms/pages/index'
 import EntryFormPage from '@/features/formBuilder/endUserForms/pages/EntryFormPage'
+import EntriesListPage from '@/features/formBuilder/entries/pages/EntriesListPage'
 
 export const formBuilderRoutes = [
   <>
@@ -56,6 +57,19 @@ export const formBuilderRoutes = [
         <RoleGuard role="super-admin">
           <MainLayout>
             <EntryFormPage />
+          </MainLayout>
+        </RoleGuard>
+      </ProtectedRoute>
+    }
+  />
+  <Route
+    key="entries-list-page"
+    path="/entries-list/:formVersionId"
+    element={
+      <ProtectedRoute>
+        <RoleGuard role="super-admin">
+          <MainLayout>
+            <EntriesListPage />
           </MainLayout>
         </RoleGuard>
       </ProtectedRoute>

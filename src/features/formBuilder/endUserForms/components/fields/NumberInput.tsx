@@ -81,29 +81,40 @@ const getLocalizedNumberConfig = (languageId?: number) => {
  * ```
  */
 export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
-  ({ field, value, onChange, error, disabled = false, className, languageId, onBlur }, ref) => {
+  (
+    {
+      field,
+      value,
+      onChange,
+      error,
+      disabled = false,
+      className,
+      languageId,
+      onBlur,
+    },
+    ref,
+  ) => {
     const [displayValue, setDisplayValue] = useState<string>('');
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
     useEffect(() => {
-      if (isFocused) {
-        return;
-      }
+      if (isFocused) return;
 
-      let initialValue: number;
+      let initialValue: number | null = null;
 
       if (typeof value === 'number' && !isNaN(value)) {
         initialValue = value;
       } else if (
-        field.current_value &&
-        typeof field.current_value === 'number'
+        typeof field.current_value === 'number' &&
+        !isNaN(field.current_value)
       ) {
         initialValue = field.current_value;
       } else {
+        // update this helper to return number | null (below)
         initialValue = getDefaultNumberInputValue(field);
       }
 
-      setDisplayValue(initialValue.toString());
+      setDisplayValue(initialValue === null ? '' : initialValue.toString());
     }, [field, value, isFocused]);
 
     const isRequired =
@@ -123,7 +134,7 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
         setDisplayValue(input);
 
         if (input === '' || input === '.' || input === '-') {
-          onChange(0);
+          onChange(null);
         } else {
           const numericValue = parseFloat(input);
           if (!isNaN(numericValue)) {
@@ -142,13 +153,11 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
           setDisplayValue(numericValue.toString());
         }
       } else {
-        setDisplayValue('0');
-        onChange(0);
+        setDisplayValue(''); // ✅ keep empty
+        onChange(null); // ✅ keep null
       }
-      
-      if (onBlur) {
-        onBlur();
-      }
+
+      onBlur?.();
     };
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -159,7 +168,8 @@ export const NumberInput = forwardRef<HTMLDivElement, NumberInputProps>(
     };
 
     const numberInputId = `number-input-${field.field_id}`;
-    const { placeholder: localizedPlaceholder } = getLocalizedNumberConfig(languageId);
+    const { placeholder: localizedPlaceholder } =
+      getLocalizedNumberConfig(languageId);
     const placeholder = field.placeholder || localizedPlaceholder;
 
     return (

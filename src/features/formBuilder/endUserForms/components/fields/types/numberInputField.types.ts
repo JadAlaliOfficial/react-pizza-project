@@ -10,7 +10,7 @@ import type { FormField } from '@/features/formBuilder/endUserForms/types/formSt
 /**
  * Number value type
  */
-export type NumberValue = number;
+export type NumberValue = number | null;
 
 /**
  * Props for NumberInput component
@@ -29,7 +29,7 @@ export interface NumberInputProps {
   /**
    * Callback when number value changes
    */
-  onChange: (value: number) => void;
+  onChange: (value: number | null) => void;
   
   /**
    * Error message to display (from form validation)

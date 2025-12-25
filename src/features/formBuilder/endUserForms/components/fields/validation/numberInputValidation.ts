@@ -9,17 +9,20 @@
  */
 
 import { z } from 'zod';
-import type { FormField, FieldRule } from '@/features/formBuilder/endUserForms/types/formStructure.types';
+import type {
+  FormField,
+  FieldRule,
+} from '@/features/formBuilder/endUserForms/types/formStructure.types';
 
 /**
  * Extract validation bounds from rules with conflict resolution
  * Priority: individual min/max rules override between rule
- * 
+ *
  * @param rules - Field validation rules
  * @returns Object with min and max bounds
  */
 const extractValidationBounds = (
-  rules: FieldRule[]
+  rules: FieldRule[],
 ): { min: number | null; max: number | null } => {
   let min: number | null = null;
   let max: number | null = null;
@@ -52,12 +55,12 @@ const extractValidationBounds = (
 /**
  * Check if field has numeric or integer rules
  * Numeric takes priority over integer when both present
- * 
+ *
  * @param rules - Field validation rules
  * @returns Object indicating which rule applies
  */
 const getNumberTypeRules = (
-  rules: FieldRule[]
+  rules: FieldRule[],
 ): { isNumeric: boolean; isInteger: boolean; allowDecimals: boolean } => {
   const hasNumeric = rules.some((rule) => rule.rule_name === 'numeric');
   const hasInteger = rules.some((rule) => rule.rule_name === 'integer');
@@ -78,12 +81,12 @@ const getNumberTypeRules = (
 
 /**
  * Get comparison field IDs for same/different rules
- * 
+ *
  * @param rules - Field validation rules
  * @returns Object with comparison field IDs
  */
 export const getCrossFieldRules = (
-  rules: FieldRule[]
+  rules: FieldRule[],
 ): { sameAs: number | null; differentFrom: number | null } => {
   let sameAs: number | null = null;
   let differentFrom: number | null = null;
@@ -92,17 +95,19 @@ export const getCrossFieldRules = (
     if (rule.rule_name === 'same' && rule.rule_props) {
       const props = rule.rule_props as { comparevalue?: number | string };
       if (props.comparevalue) {
-        sameAs = typeof props.comparevalue === 'number' 
-          ? props.comparevalue 
-          : parseInt(props.comparevalue);
+        sameAs =
+          typeof props.comparevalue === 'number'
+            ? props.comparevalue
+            : parseInt(props.comparevalue);
       }
     }
     if (rule.rule_name === 'different' && rule.rule_props) {
       const props = rule.rule_props as { comparevalue?: number | string };
       if (props.comparevalue) {
-        differentFrom = typeof props.comparevalue === 'number' 
-          ? props.comparevalue 
-          : parseInt(props.comparevalue);
+        differentFrom =
+          typeof props.comparevalue === 'number'
+            ? props.comparevalue
+            : parseInt(props.comparevalue);
       }
     }
   });
@@ -112,17 +117,16 @@ export const getCrossFieldRules = (
 
 /**
  * Generate Zod schema for Number Input field based on field rules
- * 
+ *
  * @param field - Field configuration from API
  * @returns Zod schema for number validation
  */
 export const generateNumberInputSchema = (
-  field: FormField
+  field: FormField,
 ): z.ZodType<number> => {
   // Check if field is required
-  const isRequired = field.rules?.some(
-    (rule) => rule.rule_name === 'required'
-  ) ?? false;
+  const isRequired =
+    field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
   // Extract min/max bounds with conflict resolution
   const { min, max } = extractValidationBounds(field.rules || []);
@@ -138,10 +142,10 @@ export const generateNumberInputSchema = (
     allowDecimals,
   });
 
- // Base schema for number with coercion
-let schema = z.coerce.number({
-  message: `${field.label} must be a number`
-});
+  // Base schema for number with coercion
+  let schema = z.coerce.number({
+    message: `${field.label} must be a number`,
+  });
 
   // Apply integer validation if decimals not allowed
   if (!allowDecimals) {
@@ -166,21 +170,24 @@ let schema = z.coerce.number({
   }
 
   // If required, add custom message
-  return schema.refine((val) => val !== undefined && val !== null && !isNaN(val), {
-    message: `${field.label} is required`,
-  });
+  return schema.refine(
+    (val) => val !== undefined && val !== null && !isNaN(val),
+    {
+      message: `${field.label} is required`,
+    },
+  );
 };
 
 /**
  * Validate number value against field rules
- * 
+ *
  * @param field - Field configuration
  * @param value - Number value to validate
  * @returns Validation result with error message if invalid
  */
 export const validateNumberInput = (
   field: FormField,
-  value: number | null | undefined
+  value: number | null | undefined,
 ): { valid: boolean; error?: string } => {
   const schema = generateNumberInputSchema(field);
 
@@ -201,33 +208,27 @@ export const validateNumberInput = (
 
 /**
  * Get default number value from field configuration
- * 
+ *
  * @param field - Field configuration
  * @returns Default number value
  */
-export const getDefaultNumberInputValue = (field: FormField): number => {
+export const getDefaultNumberInputValue = (field: FormField): number | null => {
   const defaultValue = field.default_value;
 
-  // If default_value is a number
-  if (typeof defaultValue === 'number') {
+  if (typeof defaultValue === 'number' && !isNaN(defaultValue))
     return defaultValue;
-  }
 
-  // If default_value is a numeric string
   if (typeof defaultValue === 'string') {
     const parsed = parseFloat(defaultValue);
-    if (!isNaN(parsed)) {
-      return parsed;
-    }
+    if (!isNaN(parsed)) return parsed;
   }
 
-  // Default to 0 if no valid default
-  return 0;
+  return null; // ✅ instead of 0
 };
 
 /**
  * Check if field allows decimal values
- * 
+ *
  * @param field - Field configuration
  * @returns True if decimals are allowed
  */
@@ -238,7 +239,7 @@ export const allowsDecimals = (field: FormField): boolean => {
 
 /**
  * Get step value for input
- * 
+ *
  * @param field - Field configuration
  * @returns Step value ('any' for decimals, '1' for integers)
  */

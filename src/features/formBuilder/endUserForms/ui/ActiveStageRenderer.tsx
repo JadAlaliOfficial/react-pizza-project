@@ -166,9 +166,17 @@ export const ActiveStageRenderer: React.FC<ActiveStageRendererProps> = ({
             onClick={() => selectTransition(transition.transitionId)}
             disabled={!canSubmit || formState.isSubmitting || transition.isDisabled}
             variant={transition.label.toLowerCase() === 'reject' ? 'secondary' : 'default'}
-            className={transition.label.toLowerCase() === 'reject' ? 'bg-red-500 hover:bg-red-600 text-white' : ''}
+            className={
+              transition.label.toLowerCase() === 'reject'
+                ? 'bg-red-500 hover:bg-red-600 text-white min-w-32'
+                : 'min-w-32'
+            }
           >
-            {formState.isSubmitting && submitButtonState.selectedTransitionId === transition.transitionId ? (
+            {formState.isSubmitting &&
+            (formState.selectedTransitionId === transition.transitionId ||
+              (!formState.selectedTransitionId &&
+                submitButtonState.selectedTransitionId ===
+                  transition.transitionId)) ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...

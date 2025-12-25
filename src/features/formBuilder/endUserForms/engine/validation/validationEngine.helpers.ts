@@ -91,18 +91,13 @@ export const extractDateValidationBounds = (
  * Check number type rules with conflict resolution
  * Priority: numeric takes priority over integer (allows decimals)
  */
-export const getNumberTypeRules = (
-  rules: FieldRule[],
-): { isNumeric: boolean; isInteger: boolean; allowDecimals: boolean } => {
-  const hasNumeric = rules.some((rule) => rule.rule_name === 'numeric');
-  const hasInteger = rules.some((rule) => rule.rule_name === 'integer');
-
-  if (hasNumeric && hasInteger) {
-    return { isNumeric: true, isInteger: false, allowDecimals: true };
-  }
+// ✅ integer is stricter → should win
+export const getNumberTypeRules = (rules: FieldRule[]) => {
+  const hasNumeric = rules.some((r) => r.rule_name === 'numeric');
+  const hasInteger = rules.some((r) => r.rule_name === 'integer');
 
   if (hasInteger) {
-    return { isNumeric: false, isInteger: true, allowDecimals: false };
+    return { isNumeric: hasNumeric, isInteger: true, allowDecimals: false };
   }
 
   return { isNumeric: hasNumeric, isInteger: false, allowDecimals: true };
@@ -170,7 +165,10 @@ export const formatDateForDisplay = (dateStr: string): string => {
 /**
  * Check if file matches MIME type pattern (supports wildcards)
  */
-export const matchesMimeType = (fileMimeType: string, pattern: string): boolean => {
+export const matchesMimeType = (
+  fileMimeType: string,
+  pattern: string,
+): boolean => {
   if (pattern === '*/*') return true;
   if (pattern.endsWith('/*')) {
     const category = pattern.split('/')[0];

@@ -15,63 +15,79 @@ import {
 
 export const generatePhoneInputSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
-  const regexRule = field.rules?.find((rule) => rule.rule_name === 'regex');
-  const startsWithRule = field.rules?.find(
+
+  const regexRule = (field.rules || []).find(
+    (rule) => rule.rule_name === 'regex',
+  );
+  const startsWithRule = (field.rules || []).find(
     (rule) => rule.rule_name === 'starts_with',
   );
 
+  const regexProps =
+    (regexRule?.rule_props as { pattern?: string } | null) || {};
+  const startsWithProps =
+    (startsWithRule?.rule_props as { prefix?: string } | null) || {};
+
+  const pattern =
+    typeof regexProps.pattern === 'string' ? regexProps.pattern.trim() : '';
+  const prefix =
+    typeof startsWithProps.prefix === 'string' ? startsWithProps.prefix : '';
+
+  const isEmpty = (v: string) => v.trim().length === 0;
+
   let schema = z.string();
 
-  schema = schema.refine(
-    (value) => {
-      if (!value) return !isRequired;
-      const cleaned = cleanPhoneNumber(value);
-      return isValidPhoneFormat(cleaned);
-    },
-    { message: `${field.label} must be a valid phone number` },
-  );
-
-  if (regexRule?.rule_props) {
-    const props = regexRule.rule_props as { pattern?: string };
-    if (props.pattern) {
-      try {
-        const regex = new RegExp(props.pattern);
-        schema = schema.refine(
-          (value) => {
-            if (!value) return !isRequired;
-            return regex.test(value);
-          },
-          { message: `${field.label} format is invalid` },
-        );
-      } catch (e) {
-        console.error(
-          '[validationEngine] Invalid regex pattern:',
-          props.pattern,
-        );
-      }
-    }
+  // ✅ required first (so empty => "is required")
+  if (isRequired) {
+    schema = schema.min(1, `${field.label} is required`);
   }
 
-  if (startsWithRule?.rule_props) {
-    const props = startsWithRule.rule_props as { values?: string[] };
-    if (props.values && props.values.length > 0) {
+  // ✅ if regex exists, it OVERRIDES the default phone validation (matches your comment)
+  if (pattern) {
+    try {
+      const regexPattern = new RegExp(pattern);
       schema = schema.refine(
         (value) => {
-          if (!value) return !isRequired;
-          return props.values!.some((prefix) => value.startsWith(prefix));
+          if (isEmpty(value)) return true; // let "required" handle it
+          const cleaned = cleanPhoneNumber(value);
+          return regexPattern.test(cleaned);
         },
-        {
-          message: `${field.label} must start with: ${props.values.join(' or ')}`,
-        },
+        { message: `${field.label} format is invalid` },
       );
+    } catch {
+      schema = schema.refine(() => false, {
+        message: `${field.label} has invalid regex configuration`,
+      });
     }
+  } else {
+    // ✅ default E.164 validation, but skip empty so required message wins
+    schema = schema.refine(
+      (value) => {
+        if (isEmpty(value)) return true; // let "required" handle it
+        return isValidPhoneFormat(cleanPhoneNumber(value));
+      },
+      { message: `${field.label} must be a valid phone number` },
+    );
   }
 
+  // ✅ starts_with should also skip empty so it doesn't steal the "required" error
+  if (prefix) {
+    schema = schema.refine(
+      (value) => {
+        if (isEmpty(value)) return true;
+        const cleaned = cleanPhoneNumber(value);
+        return cleaned.startsWith(prefix);
+      },
+      { message: `${field.label} must start with ${prefix}` },
+    );
+  }
+
+  // Optional field: allow undefined (your validatePhoneInput already converts null to '')
   if (!isRequired) {
-    return z.union([schema, z.literal('')]);
+    return schema.optional() as z.ZodType;
   }
 
-  return schema.min(1, `${field.label} is required`);
+  return schema;
 };
 
 export const generateUrlInputSchema = (field: FormField): z.ZodType => {
@@ -131,7 +147,10 @@ export const generateAddressSchema = (field: FormField): z.ZodType => {
   const isRequired = isFieldRequired(field.rules || []);
 
   // Required subfield: trims spaces, then requires at least 1 char
-  const requiredString = z.string().trim().min(1, { message: 'All fields of the address input are Required' });
+  const requiredString = z
+    .string()
+    .trim()
+    .min(1, { message: 'All fields of the address input are Required' });
 
   // Optional subfield: trims spaces, allows empty string
   const optionalString = z.string().trim().optional().default('');

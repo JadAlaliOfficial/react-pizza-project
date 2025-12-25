@@ -48,33 +48,50 @@ export const generateNumberInputSchema = (field: FormField): z.ZodType => {
   const { min, max } = extractNumericBounds(field);
   const { allowDecimals } = getNumberTypeRules(field.rules || []);
 
-  let schema = z.coerce.number({
-    message: `${field.label} must be a number`,
-  });
+  const baseNumber = z
+    .number({ message: `${field.label} must be a number` })
+    .refine((n) => Number.isFinite(n), {
+      message: `${field.label} must be a number`,
+    });
+
+  let numberSchema = baseNumber;
 
   if (!allowDecimals) {
-    schema = schema.int(`${field.label} must be an integer (no decimals)`);
+    numberSchema = numberSchema.int(
+      `${field.label} must be an integer (no decimals)`,
+    );
   }
+  if (min !== null)
+    numberSchema = numberSchema.min(
+      min,
+      `${field.label} must be at least ${min}`,
+    );
+  if (max !== null)
+    numberSchema = numberSchema.max(
+      max,
+      `${field.label} must be at most ${max}`,
+    );
 
-  if (min !== null) {
-    schema = schema.min(min, `${field.label} must be at least ${min}`);
-  }
-
-  if (max !== null) {
-    schema = schema.max(max, `${field.label} must be at most ${max}`);
-  }
-
-  if (!isRequired) {
-    return schema.optional() as z.ZodType;
-  }
-
-  return schema.refine(
-    (val) =>
-      val !== undefined && val !== null && !isNaN(val as unknown as number),
-    {
-      message: `${field.label} is required`,
+  const schema = z.preprocess(
+    (val) => {
+      if (val === '' || val === null || val === undefined) return null;
+      if (typeof val === 'number') return val;
+      if (typeof val === 'string') {
+        const t = val.trim();
+        if (t === '') return null;
+        const n = Number(t);
+        return Number.isFinite(n) ? n : NaN;
+      }
+      return val;
     },
+    z.union([numberSchema, z.null()]),
   );
+
+  if (!isRequired) return schema.optional();
+
+  return schema.refine((v) => typeof v === 'number' && Number.isFinite(v), {
+    message: `${field.label} is required`,
+  });
 };
 
 // numberSchemas.ts

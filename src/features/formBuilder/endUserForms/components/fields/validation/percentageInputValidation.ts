@@ -7,41 +7,65 @@
  */
 
 import { z } from 'zod';
-import type { FormField, FieldRule } from '@/features/formBuilder/endUserForms/types/formStructure.types';
+import type {
+  FormField,
+  FieldRule,
+} from '@/features/formBuilder/endUserForms/types/formStructure.types';
 
 /**
  * Extract validation bounds from rules with conflict resolution
  * Priority: individual min/max rules override between rule
- * 
+ *
  * @param rules - Field validation rules
  * @returns Object with min and max bounds
  */
+/**
+ * Extract validation bounds from rules.
+ * Priority: between rule is preferred; standalone min/max are only used if the between bound is missing.
+ */
 const extractValidationBounds = (
-  rules: FieldRule[]
+  rules: FieldRule[],
 ): { min: number | null; max: number | null } => {
   let min: number | null = null;
   let max: number | null = null;
 
-  // First, check for between rule
   const betweenRule = rules.find((rule) => rule.rule_name === 'between');
-  if (betweenRule?.rule_props) {
-    const props = betweenRule.rule_props as { min?: number; max?: number };
-    if (typeof props.min === 'number') min = props.min;
-    if (typeof props.max === 'number') max = props.max;
+  const betweenProps =
+    (betweenRule?.rule_props as {
+      min?: number | string;
+      max?: number | string;
+    }) || {};
+
+  if (
+    betweenProps.min !== undefined &&
+    betweenProps.min !== null &&
+    !Number.isNaN(Number(betweenProps.min))
+  ) {
+    min = Number(betweenProps.min);
   }
 
-  // Then, override with individual min rule (takes priority)
-  const minRule = rules.find((rule) => rule.rule_name === 'min');
-  if (minRule?.rule_props) {
-    const props = minRule.rule_props as { value?: number };
-    if (typeof props.value === 'number') min = props.value;
+  if (
+    betweenProps.max !== undefined &&
+    betweenProps.max !== null &&
+    !Number.isNaN(Number(betweenProps.max))
+  ) {
+    max = Number(betweenProps.max);
   }
 
-  // Finally, override with individual max rule (takes priority)
-  const maxRule = rules.find((rule) => rule.rule_name === 'max');
-  if (maxRule?.rule_props) {
-    const props = maxRule.rule_props as { value?: number };
-    if (typeof props.value === 'number') max = props.value;
+  if (min === null) {
+    const minRule = rules.find((rule) => rule.rule_name === 'min');
+    const raw = (minRule?.rule_props as { value?: number | string })?.value;
+    if (raw !== undefined && raw !== null && !Number.isNaN(Number(raw))) {
+      min = Number(raw);
+    }
+  }
+
+  if (max === null) {
+    const maxRule = rules.find((rule) => rule.rule_name === 'max');
+    const raw = (maxRule?.rule_props as { value?: number | string })?.value;
+    if (raw !== undefined && raw !== null && !Number.isNaN(Number(raw))) {
+      max = Number(raw);
+    }
   }
 
   return { min, max };
@@ -49,15 +73,16 @@ const extractValidationBounds = (
 
 /**
  * Generate Zod schema for Percentage Input field based on field rules
- * 
+ *
  * @param field - Field configuration from API
  * @returns Zod schema for percentage input validation
  */
-export const generatePercentageInputSchema = (field: FormField): z.ZodType<number> => {
+export const generatePercentageInputSchema = (
+  field: FormField,
+): z.ZodType<number> => {
   // Check if field is required
-  const isRequired = field.rules?.some(
-    (rule) => rule.rule_name === 'required'
-  ) ?? false;
+  const isRequired =
+    field.rules?.some((rule) => rule.rule_name === 'required') ?? false;
 
   // Extract min/max bounds with conflict resolution
   const { min, max } = extractValidationBounds(field.rules || []);
@@ -86,21 +111,24 @@ export const generatePercentageInputSchema = (field: FormField): z.ZodType<numbe
   }
 
   // If required, add custom message
-  return schema.refine((val) => val !== undefined && val !== null && !isNaN(val), {
-    message: `${field.label} is required`,
-  });
+  return schema.refine(
+    (val) => val !== undefined && val !== null && !isNaN(val),
+    {
+      message: `${field.label} is required`,
+    },
+  );
 };
 
 /**
  * Validate percentage value against field rules
- * 
+ *
  * @param field - Field configuration
  * @param value - Percentage value to validate
  * @returns Validation result with error message if invalid
  */
 export const validatePercentageInput = (
   field: FormField,
-  value: number | null | undefined
+  value: number | null | undefined,
 ): { valid: boolean; error?: string } => {
   const schema = generatePercentageInputSchema(field);
 
@@ -121,7 +149,7 @@ export const validatePercentageInput = (
 
 /**
  * Get default percentage value from field configuration
- * 
+ *
  * @param field - Field configuration
  * @returns Default percentage value (number)
  */
@@ -147,30 +175,37 @@ export const getDefaultPercentageInputValue = (field: FormField): number => {
 
 /**
  * Clamp value between min and max
- * 
+ *
  * @param value - Value to clamp
  * @param min - Minimum value
  * @param max - Maximum value
  * @returns Clamped value
  */
-export const clampPercentage = (value: number, min: number = 0, max: number = 100): number => {
+export const clampPercentage = (
+  value: number,
+  min: number = 0,
+  max: number = 100,
+): number => {
   return Math.min(Math.max(value, min), max);
 };
 
 /**
  * Format percentage value for display
- * 
+ *
  * @param value - Numeric value
  * @param decimals - Number of decimal places (default: 1)
  * @returns Formatted string
  */
-export const formatPercentage = (value: number, decimals: number = 1): string => {
+export const formatPercentage = (
+  value: number,
+  decimals: number = 1,
+): string => {
   return value.toFixed(decimals);
 };
 
 /**
  * Parse percentage input string to number
- * 
+ *
  * @param value - Input string
  * @returns Parsed number
  */

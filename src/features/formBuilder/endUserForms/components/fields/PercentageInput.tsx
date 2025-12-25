@@ -86,7 +86,19 @@ const getLocalizedPercentageConfig = (languageId?: number) => {
  * ```
  */
 export const PercentageInput = forwardRef<HTMLDivElement, PercentageInputProps>(
-  ({ field, value, onChange, onBlur, error, disabled = false, className, languageId }, ref) => {
+  (
+    {
+      field,
+      value,
+      onChange,
+      onBlur,
+      error,
+      disabled = false,
+      className,
+      languageId,
+    },
+    ref,
+  ) => {
     const [displayValue, setDisplayValue] = useState<string>('');
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
@@ -94,14 +106,40 @@ export const PercentageInput = forwardRef<HTMLDivElement, PercentageInputProps>(
     const maxRule = field.rules?.find((r) => r.rule_name === 'max');
     const betweenRule = field.rules?.find((r) => r.rule_name === 'between');
 
+    const betweenMinRaw = (betweenRule?.rule_props as { min?: number | string })
+      ?.min;
+    const betweenMaxRaw = (betweenRule?.rule_props as { max?: number | string })
+      ?.max;
+
+    const minRuleRaw = (minRule?.rule_props as { value?: number | string })
+      ?.value;
+    const maxRuleRaw = (maxRule?.rule_props as { value?: number | string })
+      ?.value;
+
+    // ✅ match numberSchemas.ts behavior:
+    // - prefer between.min/max when provided
+    // - only fallback to standalone min/max if between bound is missing
     const min =
-      (minRule?.rule_props as { value?: number })?.value ??
-      (betweenRule?.rule_props as { min?: number })?.min ??
-      0;
+      betweenMinRaw !== undefined &&
+      betweenMinRaw !== null &&
+      !Number.isNaN(Number(betweenMinRaw))
+        ? Number(betweenMinRaw)
+        : minRuleRaw !== undefined &&
+            minRuleRaw !== null &&
+            !Number.isNaN(Number(minRuleRaw))
+          ? Number(minRuleRaw)
+          : 0;
+
     const max =
-      (maxRule?.rule_props as { value?: number })?.value ??
-      (betweenRule?.rule_props as { max?: number })?.max ??
-      100;
+      betweenMaxRaw !== undefined &&
+      betweenMaxRaw !== null &&
+      !Number.isNaN(Number(betweenMaxRaw))
+        ? Number(betweenMaxRaw)
+        : maxRuleRaw !== undefined &&
+            maxRuleRaw !== null &&
+            !Number.isNaN(Number(maxRuleRaw))
+          ? Number(maxRuleRaw)
+          : 100;
 
     useEffect(() => {
       if (isFocused) {
@@ -112,7 +150,10 @@ export const PercentageInput = forwardRef<HTMLDivElement, PercentageInputProps>(
 
       if (typeof value === 'number' && !isNaN(value)) {
         initialValue = value;
-      } else if (field.current_value && typeof field.current_value === 'number') {
+      } else if (
+        field.current_value &&
+        typeof field.current_value === 'number'
+      ) {
         initialValue = field.current_value;
       } else {
         initialValue = getDefaultPercentageInputValue(field);
@@ -161,7 +202,7 @@ export const PercentageInput = forwardRef<HTMLDivElement, PercentageInputProps>(
         setDisplayValue('0');
         onChange(0);
       }
-      
+
       onBlur?.();
     };
 

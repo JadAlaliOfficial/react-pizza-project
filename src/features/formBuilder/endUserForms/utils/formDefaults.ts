@@ -95,8 +95,11 @@ export const fallbackByType = (field: FormField): JsonValue => {
     case 'Currency Input':
       return null;
     case 'Number Input':
+      return null;
     case 'Percentage Input':
     case 'Slider':
+    case 'Signature Pad':
+      return '';
     case 'Rating':
       return 0;
   }

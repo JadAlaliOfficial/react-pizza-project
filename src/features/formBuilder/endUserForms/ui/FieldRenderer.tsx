@@ -37,7 +37,6 @@ import { getFieldComponent } from './fieldRegistry';
 const MIGRATED_FIELD_TYPES = [
   'Text Input',
   'Currency Input',
-  'Multi_Select',
   'Address Input',
   'Checkbox',
   'Color Picker',
@@ -48,6 +47,10 @@ const MIGRATED_FIELD_TYPES = [
   'Number Input',
   'Password Input',
   'Percentage Input',
+  'Phone Input',
+  'Slider',
+  'Text Area',
+  'URL Input',
 ];
 
 // ================================
