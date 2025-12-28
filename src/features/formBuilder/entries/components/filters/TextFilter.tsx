@@ -1,5 +1,6 @@
 // components/filters/TextFilter.tsx
-import React, { useState, useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
@@ -12,60 +13,58 @@ import {
 import { X, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-interface TextFilterProps {
-  fieldId: number;
-  fieldLabel: string;
-  onFilterChange: (fieldId: number, filterData: TextFilterData | null) => void;
-  initialFilter?: TextFilterData;
-}
+import type {
+  FilterComponentProps,
+  TextFilterData,
+} from '../../utils/filterRegistry';
 
-export interface TextFilterData {
-  type: 'contains' | 'equals' | 'startswith' | 'endswith' | 'notcontains';
-  value: string;
-}
+const DEFAULT_TYPE: TextFilterData['type'] = 'contains';
 
-const TextFilter: React.FC<TextFilterProps> = ({
+const TextFilter: React.FC<FilterComponentProps<TextFilterData>> = ({
   fieldId,
   fieldLabel,
   onFilterChange,
   initialFilter,
 }) => {
   const [searchType, setSearchType] = useState<TextFilterData['type']>(
-    initialFilter?.type || 'contains'
+    initialFilter?.type ?? DEFAULT_TYPE,
   );
   const [searchValue, setSearchValue] = useState<string>(
-    initialFilter?.value || ''
+    initialFilter?.value ?? '',
   );
 
-  // Build filter data based on current state
-  const buildFilterData = (): TextFilterData | null => {
-    const trimmedValue = searchValue.trim();
-    
-    if (!trimmedValue) {
-      return null;
+  const emit = (nextType: TextFilterData['type'], nextValue: string) => {
+    const trimmed = nextValue.trim();
+
+    if (!trimmed) {
+      onFilterChange(fieldId, null);
+      return;
     }
 
-    return {
-      type: searchType,
-      value: trimmedValue,
-    };
-  };
-
-  // Update filter when values change
-  useEffect(() => {
-    const filterData = buildFilterData();
-    onFilterChange(fieldId, filterData);
-  }, [searchType, searchValue, fieldId]);
-
-  const handleClear = () => {
-    setSearchType('contains');
-    setSearchValue('');
-    onFilterChange(fieldId, null);
+    onFilterChange(fieldId, {
+      type: nextType,
+      value: trimmed,
+    });
   };
 
   const hasValue = searchValue.trim() !== '';
 
-  // Get placeholder text based on search type
+  // Keep the UI in sync when the parent resets/loads filters.
+  // (e.g., Clear All, Discard changes, restoring saved filters)
+  useEffect(() => {
+    const nextType = initialFilter?.type ?? DEFAULT_TYPE;
+    const nextValue = initialFilter?.value ?? '';
+
+    setSearchType(nextType);
+    setSearchValue(nextValue);
+  }, [fieldId, initialFilter?.type, initialFilter?.value]);
+
+  const handleClear = () => {
+    setSearchType(DEFAULT_TYPE);
+    setSearchValue('');
+    onFilterChange(fieldId, null);
+  };
+
   const getPlaceholder = (): string => {
     switch (searchType) {
       case 'equals':
@@ -81,7 +80,6 @@ const TextFilter: React.FC<TextFilterProps> = ({
     }
   };
 
-  // Get helper text based on search type
   const getHelperText = (): string => {
     switch (searchType) {
       case 'equals':
@@ -119,14 +117,20 @@ const TextFilter: React.FC<TextFilterProps> = ({
         )}
       </div>
 
-      {/* Search Type Selector */}
       <div className="space-y-1.5">
-        <Label htmlFor={`search-type-${fieldId}`} className="text-xs text-gray-600">
+        <Label
+          htmlFor={`search-type-${fieldId}`}
+          className="text-xs text-gray-600"
+        >
           Search Type
         </Label>
-        <Select 
-          value={searchType} 
-          onValueChange={(val) => setSearchType(val as TextFilterData['type'])}
+        <Select
+          value={searchType}
+          onValueChange={(val) => {
+            const nextType = val as TextFilterData['type'];
+            setSearchType(nextType);
+            emit(nextType, searchValue);
+          }}
         >
           <SelectTrigger id={`search-type-${fieldId}`} className="w-full">
             <SelectValue placeholder="Select search type" />
@@ -141,25 +145,29 @@ const TextFilter: React.FC<TextFilterProps> = ({
         </Select>
       </div>
 
-      {/* Search Input */}
       <div className="space-y-1.5">
-        <Label htmlFor={`search-value-${fieldId}`} className="text-xs text-gray-600">
+        <Label
+          htmlFor={`search-value-${fieldId}`}
+          className="text-xs text-gray-600"
+        >
           Search Value
         </Label>
         <Input
           id={`search-value-${fieldId}`}
           type="text"
           value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          onChange={(e) => {
+            const nextValue = e.target.value;
+            setSearchValue(nextValue);
+            emit(searchType, nextValue);
+          }}
           placeholder={getPlaceholder()}
           className="w-full"
         />
-        <p className="text-xs text-gray-500 italic">
-          {getHelperText()}
-        </p>
+
+        <p className="text-xs text-gray-500 italic">{getHelperText()}</p>
       </div>
 
-      {/* Field Type Indicator */}
       <div className="flex items-center justify-between pt-2 border-t border-gray-100">
         <p className="text-xs text-gray-400 italic">Text Input</p>
         {hasValue && (

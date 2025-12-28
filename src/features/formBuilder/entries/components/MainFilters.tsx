@@ -1,12 +1,12 @@
 /**
  * /src/features/entries/components/MainFilters.tsx
- * 
+ *
  * Component for main/global filters that apply to all entries.
  * Includes date range, date type, and is_considered boolean filter.
  * Uses local state and only reports changes to parent via callback.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -52,6 +52,12 @@ interface MainFiltersProps {
   onChange: (filters: MainFiltersData) => void;
 
   /**
+   * Controlled value.
+   * If provided, this component will render from it and will NOT keep local state.
+   */
+  value?: MainFiltersData;
+
+  /**
    * Initial filter values.
    * Used for loading saved filters or setting defaults.
    */
@@ -82,24 +88,40 @@ const DEFAULT_FILTERS: MainFiltersData = {
 
 const MainFilters: React.FC<MainFiltersProps> = ({
   onChange,
+  value,
   initialFilters,
   showCard = true,
 }) => {
-  // ========== Local State ==========
-  const [filters, setFilters] = useState<MainFiltersData>({
-    ...DEFAULT_FILTERS,
-    ...initialFilters,
-  });
+  const isControlled = value !== undefined;
 
-  // ========== Effects ==========
+  // Uncontrolled fallback (kept for backwards compatibility)
+  const [uncontrolledFilters, setUncontrolledFilters] =
+    useState<MainFiltersData>({
+      ...DEFAULT_FILTERS,
+      ...initialFilters,
+    });
 
-  /**
-   * Notify parent whenever filters change.
-   * Parent decides when to actually apply these to the query.
-   */
+  // If parent changes initialFilters (e.g., reset), keep local state in sync.
   useEffect(() => {
-    onChange(filters);
-  }, [filters, onChange]);
+    if (isControlled) return;
+    setUncontrolledFilters({
+      ...DEFAULT_FILTERS,
+      ...initialFilters,
+    });
+  }, [initialFilters, isControlled]);
+
+  const filters: MainFiltersData = isControlled
+    ? (value as MainFiltersData)
+    : uncontrolledFilters;
+
+  // Unified setter that works for both controlled and uncontrolled usage.
+  const setFilters = (updater: (prev: MainFiltersData) => MainFiltersData) => {
+    const next = updater(filters);
+    if (!isControlled) {
+      setUncontrolledFilters(next);
+    }
+    onChange(next);
+  };
 
   // ========== Event Handlers ==========
 
@@ -269,7 +291,7 @@ export default MainFilters;
 /**
  * Creates default main filters data.
  * Useful for initializing state or resetting filters.
- * 
+ *
  * @returns Default MainFiltersData object
  */
 export function createDefaultMainFilters(): MainFiltersData {
@@ -279,7 +301,7 @@ export function createDefaultMainFilters(): MainFiltersData {
 /**
  * Checks if any main filters are active (non-default).
  * Useful for showing "active filters" indicator.
- * 
+ *
  * @param filters - Main filters to check
  * @returns True if any filter has a non-default value
  */
@@ -295,17 +317,17 @@ export function hasActiveMainFilters(filters: MainFiltersData): boolean {
 /**
  * Counts the number of active main filters.
  * Useful for badge display ("2 active filters").
- * 
+ *
  * @param filters - Main filters to count
  * @returns Number of active filters
  */
 export function countActiveMainFilters(filters: MainFiltersData): number {
   let count = 0;
-  
+
   if (filters.dateFrom) count++;
   if (filters.dateTo) count++;
   if (filters.dateType !== 'submission') count++;
   if (filters.isConsidered === true) count++;
-  
+
   return count;
 }

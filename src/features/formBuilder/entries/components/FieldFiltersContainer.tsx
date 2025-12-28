@@ -1,6 +1,6 @@
 /**
  * /src/features/entries/components/FieldFiltersContainer.tsx
- * 
+ *
  * Container component that manages multiple field-specific filters.
  * Uses the filter registry to dynamically render the appropriate filter component
  * for each field based on its type. Maintains local state for all field filters
@@ -18,6 +18,11 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { FilterX, Layers, AlertCircle } from 'lucide-react';
+
+// Ensure filter components are registered before we try to render them.
+// (For now: only TextFilter is registered there.)
+import '../utils/filterRegistration';
+
 import {
   getFilterComponent,
   hasFilterComponent,
@@ -59,6 +64,12 @@ interface FieldFiltersContainerProps {
   onChange: (filters: Map<number, FilterData>) => void;
 
   /**
+   * Controlled filters map.
+   * If provided, the container renders from this value (instead of local state).
+   */
+  filters?: Map<number, FilterData>;
+
+  /**
    * Initial filter values for fields.
    * Used for loading saved filters or URL state.
    */
@@ -91,30 +102,28 @@ interface FieldFiltersContainerProps {
 const FieldFiltersContainer: React.FC<FieldFiltersContainerProps> = ({
   fields,
   onChange,
+  filters,
   initialFilters,
   showCard = true,
   title = 'Field Filters',
   description = 'Filter entries by specific field values',
 }) => {
-  // ========== Local State ==========
+  const isControlled = filters !== undefined;
 
-  /**
-   * Map of field ID to filter data.
-   * Only contains entries for fields that have active filters.
-   */
-  const [fieldFilters, setFieldFilters] = useState<Map<number, FilterData>>(
-    initialFilters || new Map()
-  );
+  // Uncontrolled fallback (kept for backwards compatibility)
+  const [uncontrolledFilters, setUncontrolledFilters] = useState<
+    Map<number, FilterData>
+  >(initialFilters || new Map());
 
-  // ========== Effects ==========
-
-  /**
-   * Notify parent whenever field filters change.
-   * Parent decides when to actually apply these to the query.
-   */
+  // If parent changes initialFilters (e.g., reset), keep local state in sync.
   useEffect(() => {
-    onChange(fieldFilters);
-  }, [fieldFilters, onChange]);
+    if (isControlled) return;
+    setUncontrolledFilters(initialFilters || new Map());
+  }, [initialFilters, isControlled]);
+
+  const fieldFilters = isControlled
+    ? (filters as Map<number, FilterData>)
+    : uncontrolledFilters;
 
   // ========== Event Handlers ==========
 
@@ -125,21 +134,22 @@ const FieldFiltersContainer: React.FC<FieldFiltersContainerProps> = ({
    */
   const handleFilterChange = useCallback(
     (fieldId: number, filterData: FilterData | null) => {
-      setFieldFilters((prev) => {
-        const updated = new Map(prev);
+      const updated = new Map(fieldFilters);
 
-        if (filterData === null) {
-          // Remove filter if data is null (filter cleared)
-          updated.delete(fieldId);
-        } else {
-          // Update or add filter
-          updated.set(fieldId, filterData);
-        }
+      if (filterData === null) {
+        updated.delete(fieldId);
+      } else {
+        updated.set(fieldId, filterData);
+      }
 
-        return updated;
-      });
+      if (!isControlled) {
+        setUncontrolledFilters(updated);
+      }
+
+      // Always notify parent with the updated map
+      onChange(updated);
     },
-    []
+    [fieldFilters, isControlled, onChange],
   );
 
   // ========== Render Helpers ==========
@@ -154,7 +164,7 @@ const FieldFiltersContainer: React.FC<FieldFiltersContainerProps> = ({
 
       if (!hasFilter && process.env.NODE_ENV !== 'production') {
         console.warn(
-          `[FieldFiltersContainer] No filter component registered for field type ${field.fieldTypeId} (field: ${field.label})`
+          `[FieldFiltersContainer] No filter component registered for field type ${field.fieldTypeId} (field: ${field.label})`,
         );
       }
 
@@ -199,8 +209,8 @@ const FieldFiltersContainer: React.FC<FieldFiltersContainerProps> = ({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            No filterable fields available. Make sure filter components are registered
-            for the field types in your form.
+            No filterable fields available. Make sure filter components are
+            registered for the field types in your form.
           </AlertDescription>
         </Alert>
       );
@@ -317,10 +327,10 @@ export default FieldFiltersContainer;
 /**
  * Extracts field configurations from API entry data.
  * Utility to convert API fields into FieldConfig format.
- * 
+ *
  * @param apiFields - Array of field objects from API
  * @returns Array of FieldConfig objects
- * 
+ *
  * @example
  * const fields = extractFieldConfigs(entryData.values.map(v => v.field));
  */
@@ -331,7 +341,7 @@ export function extractFieldConfigs(
     label: string;
     placeholder?: string | null;
     helper_text?: string | null;
-  }>
+  }>,
 ): FieldConfig[] {
   return apiFields.map((field) => ({
     fieldId: field.id,
@@ -345,20 +355,24 @@ export function extractFieldConfigs(
 /**
  * Filters field configs to only include those with registered filter components.
  * Useful for pre-filtering before passing to the container.
- * 
+ *
  * @param fields - Array of field configurations
  * @returns Filtered array of only filterable fields
  */
-export function getFilterableFieldConfigs(fields: FieldConfig[]): FieldConfig[] {
+export function getFilterableFieldConfigs(
+  fields: FieldConfig[],
+): FieldConfig[] {
   return fields.filter((field) => hasFilterComponent(field.fieldTypeId));
 }
 
 /**
  * Checks if any field filters are active.
- * 
+ *
  * @param filters - Map of field filters
  * @returns True if at least one filter is active
  */
-export function hasActiveFieldFilters(filters: Map<number, FilterData>): boolean {
+export function hasActiveFieldFilters(
+  filters: Map<number, FilterData>,
+): boolean {
   return countActiveFilters(filters) > 0;
 }

@@ -1,27 +1,13 @@
-// ============================================================================
-// Filter Data Types
-// ============================================================================
+import TextFilter from '../components/filters/TextFilter';
+import { registerFilter } from './filterRegistry';
+import type { TextFilterData } from './filterRegistry';
 
-/**
- * Base interface that all filter data types must extend.
- * Ensures consistent structure for serialization.
- */
-export interface BaseFilterData {
-  [key: string]: string | number | boolean;
-}
+// Field Type ID "1" is assumed to be "Text" in your backend.
+registerFilter<TextFilterData>(
+  1,
+  TextFilter,
+  'Text Input',
+  () => null
+);
 
-/**
- * Text filter data structure.
- * Used by TextFilter component.
- */
-export interface TextFilterData {
-  type: 'contains' | 'equals' | 'startswith' | 'endswith' | 'notcontains';
-  value: string;
-  [key: string]: string | number | boolean; // Index signature to satisfy BaseFilterData
-}
-
-/**
- * Union type of all possible filter data types.
- * Extend this as you add more filter types (e.g., NumberFilterData, DateFilterData).
- */
-export type FilterData = TextFilterData; // Will become: TextFilterData | EmailFilterData | NumberFilterData | ...
+export {};

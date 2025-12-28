@@ -159,9 +159,6 @@ export default function EntriesListPage() {
     updateQuery,
     refetch,
     clearError,
-    goToPage,
-    nextPage,
-    previousPage,
     hasNextPage,
     hasPreviousPage,
   } = useEntriesList({
@@ -289,7 +286,6 @@ export default function EntriesListPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    goToPage(page);
   };
 
   const handlePerPageChange = (value: string) => {
@@ -359,7 +355,7 @@ export default function EntriesListPage() {
         {/* Main Filters */}
         <MainFilters
           onChange={setDraftMainFilters}
-          initialFilters={draftMainFilters}
+          value={draftMainFilters}
           showCard={false}
         />
 
@@ -369,7 +365,7 @@ export default function EntriesListPage() {
         <FieldFiltersContainer
           fields={fieldConfigs}
           onChange={setDraftFieldFilters}
-          initialFilters={draftFieldFilters}
+          filters={draftFieldFilters}
           showCard={false}
         />
       </CardContent>
@@ -552,7 +548,10 @@ export default function EntriesListPage() {
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                onClick={() => hasPreviousPage && previousPage()}
+                onClick={() =>
+                  hasPreviousPage &&
+                  handlePageChange(Math.max(1, currentPage - 1))
+                }
                 className={
                   !hasPreviousPage
                     ? 'pointer-events-none opacity-50'
@@ -611,7 +610,12 @@ export default function EntriesListPage() {
 
             <PaginationItem>
               <PaginationNext
-                onClick={() => hasNextPage && nextPage()}
+                onClick={() =>
+                  hasNextPage &&
+                  handlePageChange(
+                    Math.min(pagination.last_page, currentPage + 1),
+                  )
+                }
                 className={
                   !hasNextPage
                     ? 'pointer-events-none opacity-50'

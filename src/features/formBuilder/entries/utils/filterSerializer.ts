@@ -28,7 +28,7 @@ import type { FieldFilters } from '../types';
  * 
  * Output:
  * {
- *   1454: { match_type: 'contains', value: 'charlie' }
+ *   1454: { type: 'contains', value: 'charlie' }
  * }
  */
 export function serializeFieldFilters(
@@ -89,14 +89,14 @@ function serializeFilterData(
 
 /**
  * Serializes TextFilterData to API format.
- * Converts the 'type' property to 'match_type' as expected by the API.
+ * Converts the 'type' property to 'type' as expected by the API.
  * 
  * @param filterData - Text filter data
  * @returns API-compatible filter object
  * 
  * @example
  * Input: { type: 'contains', value: 'charlie' }
- * Output: { match_type: 'contains', value: 'charlie' }
+ * Output: { type: 'contains', value: 'charlie' }
  */
 function serializeTextFilter(
   filterData: TextFilterData
@@ -109,7 +109,7 @@ function serializeTextFilter(
   }
 
   return {
-    match_type: filterData.type, // API expects 'match_type' key
+    type: filterData.type, // API expects 'type' key
     value: trimmedValue,
   };
 }
@@ -128,7 +128,7 @@ function serializeTextFilter(
  * @example
  * Input:
  * {
- *   1454: { match_type: 'contains', value: 'charlie' }
+ *   1454: { type: 'contains', value: 'charlie' }
  * }
  * 
  * Output:
@@ -173,8 +173,8 @@ export function deserializeFieldFilters(
 function deserializeFilterData(
   filterObj: Record<string, string | number | boolean>
 ): FilterData | null {
-  // Detect and deserialize text filter (has match_type and value)
-  if ('match_type' in filterObj && 'value' in filterObj) {
+  // Detect and deserialize text filter (has type and value)
+  if ('type' in filterObj && 'value' in filterObj) {
     return deserializeTextFilter(filterObj);
   }
 
@@ -193,13 +193,13 @@ function deserializeFilterData(
 function deserializeTextFilter(
   filterObj: Record<string, string | number | boolean>
 ): TextFilterData | null {
-  const matchType = filterObj.match_type;
+  const matchType = filterObj.type;
   const value = filterObj.value;
 
-  // Validate match_type
+  // Validate type
   const validTypes = ['contains', 'equals', 'startswith', 'endswith', 'notcontains'];
   if (typeof matchType !== 'string' || !validTypes.includes(matchType)) {
-    console.warn('[FilterSerializer] Invalid match_type:', matchType);
+    console.warn('[FilterSerializer] Invalid type:', matchType);
     return null;
   }
 

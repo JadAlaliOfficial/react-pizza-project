@@ -21,7 +21,7 @@ import { store } from '@/store'; // Adjust path to your Redux store
 // ============================================================================
 
 const API_BASE_URL = import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL;
-const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT); // 30 seconds
+const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT);
 
 // Simple logger that respects environment
 const logger = {
@@ -178,10 +178,10 @@ export const normalizeError = (error: unknown): NormalizedError => {
  * Serializes field filters into the required query param format.
  * 
  * Converts:
- * { 1454: { value: "charlie", match_type: "contains" } }
+ * { 1454: { value: "charlie", type: "contains" } }
  * 
  * Into:
- * field_filters[1454][value]=charlie&field_filters[1454][match_type]=contains
+ * field_filters[1454][value]=charlie&field_filters[1454][type]=contains
  * 
  * @param fieldFilters - The field filters object
  * @param params - URLSearchParams instance to append to
@@ -332,9 +332,10 @@ export const listEntries = async (
 
     // Build query parameters
     const params = buildQueryParams(query);
+    console.log('params', params.toString());
 
     // Make GET request (NO request body for GET)
-    const response = await apiClient.get<ListEntriesResponse>('/api/entries', {
+    const response = await apiClient.get<ListEntriesResponse>('/entries', {
       params,
       // Use custom serializer to preserve our URLSearchParams formatting
       paramsSerializer: () => params.toString(),
