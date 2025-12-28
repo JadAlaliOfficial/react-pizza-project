@@ -26,7 +26,7 @@ import type {
 /**
  * Base URL for the Forms API
  */
-const BASE_URL = 'http://dforms.pnepizza.com/api';
+const BASE_URL = import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL;
 
 /**
  * Retrieve authentication token from Redux state or token storage.
@@ -55,9 +55,10 @@ const getAuthToken = (): string | null => {
 const createAxiosInstance = (): AxiosInstance => {
   const instance = axios.create({
     baseURL: BASE_URL,
+    timeout: Number(import.meta.env.VITE_API_TIMEOUT), // 15 second timeout
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
+      'Accept': import.meta.env.VITE_API_ACCEPT,
+      'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
     },
   });
 

@@ -10,7 +10,7 @@ import { InfoCards } from '@/features/dashboard/components/onPage/InfoCardsOnPag
 import { ChannelSalesDashboard } from '@/features/dashboard/components/onPage/ChannelSalesDashboardOnPage';
 import { DailyHoursTableOnPage } from '@/features/dashboard/components/onPage/DailyHoursTableOnPage';
 import { DSQRDashboard } from '@/components/DSQRDashboard';
-import { StoreDatesFilter } from '@/features/storeItems/components/StoreDatesFilter';
+import { StoreDatesFilter } from '@/features/dashboard/components/storeItems/components/StoreDatesFilter';
 import HNRInfoOnPage from '@/features/dashboard/components/onPage/HNRInfoOnPage';
 import CelebrationBanner from '@/features/dashboard/components/CelebrationBanner';
 import TotalSalesBarChartOnPage from '@/features/dashboard/components/onPage/TotalSalesBarChartOnPage';

@@ -278,12 +278,12 @@ export interface UseAssignmentData {
  * API endpoints constants
  */
 export const API_ENDPOINTS = {
-  ASSIGN: '/api/v1/user-role-store/assign',
-  REMOVE: '/api/v1/user-role-store/remove',
-  TOGGLE: '/api/v1/user-role-store/toggle',
-  BULK_ASSIGN: '/api/v1/user-role-store/bulk-assign',
-  STORE_ASSIGNMENTS: '/api/v1/user-role-store/store-assignments',
-  USER_ASSIGNMENTS: '/api/v1/user-role-store/user-assignments'
+  ASSIGN: '/user-role-store/assign',
+  REMOVE: '/user-role-store/remove',
+  TOGGLE: '/user-role-store/toggle',
+  BULK_ASSIGN: '/user-role-store/bulk-assign',
+  STORE_ASSIGNMENTS: '/user-role-store/store-assignments',
+  USER_ASSIGNMENTS: '/user-role-store/user-assignments'
 } as const;
 
 /**

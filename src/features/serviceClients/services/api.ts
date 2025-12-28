@@ -23,7 +23,7 @@ import {
  * Base URL for the API
  * This should be configured via environment variables in production
  */
-const API_BASE_URL = 'https://auth.pnepizza.com';
+const API_BASE_URL = import.meta.env.VITE_AUTH_API_BASE_URL;
 
 /**
  * Helper function to get authentication token with fallback
@@ -50,10 +50,10 @@ const getAuthToken = (): string | null => {
  */
 const serviceClientApiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 seconds timeout
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT), 
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+    'Accept': import.meta.env.VITE_API_ACCEPT,
   },
 });
 

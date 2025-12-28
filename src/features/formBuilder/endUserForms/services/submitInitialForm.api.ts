@@ -39,13 +39,13 @@ import { store } from '@/store';
  * 
  * Environment variable: REACT_APP_API_BASE_URL or VITE_API_BASE_URL
  */
-const API_BASE_URL =  'http://dforms.pnepizza.com';
+const API_BASE_URL =  import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL;
 
 /**
  * Request timeout in milliseconds.
  * Prevents hanging requests and provides better UX.
  */
-const REQUEST_TIMEOUT = 30000; // 30 seconds
+const REQUEST_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT); // 30 seconds
 
 /**
  * Feature flag for development logging.
@@ -236,8 +236,8 @@ const createFormsApiClient = (): AxiosInstance => {
     baseURL: API_BASE_URL,
     timeout: REQUEST_TIMEOUT,
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+      'Accept': import.meta.env.VITE_API_ACCEPT,
     },
   });
 

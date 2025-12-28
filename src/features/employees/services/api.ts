@@ -41,8 +41,8 @@ import type {
  * Base API configuration
  */
 const API_CONFIG = {
-  BASE_URL: 'http://127.0.0.1:8000',
-  TIMEOUT: 30000, // 30 seconds
+  BASE_URL: import.meta.env.VITE_EMPLOYEES_NOT_WORKING_API_BASE_URL,
+  TIMEOUT: Number(import.meta.env.VITE_API_TIMEOUT), 
   MAX_RETRIES: 3,
   RETRY_DELAY: 1000, // 1 second
 } as const;
@@ -235,8 +235,8 @@ const createApiClient = (): AxiosInstance => {
     baseURL: API_CONFIG.BASE_URL,
     timeout: API_CONFIG.TIMEOUT,
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Accept': import.meta.env.VITE_API_ACCEPT,
+      'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
     },
   });
 

@@ -44,12 +44,12 @@ import {
 /**
  * Base URL for the DSPR API endpoints
  */
-const BASE_URL = 'https://testapipizza.pnefoods.com/api';
+const BASE_URL = import.meta.env.VITE_DSPR_API_BASE_URL;
 
 /**
- * Default timeout for API requests (30 seconds)
+ * Default timeout for API requests
  */
-const DEFAULT_TIMEOUT = 30000;
+const DEFAULT_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT);
 
 /**
  * Default retry configuration
@@ -129,7 +129,8 @@ export class DsprApiService {
       baseURL: BASE_URL,
       timeout: DEFAULT_TIMEOUT,
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': import.meta.env.VITE_API_ACCEPT,
+        'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
       },
     });
   }

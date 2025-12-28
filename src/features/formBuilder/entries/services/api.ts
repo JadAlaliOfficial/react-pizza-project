@@ -20,8 +20,8 @@ import { store } from '@/store'; // Adjust path to your Redux store
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = 'http://dforms.pnepizza.com';
-const API_TIMEOUT = 30000; // 30 seconds
+const API_BASE_URL = import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL;
+const API_TIMEOUT = Number(import.meta.env.VITE_API_TIMEOUT); // 30 seconds
 
 // Simple logger that respects environment
 const logger = {
@@ -252,8 +252,8 @@ const createAxiosInstance = (): AxiosInstance => {
     baseURL: API_BASE_URL,
     timeout: API_TIMEOUT,
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+      'Accept': import.meta.env.VITE_API_ACCEPT,
     },
   });
 

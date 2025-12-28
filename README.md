@@ -2,14 +2,6 @@
 
 This is a comprehensive React application built with a feature-based architecture. It manages various aspects of a pizza business, including store hierarchies, user permissions, employee management, and complex scheduling systems.
 
-> [!CAUTION]
-> **CRITICAL SECURITY NOTE**
->
-> The encryption secret key is currently hardcoded in:
-> `src/features/auth/utils/tokenStorage.ts`
->
-> **Action Required**: This key MUST be moved to an environment variable (`.env`) immediately before any deployment. This file handles the encryption of the bearer token, which is attached to the header of almost every API request.
-
 ## 🛠 Tech Stack
 
 - **Framework**: React (Vite)
@@ -26,7 +18,7 @@ This is a comprehensive React application built with a feature-based architectur
 The project follows a **Feature-Based Architecture**. Each domain of the application is encapsulated within its own directory in `src/features/`.
 
 Typical feature structure:
-```text
+```
 src/features/exampleFeature/
 ├── types/       # TypeScript interfaces/types
 ├── services/    # API calls (Axios)
@@ -102,16 +94,16 @@ This is the largest and most complex feature in the system. It is designed to bu
 ## 🚀 Getting Started
 
 1. **Install Dependencies**
-   ```bash
+   ```
    npm install
    ```
 
 2. **Run Development Server**
-   ```bash
+   ```
    npm run dev
    ```
 
 3. **Build for Production**
-   ```bash
+   ```
    npm run build
    ```

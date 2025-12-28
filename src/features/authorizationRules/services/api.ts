@@ -41,7 +41,7 @@ import { isApiErrorResponse } from '../types';
  * Base URL for auth rules API
  * In production, this should come from environment variables
  */
-const API_BASE_URL = 'https://auth.pnepizza.com/api/v1';
+const API_BASE_URL = import.meta.env.VITE_AUTH_API_BASE_URL;
 
 /**
  * Helper function to get authentication token with fallback
@@ -67,10 +67,10 @@ const getAuthToken = (): string | null => {
  */
 const authRulesApiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 second timeout
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT),
   headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
+    'Accept': import.meta.env.VITE_API_ACCEPT,
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
   },
 });
 

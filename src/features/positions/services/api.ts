@@ -22,7 +22,7 @@ import type {
  * Base URLs for different environments
  * Note: The provided URLs seem inconsistent, using the local development URL for CRUD operations
  */
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = import.meta.env.VITE_EMPLOYEMENT_INFO_NOT_WORKING_API_BASE_URL;
 const POSITIONS_ENDPOINT = '/positions';
 
 /**
@@ -49,9 +49,10 @@ const getAuthToken = (): string | null => {
  */
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 seconds timeout
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT), 
   headers: {
-    Accept: 'application/json',
+    'Accept': import.meta.env.VITE_API_ACCEPT,
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
   },
 });
 

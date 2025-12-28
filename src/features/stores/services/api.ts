@@ -33,17 +33,17 @@ import {STORE_ENDPOINTS} from '../types';
 /**
  * Base API client configuration
  */
-const API_BASE_URL = 'https://auth.pnepizza.com';
+const API_BASE_URL = import.meta.env.VITE_AUTH_API_BASE_URL;
 
 /**
  * Create dedicated Axios instance for Store API calls
  */
 const storeApiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000, // 10 seconds timeout
+  timeout: import.meta.env.VITE_API_TIMEOUT, // 10 seconds timeout
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
+    'Accept': import.meta.env.VITE_API_ACCEPT,
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
   },
 });
 

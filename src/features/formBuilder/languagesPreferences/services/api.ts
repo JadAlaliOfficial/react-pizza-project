@@ -21,7 +21,7 @@ import type {
 // Constants
 // ============================================================================
 
-const BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL ?? 'http://dforms.pnepizza.com/api';
+const BASE_URL = import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL;
 
 // API Endpoints
 const ENDPOINTS = {
@@ -63,10 +63,10 @@ const getAuthToken = (): string | null => {
 const createAxiosInstance = (): AxiosInstance => {
   return axios.create({
     baseURL: BASE_URL,
-    timeout: 15000, // 15 seconds
+    timeout: Number(import.meta.env.VITE_API_TIMEOUT), // 15 seconds
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+      'Accept': import.meta.env.VITE_API_ACCEPT,
     },
   });
 };

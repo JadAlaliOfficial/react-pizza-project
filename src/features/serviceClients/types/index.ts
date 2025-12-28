@@ -301,13 +301,13 @@ export const DEFAULT_PAGINATION = {
  * API endpoints constants - Fixed parameter ordering
  */
 export const API_ENDPOINTS = {
-  SERVICE_CLIENTS: '/api/v1/service-clients',
-  ROTATE_TOKEN: (id: number) => `/api/v1/service-clients/${id}/rotate-token`,
-  TOGGLE_STATUS: (id: number) => `/api/v1/service-clients/${id}/toggle-status`,
+  SERVICE_CLIENTS: '/service-clients',
+  ROTATE_TOKEN: (id: number) => `/service-clients/${id}/rotate-token`,
+  TOGGLE_STATUS: (id: number) => `/service-clients/${id}/toggle-status`,
 } as const;
 
 /**
  * Helper functions for API endpoints
  */
-export const getRotateTokenEndpoint = (id: number): string => `/api/v1/service-clients/${id}/rotate-token`;
-export const getToggleStatusEndpoint = (id: number): string => `/api/v1/service-clients/${id}/toggle-status`;
+export const getRotateTokenEndpoint = (id: number): string => `/service-clients/${id}/rotate-token`;
+export const getToggleStatusEndpoint = (id: number): string => `/service-clients/${id}/toggle-status`;

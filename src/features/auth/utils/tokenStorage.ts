@@ -1,9 +1,8 @@
 import CryptoJS from 'crypto-js';
 
 // Storage configuration
-const STORAGE_KEY = 'auth_token_encrypted';
-const SECRET_KEY =
-  'something0924242457ioioyuyu!qq@@zmxncbvalskdjfhgqpwoeiruty019283';
+const STORAGE_KEY = import.meta.env.VITE_TOKEN_STORAGE_KEY;
+const SECRET_KEY = import.meta.env.VITE_TOKEN_SECRET_KEY;
 
 /**
  * Save token encrypted to localStorage

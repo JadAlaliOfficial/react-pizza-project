@@ -26,8 +26,8 @@ import type {
  * Base API configuration constants
  */
 const API_CONFIG = {
-  BASE_URL: 'https://auth.pnepizza.com/api/v1',
-  TIMEOUT: 15000, // 15 seconds timeout for hierarchy operations
+  BASE_URL: import.meta.env.VITE_AUTH_API_BASE_URL,
+  TIMEOUT: Number(import.meta.env.VITE_API_TIMEOUT), // 15 seconds timeout for hierarchy operations
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second base delay
 } as const;
@@ -65,8 +65,8 @@ const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
+    'Accept': import.meta.env.VITE_API_ACCEPT,
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
   },
 });
 

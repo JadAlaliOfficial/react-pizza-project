@@ -33,11 +33,11 @@ const getAuthToken = (): string | null => {
 const createApiInstance = (): AxiosInstance => {
   const instance = axios.create({
     // TODO: Replace with actual API base URL
-    baseURL: 'http://127.0.0.1:8000/api/daily-schedules',
-    timeout: 30000, // 30 second timeout
+    baseURL: import.meta.env.VITE_DAILY_SCHEDULES_NOT_WORKING_API_BASE_URL,
+    timeout: Number(import.meta.env.VITE_API_TIMEOUT),
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
+      'Accept': import.meta.env.VITE_API_ACCEPT,
+      'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
     },
   });
 

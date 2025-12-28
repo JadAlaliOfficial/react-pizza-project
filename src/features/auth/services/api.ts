@@ -13,15 +13,15 @@ import type {
 } from '../types';
 
 // Base API configuration
-const API_BASE_URL = 'https://auth.pnepizza.com/api/v1';
+const API_BASE_URL = import.meta.env.VITE_AUTH_API_BASE_URL;
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT),
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
+    'Accept': import.meta.env.VITE_API_ACCEPT,
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
   },
 });
 

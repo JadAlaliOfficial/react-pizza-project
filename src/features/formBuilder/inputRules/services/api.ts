@@ -10,11 +10,11 @@ import { store } from '@/store'; // Adjust path as needed
  * Centralized to avoid magic strings and simplify maintenance
  */
 const API_CONFIG = {
-  BASE_URL: 'http://dforms.pnepizza.com/api',
+  BASE_URL: import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL,
   ENDPOINTS: {
     INPUT_RULES: '/input-rules',
   },
-  TIMEOUT: 10000, // 10 seconds
+  TIMEOUT: Number(import.meta.env.VITE_API_TIMEOUT), // 10 seconds
 } as const;
 
 /**
@@ -67,8 +67,8 @@ const createApiClient = (): AxiosInstance => {
     baseURL: API_CONFIG.BASE_URL,
     timeout: API_CONFIG.TIMEOUT,
     headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
+      'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+      'Accept': import.meta.env.VITE_API_ACCEPT,
     },
   });
 };

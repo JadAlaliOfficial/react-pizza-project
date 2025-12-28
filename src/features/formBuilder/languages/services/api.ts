@@ -11,7 +11,7 @@ import { store } from '@/store';
 import { type LanguagesResponse, type ApiError } from '../types';
 
 // Base API configuration
-const API_BASE_URL = 'http://dforms.pnepizza.com/api';
+const API_BASE_URL = import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL;
 
 /**
  * Helper function to get authentication token with fallback.
@@ -38,10 +38,10 @@ const createLanguagesApiClient = (): AxiosInstance => {
   const instance = axios.create({
     baseURL: API_BASE_URL,
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+      'Accept': import.meta.env.VITE_API_ACCEPT,
     },
-    timeout: 10000, // 10 second timeout
+    timeout: Number(import.meta.env.VITE_API_TIMEOUT), // 10 second timeout
   });
 
   // Intercept requests to inject bearer token

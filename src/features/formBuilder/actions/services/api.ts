@@ -36,15 +36,15 @@ export async function fetchActions(): Promise<Action[]> {
 
   try {
     const response = await axios.get<ListActionsResponseRaw>(
-      'http://dforms.pnepizza.com/api/actions',
+      import.meta.env.VITE_ACTIONS_DAYNAMIC_FORMS_BASE_URL,
       {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
+          'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+          Accept: import.meta.env.VITE_API_ACCEPT,
         },
         // No body for GET
-        timeout: 10000, // sensible timeout (10s)
+        timeout: Number(import.meta.env.VITE_API_TIMEOUT), // sensible timeout (10s)
       }
     );
 

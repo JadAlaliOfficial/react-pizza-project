@@ -61,11 +61,11 @@ const getAuthToken = (): string | null => {
  * Timeout: 30 seconds
  */
 const apiClient: AxiosInstance = axios.create({
-  baseURL: 'http://dforms.pnepizza.com/api',
-  timeout: 30000, // 30 seconds
+  baseURL: import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL,
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT), // 30 seconds
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+    'Accept': import.meta.env.VITE_API_ACCEPT,
   },
 });
 

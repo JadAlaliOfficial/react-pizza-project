@@ -66,12 +66,12 @@ declare module 'axios' {
  * Base configuration for the schedule preferences API
  */
 const API_CONFIG = {
-  BASE_URL: 'http://127.0.0.1:8000/api',
+  BASE_URL: import.meta.env.VITE_EMPLOYEMENT_INFO_NOT_WORKING_API_BASE_URL,
   ENDPOINTS: {
     SCHEDULE_PREFERENCES: '/schedule-preferences',
     SCHEDULE_PREFERENCE_BY_ID: (id: number) => `/schedule-preferences/${id}`
   },
-  TIMEOUT: 10000, // 10 seconds
+  TIMEOUT: Number(import.meta.env.VITE_API_TIMEOUT), 
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000 // 1 second
 } as const;
@@ -335,8 +335,8 @@ class SchedulePreferenceService {
       baseURL: API_CONFIG.BASE_URL,
       timeout: API_CONFIG.TIMEOUT,
       headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+        'Accept': import.meta.env.VITE_API_ACCEPT
       }
     });
 

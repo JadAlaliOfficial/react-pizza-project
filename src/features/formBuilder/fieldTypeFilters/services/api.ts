@@ -9,7 +9,7 @@ import { store } from '@/store'; // Adjust path to your store
  * Base API URL for the application
  * Extracted to constant for easy configuration
  */
-const API_BASE_URL = 'http://dforms.pnepizza.com/api';
+const API_BASE_URL = import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL;
 
 /**
  * Axios instance configured for field type filters API calls
@@ -17,10 +17,10 @@ const API_BASE_URL = 'http://dforms.pnepizza.com/api';
  */
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000, // 10 second timeout for production reliability
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT), // 10 second timeout for production reliability
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+    'Accept': import.meta.env.VITE_API_ACCEPT,
   },
 });
 

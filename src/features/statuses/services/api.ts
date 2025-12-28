@@ -20,7 +20,7 @@ import {
  * Base URL for status-related API endpoints
  * Can be moved to environment variables for different environments
  */
-const API_BASE_URL = 'http://127.0.0.1:8000/api/statuses';
+const API_BASE_URL = import.meta.env.VITE_STATUSES_NOT_WORKING_API_BASE_URL;
 
 /**
  * Helper function to get authentication token with fallback
@@ -53,12 +53,13 @@ const createHeaders = (includeContentType: boolean = false) => {
   }
 
   const headers: Record<string, string> = {
-    'Accept': 'application/json',
+    'Accept': import.meta.env.VITE_API_ACCEPT,
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
     'Authorization': `Bearer ${token}`,
   };
 
   if (includeContentType) {
-    headers['Content-Type'] = 'application/json';
+    headers['Content-Type'] = import.meta.env.VITE_API_CONTENT_TYPE;
   }
 
   return headers;

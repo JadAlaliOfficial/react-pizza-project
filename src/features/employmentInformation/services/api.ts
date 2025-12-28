@@ -25,11 +25,11 @@ import type {
  * Base API configuration
  */
 const API_CONFIG = {
-  baseURL: 'http://127.0.0.1:8000/api',
-  timeout: 10000, // 10 seconds
+  baseURL: import.meta.env.VITE_EMPLOYEMENT_INFO_NOT_WORKING_API_BASE_URL,
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT), 
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    'Accept': import.meta.env.VITE_API_ACCEPT,
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
   },
 } as const;
 

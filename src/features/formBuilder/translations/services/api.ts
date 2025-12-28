@@ -58,12 +58,12 @@ export const getAuthToken = (): string | null => {
  * Automatically attaches authentication headers and handles common configurations.
  */
 const translationsApiClient: AxiosInstance = axios.create({
-  baseURL: 'http://dforms.pnepizza.com/api/translations',
+  baseURL: import.meta.env.VITE_TRANSLATIONS_DAYNAMIC_FORMS_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
+    'Accept': import.meta.env.VITE_API_ACCEPT,
   },
-  timeout: 30000, // 30 second timeout
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT), // 30 second timeout
 });
 
 /**

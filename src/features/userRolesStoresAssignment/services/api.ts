@@ -38,12 +38,12 @@ import { API_ENDPOINTS, HTTP_METHODS } from '../types';
 /**
  * Base URL for the authentication API
  */
-const BASE_URL = 'https://auth.pnepizza.com';
+const BASE_URL = import.meta.env.VITE_AUTH_API_BASE_URL;
 
 /**
  * Default timeout for API requests (in milliseconds)
  */
-const DEFAULT_TIMEOUT = 30000; // 30 seconds
+const DEFAULT_TIMEOUT = import.meta.env.VITE_API_TIMEOUT; // 5 seconds
 
 /**
  * Maximum number of retry attempts for failed requests
@@ -85,8 +85,8 @@ const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: DEFAULT_TIMEOUT,
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json'
+    'Accept': import.meta.env.VITE_API_ACCEPT,
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE
   }
 });
 

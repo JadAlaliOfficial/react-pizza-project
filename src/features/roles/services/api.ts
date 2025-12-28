@@ -25,16 +25,16 @@ import { store } from '../../../store';
 import { loadToken } from '../../auth/utils/tokenStorage';
 
 // Base API configuration
-const API_BASE_URL = 'https://auth.pnepizza.com/api/v1';
+const API_BASE_URL = import.meta.env.VITE_AUTH_API_BASE_URL;
 
 // Create axios instance for roles API
 const rolesApiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
+    'Accept': import.meta.env.VITE_API_ACCEPT,
+    'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
   },
-  timeout: 30000, // 30 second timeout
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT), 
 });
 
 // Helper function to get authentication token with fallback

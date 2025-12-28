@@ -29,7 +29,7 @@ import type {
 /**
  * Base URL for the Categories API
  */
-const BASE_URL = 'http://dforms.pnepizza.com/api';
+const BASE_URL = import.meta.env.VITE_DYNAMIC_FORMS_BASE_URL;
 
 /**
  * Retrieve authentication token from Redux state or token storage.
@@ -59,9 +59,10 @@ const createAxiosInstance = (): AxiosInstance => {
   const instance = axios.create({
     baseURL: BASE_URL,
     headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
+      'Accept': import.meta.env.VITE_API_ACCEPT,
+      'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
     },
+    timeout: import.meta.env.VITE_API_TIMEOUT,
   });
 
   // Request interceptor: attach Bearer token to all requests

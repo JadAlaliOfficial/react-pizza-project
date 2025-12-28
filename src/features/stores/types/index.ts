@@ -410,10 +410,10 @@ export const STORE_STATUS = {
  * API endpoints (relative to base URL)
  */
 export const STORE_ENDPOINTS = {
-  STORES: '/api/v1/stores',
-  STORE_DETAIL: (id: string) => `/api/v1/stores/${id}`,
-  STORE_USERS: (id: string) => `/api/v1/stores/${id}/users`,
-  STORE_ROLES: (id: string) => `/api/v1/stores/${id}/roles`,
+  STORES: '/stores',
+  STORE_DETAIL: (id: string) => `/stores/${id}`,
+  STORE_USERS: (id: string) => `/stores/${id}/users`,
+  STORE_ROLES: (id: string) => `/stores/${id}/roles`,
 } as const;
 
 // ============================================================================
