@@ -81,6 +81,20 @@ export function serializeFieldFilters(
 }
 
 function serializeFilterData(filterData: FilterData): SerializedFilter | null {
+  // ✅ 0) Checkbox boolean style: { checked: boolean }
+  if (
+    typeof filterData === 'object' &&
+    filterData !== null &&
+    'checked' in (filterData as any)
+  ) {
+    const checked = (filterData as any).checked;
+
+    if (typeof checked !== 'boolean') return null;
+
+    // IMPORTANT: return boolean — api.ts converts boolean -> "1"/"0"
+    return { checked };
+  }
+
   // ✅ 1) Radio/Dropdown style: { options: string[] }
   if (
     typeof filterData === 'object' &&
@@ -176,6 +190,18 @@ function deserializeFilterData(
   if (!value) return null;
 
   const rawOptions = (filterObj as any).options;
+
+  // ✅ Checkbox boolean style
+  if ('checked' in (filterObj as any)) {
+    const raw = (filterObj as any).checked;
+
+    // your api.ts encodes booleans as "1"/"0" in URL, so handle string too
+    if (raw === '1' || raw === 1) return { checked: true } as FilterData;
+    if (raw === '0' || raw === 0) return { checked: false } as FilterData;
+    if (typeof raw === 'boolean') return { checked: raw } as FilterData;
+
+    return null;
+  }
 
   // ✅ Radio/Dropdown style
   if (Array.isArray(rawOptions)) {

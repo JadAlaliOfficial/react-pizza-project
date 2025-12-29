@@ -48,6 +48,15 @@ export interface CheckboxFilterData extends BaseFilterData {
   value: boolean;
 }
 
+export interface BooleanFilterData extends BaseFilterData {
+  checked: boolean;
+}
+
+// (optional for future toggle switch support)
+export interface ToggleFilterData extends BaseFilterData {
+  state: 'on' | 'off';
+}
+
 /**
  * Union type of all possible filter data types.
  * Extend this as you add more filter types (e.g., NumberFilterData, DateFilterData).
@@ -56,7 +65,8 @@ export type FilterData =
   | TextFilterData
   | EmailUrlFilterData
   | RadioDropdownFilterData
-  | CheckboxFilterData;
+  | BooleanFilterData
+  | ToggleFilterData;
 
 // Will become: TextFilterData | EmailFilterData | NumberFilterData | ...
 

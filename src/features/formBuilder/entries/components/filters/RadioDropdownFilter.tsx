@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X, ListChecks, Circle } from 'lucide-react';
+import { X, ListChecks, Circle, CheckSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +22,7 @@ interface RadioDropdownFilterProps {
   fieldLabel: string;
 
   // ✅ Make these optional so the component can still be registered cleanly
-  fieldTypeName?: 'Radio Button' | 'Dropdown Select';
+  fieldTypeName?: 'Radio Button' | 'Dropdown Select' | 'Checkbox';
   options?: string[];
 
   onFilterChange: (fieldId: number, filterData: RadioDropdownFilterData | null) => void;
@@ -54,8 +54,12 @@ const RadioDropdownFilter: React.FC<RadioDropdownFilterProps> = ({
     }
   }, [options, selectedOption, fieldId, onFilterChange]);
 
-  const isRadio = fieldTypeName === 'Radio Button';
-  const FieldIcon = isRadio ? Circle : ListChecks;
+  const FieldIcon =
+    fieldTypeName === 'Radio Button'
+      ? Circle
+      : fieldTypeName === 'Checkbox'
+      ? CheckSquare
+      : ListChecks;
 
   const emit = (value: string) => {
     const v = value.trim();

@@ -17,6 +17,7 @@ import MainFilters, {
 } from '@/features/formBuilder/entries/components/MainFilters';
 import FieldFiltersContainer, {
   type FieldConfig,
+  extractFieldConfigs,
 } from '@/features/formBuilder/entries/components/FieldFiltersContainer';
 import {
   serializeFieldFilters,
@@ -117,37 +118,6 @@ export default function EntriesListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
 
-  // ========== Field Configurations ==========
-  // In a real app, you'd fetch these from an API endpoint that lists form fields
-  // For now, we'll use hardcoded field configs based on your API response
-
-  const fieldConfigs: FieldConfig[] = useMemo(() => {
-    if (!parsedFormVersionId) return [];
-
-    // These should ideally come from an API endpoint like GET /api/form-versions/{id}/fields
-    // For now, using the field IDs from your example
-    return [
-      {
-        fieldId: 1454,
-        fieldTypeId: 1, // Text Input
-        label: 'First Name',
-        helperText: 'Enter your first name',
-      },
-      {
-        fieldId: 1455,
-        fieldTypeId: 1, // Text Input
-        label: 'Last Name',
-        helperText: 'Enter your last name (optional)',
-      },
-      {
-        fieldId: 1456,
-        fieldTypeId: 2, // Email Input (not registered yet, will show warning)
-        label: 'Email',
-        helperText: 'Enter your Email address',
-      },
-    ];
-  }, [parsedFormVersionId]);
-
   // ========== Entries Hook ==========
 
   const {
@@ -171,6 +141,41 @@ export default function EntriesListPage() {
       : undefined,
     autoFetch: !!parsedFormVersionId,
   });
+
+  // ========== Field Configurations ==========
+  // Dynamically extracted from the entries data
+  
+  const [fieldConfigs, setFieldConfigs] = useState<FieldConfig[]>([]);
+
+  useEffect(() => {
+    // We try to extract field definitions from the loaded entries.
+    // If entries are found, we map their structure to our config format.
+    // We persist this config even if subsequent filters return 0 entries,
+    // so the user doesn't lose the ability to see/change filters.
+    if (entries.length > 0) {
+      const firstEntry = entries[0];
+      // Map entry values to the structure expected by extractFieldConfigs
+      const apiFields = firstEntry.values.map((v) => ({
+        id: v.field.id,
+        field_type_id: v.field.field_type_id,
+        label: v.field.label,
+        placeholder: v.field.placeholder,
+        helper_text: v.field.helper_text,
+      }));
+
+      const extracted = extractFieldConfigs(apiFields);
+
+      setFieldConfigs((prev) => {
+        // Simple equality check to avoid unnecessary re-renders
+        // (Comparing length and first/last ID is usually enough for this context)
+        const isSame =
+          prev.length === extracted.length &&
+          prev.every((p, i) => p.fieldId === extracted[i].fieldId);
+
+        return isSame ? prev : extracted;
+      });
+    }
+  }, [entries]);
 
   // ========== Computed Values ==========
 
@@ -472,6 +477,16 @@ export default function EntriesListPage() {
                           </p>
                         </div>
                       </TableCell>
+                      {fieldConfigs.map((field) => {
+                        const value = entry.values.find(
+                          (v) => v.field.id === field.fieldId
+                        );
+                        return (
+                          <TableCell key={field.fieldId}>
+                            {value ? value.value : '-'}
+                          </TableCell>
+                        );
+                      })}
                       <TableCell>{entry.current_stage.name}</TableCell>
                       <TableCell>
                         <span

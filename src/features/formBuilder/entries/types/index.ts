@@ -215,3 +215,5 @@ export interface EntriesState {
   error: NormalizedError | null;
   lastQuery: EntriesListQuery | null; // Enables refetch functionality
 }
+
+

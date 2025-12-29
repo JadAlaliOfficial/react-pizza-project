@@ -1,0 +1,216 @@
+{
+    "success": true,
+    "data": [
+        {
+            "id": 81,
+            "form_version_id": 77,
+            "current_stage_id": 351,
+            "public_identifier": "5bacc299-97bf-4daf-a0ae-5a8934ef3b16",
+            "is_complete": false,
+            "is_considered": false,
+            "created_by_user_id": 38,
+            "created_at": "2025-12-23T14:23:56.000000Z",
+            "updated_at": "2025-12-23T14:25:18.000000Z",
+            "current_stage": {
+                "id": 351,
+                "form_version_id": 77,
+                "name": "Stage 3",
+                "is_initial": false,
+                "visibility_condition": null,
+                "created_at": "2025-12-23T14:22:39.000000Z",
+                "updated_at": "2025-12-23T14:22:39.000000Z"
+            },
+            "creator": {
+                "id": 38,
+                "name": "Charlie Miller",
+                "email": "charliemiller1118@gmail.com",
+                "created_at": "2025-11-26T16:53:46.000000Z",
+                "updated_at": "2025-12-16T17:02:20.000000Z",
+                "default_language_id": 1
+            },
+            "values": [
+                {
+                    "id": 304,
+                    "entry_id": 81,
+                    "field_id": 1454,
+                    "value": "charlie",
+                    "created_at": "2025-12-23T14:23:56.000000Z",
+                    "updated_at": "2025-12-23T14:23:56.000000Z",
+                    "field": {
+                        "id": 1454,
+                        "section_id": 369,
+                        "field_type_id": 1,
+                        "label": "First Name",
+                        "placeholder": null,
+                        "helper_text": "Enter your first name",
+                        "default_value": null,
+                        "visibility_condition": null,
+                        "created_at": "2025-12-23T14:22:39.000000Z",
+                        "updated_at": "2025-12-23T14:22:39.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "Text Input",
+                            "created_at": "2025-11-26T16:50:49.000000Z",
+                            "updated_at": "2025-11-26T16:50:49.000000Z",
+                            "field_type_filters": [
+                                {
+                                    "id": 1,
+                                    "field_type_id": 1,
+                                    "filter_method_description": "Text search (contains, equals, starts with, ends with)",
+                                    "created_at": "2025-11-26T16:50:49.000000Z",
+                                    "updated_at": "2025-11-26T16:50:49.000000Z"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "id": 305,
+                    "entry_id": 81,
+                    "field_id": 1455,
+                    "value": "miller",
+                    "created_at": "2025-12-23T14:23:56.000000Z",
+                    "updated_at": "2025-12-23T14:23:56.000000Z",
+                    "field": {
+                        "id": 1455,
+                        "section_id": 369,
+                        "field_type_id": 1,
+                        "label": "Last Name",
+                        "placeholder": null,
+                        "helper_text": "Enter your last name (optional)",
+                        "default_value": null,
+                        "visibility_condition": null,
+                        "created_at": "2025-12-23T14:22:39.000000Z",
+                        "updated_at": "2025-12-23T14:22:39.000000Z",
+                        "field_type": {
+                            "id": 1,
+                            "name": "Text Input",
+                            "created_at": "2025-11-26T16:50:49.000000Z",
+                            "updated_at": "2025-11-26T16:50:49.000000Z",
+                            "field_type_filters": [
+                                {
+                                    "id": 1,
+                                    "field_type_id": 1,
+                                    "filter_method_description": "Text search (contains, equals, starts with, ends with)",
+                                    "created_at": "2025-11-26T16:50:49.000000Z",
+                                    "updated_at": "2025-11-26T16:50:49.000000Z"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "id": 306,
+                    "entry_id": 81,
+                    "field_id": 1456,
+                    "value": "charlie@pneunited.com",
+                    "created_at": "2025-12-23T14:23:56.000000Z",
+                    "updated_at": "2025-12-23T14:23:56.000000Z",
+                    "field": {
+                        "id": 1456,
+                        "section_id": 369,
+                        "field_type_id": 2,
+                        "label": "Email",
+                        "placeholder": "user@example.com",
+                        "helper_text": "Enter your Email address",
+                        "default_value": null,
+                        "visibility_condition": null,
+                        "created_at": "2025-12-23T14:22:39.000000Z",
+                        "updated_at": "2025-12-23T14:22:39.000000Z",
+                        "field_type": {
+                            "id": 2,
+                            "name": "Email Input",
+                            "created_at": "2025-11-26T16:50:49.000000Z",
+                            "updated_at": "2025-11-26T16:50:49.000000Z",
+                            "field_type_filters": [
+                                {
+                                    "id": 2,
+                                    "field_type_id": 2,
+                                    "filter_method_description": "Email search (contains, equals, domain filter)",
+                                    "created_at": "2025-11-26T16:50:49.000000Z",
+                                    "updated_at": "2025-11-26T16:50:49.000000Z"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "id": 307,
+                    "entry_id": 81,
+                    "field_id": 1457,
+                    "value": "Sunday",
+                    "created_at": "2025-12-23T14:23:56.000000Z",
+                    "updated_at": "2025-12-23T14:23:56.000000Z",
+                    "field": {
+                        "id": 1457,
+                        "section_id": 369,
+                        "field_type_id": 10,
+                        "label": "Today's Date",
+                        "placeholder": "[\"Sunday\",\"Monday\",\"Tuesday\",\"Wednesday\",\"Thursday\",\"Friday\",\"Saturday\"]",
+                        "helper_text": "Select one option",
+                        "default_value": "Sunday",
+                        "visibility_condition": null,
+                        "created_at": "2025-12-23T14:22:39.000000Z",
+                        "updated_at": "2025-12-23T14:22:39.000000Z",
+                        "field_type": {
+                            "id": 10,
+                            "name": "Radio Button",
+                            "created_at": "2025-11-26T16:50:49.000000Z",
+                            "updated_at": "2025-11-26T16:50:49.000000Z",
+                            "field_type_filters": [
+                                {
+                                    "id": 10,
+                                    "field_type_id": 10,
+                                    "filter_method_description": "Select from available options",
+                                    "created_at": "2025-11-26T16:50:49.000000Z",
+                                    "updated_at": "2025-11-26T16:50:49.000000Z"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "id": 308,
+                    "entry_id": 81,
+                    "field_id": 1448,
+                    "value": "1",
+                    "created_at": "2025-12-23T14:25:18.000000Z",
+                    "updated_at": "2025-12-23T14:25:18.000000Z",
+                    "field": {
+                        "id": 1448,
+                        "section_id": 366,
+                        "field_type_id": 9,
+                        "label": "Let's continue If you Agree to the data in the previous stage",
+                        "placeholder": null,
+                        "helper_text": null,
+                        "default_value": null,
+                        "visibility_condition": null,
+                        "created_at": "2025-12-23T13:51:12.000000Z",
+                        "updated_at": "2025-12-23T13:51:12.000000Z",
+                        "field_type": {
+                            "id": 9,
+                            "name": "Checkbox",
+                            "created_at": "2025-11-26T16:50:49.000000Z",
+                            "updated_at": "2025-11-26T16:50:49.000000Z",
+                            "field_type_filters": [
+                                {
+                                    "id": 9,
+                                    "field_type_id": 9,
+                                    "filter_method_description": "Boolean filter (checked, unchecked)",
+                                    "created_at": "2025-11-26T16:50:49.000000Z",
+                                    "updated_at": "2025-11-26T16:50:49.000000Z"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "pagination": {
+        "current_page": 1,
+        "last_page": 1,
+        "per_page": 10,
+        "total": 1
+    }
+}
