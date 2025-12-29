@@ -1,6 +1,6 @@
 /**
  * /src/features/entries/types.ts
- * 
+ *
  * Type definitions for the Entries feature.
  * Strongly typed interfaces for API requests, responses, and nested entities.
  */
@@ -133,17 +133,20 @@ export interface ListEntriesResponse {
 /**
  * Field filter structure for dynamic filtering
  * Supports multiple keys per field (e.g., value, type, operator)
- * 
+ *
  * Example:
  * {
  *   1454: { value: "charlie", type: "contains" },
  *   1455: { value: "miller" }
  * }
- * 
+ *
  * Will be serialized to query params as:
  * field_filters[1454][value]=charlie&field_filters[1454][type]=contains&field_filters[1455][value]=miller
  */
-export type FieldFilters = Record<number, Record<string, string | number | boolean>>;
+export type FieldFilters = Record<
+  number,
+  Record<string, string | number | boolean | string[] | number[]>
+>;
 
 /**
  * Query parameters for listing entries

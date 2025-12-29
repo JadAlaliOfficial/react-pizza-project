@@ -45,6 +45,7 @@ export interface FieldConfig {
   label: string;
   placeholder?: string;
   helperText?: string;
+  options?: string[];
 }
 
 /**
@@ -186,13 +187,18 @@ const FieldFiltersContainer: React.FC<FieldFiltersContainerProps> = ({
     // Get initial filter data for this field
     const initialFilter = fieldFilters.get(field.fieldId);
 
+    const AnyFilter = FilterComponent as any;
+
     return (
       <div key={field.fieldId} className="field-filter-item">
-        <FilterComponent
+        <AnyFilter
           fieldId={field.fieldId}
           fieldLabel={field.label}
           onFilterChange={handleFilterChange}
           initialFilter={initialFilter}
+          placeholder={field.placeholder}
+          helperText={field.helperText}
+          options={field.options} // ✅ this is what Radio/Dropdown needs
         />
       </div>
     );
@@ -343,12 +349,34 @@ export function extractFieldConfigs(
     helper_text?: string | null;
   }>,
 ): FieldConfig[] {
+  const parseOptions = (placeholder?: string | null): string[] | undefined => {
+    if (!placeholder) return undefined;
+
+    const trimmed = placeholder.trim();
+    if (!trimmed.startsWith('[')) return undefined;
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (!Array.isArray(parsed)) return undefined;
+
+      const cleaned = parsed
+        .filter((v) => typeof v === 'string')
+        .map((v) => v.trim())
+        .filter(Boolean);
+
+      return cleaned.length ? cleaned : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
   return apiFields.map((field) => ({
     fieldId: field.id,
     fieldTypeId: field.field_type_id,
     label: field.label,
     placeholder: field.placeholder || undefined,
     helperText: field.helper_text || undefined,
+    options: parseOptions(field.placeholder), // ✅ Radio/Dropdown gets options here
   }));
 }
 

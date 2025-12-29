@@ -18,6 +18,8 @@ import type {
   TextFilterData,
 } from '../../utils/filterRegistry';
 
+export type { TextFilterData };
+
 const DEFAULT_TYPE: TextFilterData['type'] = 'contains';
 
 const TextFilter: React.FC<FilterComponentProps<TextFilterData>> = ({

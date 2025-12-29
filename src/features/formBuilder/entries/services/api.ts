@@ -1,11 +1,15 @@
 /**
  * /src/features/entries/entriesService.ts
- * 
+ *
  * API service layer for entries endpoints.
  * Handles HTTP communication, token injection, error normalization, and query param serialization.
  */
 
-import axios, { type AxiosInstance, AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  type AxiosInstance,
+  AxiosError,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 import {
   type EntriesListQuery,
   type ListEntriesResponse,
@@ -49,7 +53,7 @@ const logger = {
 /**
  * Retrieves authentication token from Redux store or fallback storage.
  * Prioritizes Redux state, falls back to tokenStorage utility.
- * 
+ *
  * @returns Auth token or null if unavailable
  */
 const getAuthToken = (): string | null => {
@@ -57,7 +61,7 @@ const getAuthToken = (): string | null => {
     // First attempt: Redux store
     const state = store.getState();
     const reduxToken = state.auth?.token;
-    
+
     if (reduxToken) {
       logger.info('Token retrieved from Redux store');
       return reduxToken;
@@ -66,7 +70,7 @@ const getAuthToken = (): string | null => {
     // Fallback: Token storage utility
     logger.warn('Redux token unavailable, falling back to tokenStorage');
     const storageToken = loadToken();
-    
+
     if (storageToken) {
       logger.info('Token retrieved from storage');
       return storageToken;
@@ -87,14 +91,17 @@ const getAuthToken = (): string | null => {
 /**
  * Normalizes Axios errors into a consistent, predictable shape.
  * Handles network errors, HTTP errors, and unexpected exceptions.
- * 
+ *
  * @param error - The error to normalize
  * @returns Normalized error object
  */
 export const normalizeError = (error: unknown): NormalizedError => {
   // Handle Axios-specific errors
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ message?: string; error?: string }>;
+    const axiosError = error as AxiosError<{
+      message?: string;
+      error?: string;
+    }>;
 
     // Network error (no response received)
     if (!axiosError.response) {
@@ -104,7 +111,8 @@ export const normalizeError = (error: unknown): NormalizedError => {
       });
 
       return {
-        message: 'Network error: Unable to reach the server. Please check your connection.',
+        message:
+          'Network error: Unable to reach the server. Please check your connection.',
         isNetworkError: true,
         details: {
           code: axiosError.code,
@@ -115,7 +123,8 @@ export const normalizeError = (error: unknown): NormalizedError => {
 
     // HTTP error (response received with error status)
     const { status, data } = axiosError.response;
-    const errorMessage = data?.message || data?.error || axiosError.message || 'An error occurred';
+    const errorMessage =
+      data?.message || data?.error || axiosError.message || 'An error occurred';
 
     // Handle authentication errors explicitly
     if (status === 401) {
@@ -130,7 +139,8 @@ export const normalizeError = (error: unknown): NormalizedError => {
     if (status === 403) {
       logger.error('Access forbidden (403)');
       return {
-        message: 'Access denied. You do not have permission to perform this action.',
+        message:
+          'Access denied. You do not have permission to perform this action.',
         statusCode: 403,
         details: data,
       };
@@ -176,24 +186,36 @@ export const normalizeError = (error: unknown): NormalizedError => {
 
 /**
  * Serializes field filters into the required query param format.
- * 
+ *
  * Converts:
  * { 1454: { value: "charlie", type: "contains" } }
- * 
+ *
  * Into:
  * field_filters[1454][value]=charlie&field_filters[1454][type]=contains
- * 
+ *
  * @param fieldFilters - The field filters object
  * @param params - URLSearchParams instance to append to
  */
 const serializeFieldFilters = (
   fieldFilters: FieldFilters,
-  params: URLSearchParams
+  params: URLSearchParams,
 ): void => {
   Object.entries(fieldFilters).forEach(([fieldId, filters]) => {
     Object.entries(filters).forEach(([key, value]) => {
-      // Convert boolean to string for API compatibility
-      const stringValue = typeof value === 'boolean' ? (value ? '1' : '0') : String(value);
+      // ✅ Arrays must become: field_filters[id][key][]=v1&...[]=vN
+      if (Array.isArray(value)) {
+        value.forEach((item) => {
+          const stringValue =
+            typeof item === 'boolean' ? (item ? '1' : '0') : String(item);
+
+          params.append(`field_filters[${fieldId}][${key}][]`, stringValue);
+        });
+        return;
+      }
+
+      const stringValue =
+        typeof value === 'boolean' ? (value ? '1' : '0') : String(value);
+
       params.append(`field_filters[${fieldId}][${key}]`, stringValue);
     });
   });
@@ -202,7 +224,7 @@ const serializeFieldFilters = (
 /**
  * Builds query parameters for the list entries endpoint.
  * Handles nested field_filters and proper boolean serialization.
- * 
+ *
  * @param query - The query object
  * @returns URLSearchParams ready for the request
  */
@@ -253,7 +275,7 @@ const createAxiosInstance = (): AxiosInstance => {
     timeout: API_TIMEOUT,
     headers: {
       'Content-Type': import.meta.env.VITE_API_CONTENT_TYPE,
-      'Accept': import.meta.env.VITE_API_ACCEPT,
+      Accept: import.meta.env.VITE_API_ACCEPT,
     },
   });
 
@@ -270,15 +292,15 @@ const createAxiosInstance = (): AxiosInstance => {
 
       // Inject Bearer token (do NOT log the actual token value)
       config.headers.Authorization = `Bearer ${token}`;
-      
+
       logger.info(`Request: ${config.method?.toUpperCase()} ${config.url}`);
-      
+
       return config;
     },
     (error) => {
       logger.error('Request interceptor error:', error);
       return Promise.reject(error);
-    }
+    },
   );
 
   // Response interceptor: Log successful responses
@@ -291,7 +313,7 @@ const createAxiosInstance = (): AxiosInstance => {
       // Normalize and log errors (will be handled by caller)
       logger.error('Response error intercepted');
       return Promise.reject(error);
-    }
+    },
   );
 
   return instance;
@@ -306,12 +328,12 @@ const apiClient = createAxiosInstance();
 
 /**
  * Fetches a paginated list of entries with optional filters.
- * 
+ *
  * @param query - Query parameters including pagination, filters, and form_version_id
  * @returns Promise resolving to the list of entries with pagination metadata
  * @throws {AuthTokenError} When authentication token is missing
  * @throws {NormalizedError} For network or HTTP errors
- * 
+ *
  * @example
  * const response = await listEntries({
  *   page: 1,
@@ -325,7 +347,7 @@ const apiClient = createAxiosInstance();
  * });
  */
 export const listEntries = async (
-  query: EntriesListQuery
+  query: EntriesListQuery,
 ): Promise<ListEntriesResponse> => {
   try {
     logger.info('Fetching entries list', { query });
@@ -342,7 +364,7 @@ export const listEntries = async (
     });
 
     logger.info(`Successfully fetched ${response.data.data.length} entries`);
-    
+
     return response.data;
   } catch (error) {
     // Normalize error and re-throw for handling by Redux thunk
